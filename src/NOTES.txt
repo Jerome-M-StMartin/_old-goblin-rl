@@ -1,0 +1,5 @@
+NOW:
+- Refactirung RLTK Tutorial Ch.7 Base Code
+
+LATER:
+- Implement Orthogonal/Diagonal switch-enabled pathfinding.
