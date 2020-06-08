@@ -1,39 +1,67 @@
 use specs::prelude::*;
-use super::{CombatStats, WantsToMelee, Name, Damage, gamelog::GameLog};
+use super::{Stats, MeleeIntent, Name, DamageOnUse, DamageQueue, Equipped, gamelog::GameLog};
 
 pub struct MeleeCombatSystem {}
 
 impl<'a> System<'a> for MeleeCombatSystem {
     type SystemData = ( Entities<'a>,
-                        WriteStorage<'a, WantsToMelee>,
+                        WriteStorage<'a, MeleeIntent>,
                         ReadStorage<'a, Name>,
-                        ReadStorage<'a, CombatStats>,
-                        WriteStorage<'a, Damage>,
+                        ReadStorage<'a, Stats>,
+                        WriteStorage<'a, DamageQueue>,
+                        ReadStorage<'a, DamageOnUse>,
+                        ReadStorage<'a, Equipped>,
                         WriteExpect<'a, GameLog>
                       );
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut wants_melee, names, combat_stats, mut damage_queue, mut log) = data;
+        let (entities, mut melee_intent, names, stats,
+            mut damage_queue, inflicts_damage, equipped, mut log) = data;
 
-        for (_entity, wants_melee, name, stats) in
-        (&entities, &wants_melee, &names, &combat_stats,).join() {
+        //Weapon damage is changing to an Apply-On-Equip implementation;
+        //when a weapon is equipped it applies its Primary bonus once to a Melee component.
+        //Attack-Mode can be changed from a menu option.
+
+        //Attach a  MeleeIntent component to all ents equipped to a creature with MeleeIntent.
+        let mut relevant_equippables = Vec::<(Entity, Entity)>::new();
+        for (entity, equipment, _inf_dmg, ()) in
+            (&entities, &equipped, &inflicts_damage, !&melee_intent).join() {  
             
-            if stats.hp > 0 {
-                 let target_stats = combat_stats.get(wants_melee.target).unwrap();
-                    
-                if target_stats.hp > 0 {   
-                    let target_name = names.get(wants_melee.target).unwrap();
-                    let damage = i32::max(0, stats.power - target_stats.defense);
-                    
-                    if damage == 0 {
-                        log.entries.push(format!("{} is unable to hurt {}", &name.name, target_name.name));
-                    } else {
-                        Damage::new_damage(&mut damage_queue, wants_melee.target, damage);
-                        log.entries.push(format!("{} deals {} DMG to {}!", &name.name, &damage, target_name.name));
-                    }
-                }
+            let intent = &melee_intent.get(equipment.owner);
+            if let Some(intent) = intent {
+                relevant_equippables.push((entity, intent.target));
             }
         }
+        for (ent, tgt) in relevant_equippables.iter() {
+            melee_intent.insert(*ent, MeleeIntent {target: *tgt})
+                .expect("MeleeIntent insertion failed.");
+        }
+        
+        //Queue dmg from all living entities with MeleeIntent.
+        for (entity, melee_intent, inflicts_damage, _name) in
+            (&entities, &melee_intent, &inflicts_damage, &names).join() { 
             
-        wants_melee.clear();
+            //if current entity is an equipment, return if its owner is dead
+            let equipment = equipped.get(entity);
+            if let Some(equipment) = equipment {
+                if stats.get(equipment.owner).unwrap().hp <= 0 {return;}
+            } else { //curr ent is creature; return if dead
+                if stats.get(entity).unwrap().hp <= 0 {return;}
+            }
+
+            let target = melee_intent.target;
+            let t_stats = stats.get(target).unwrap();
+
+            if t_stats.hp > 0 {   
+                let target_name = names.get(melee_intent.target).unwrap();
+                
+                for dmg_atom in inflicts_damage.dmg_atoms.iter() {
+                    DamageQueue::queue_damage(&mut damage_queue, target, *dmg_atom);
+                    /*log.entries.push(format!("{} deals {:?} Damage to {}",
+                            &name.name, &dmg_atom, &target_name.name));*/
+                } 
+            }
+        }
+        
+        melee_intent.clear();
     }
 }

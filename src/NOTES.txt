@@ -1,5 +1,60 @@
-NOW:
-- Refactirung RLTK Tutorial Ch.7 Base Code
+05/30/2020 - Typed Damage Solo-Implementation
 
-LATER:
-- Implement Orthogonal/Diagonal switch-enabled pathfinding.
+- Damage System: (had open: melee_combat_system, inventory system, components)
+Equippables need to use entirely separate component than damaging items
+because the InflictsDamage component is used to determine if a used_item will
+damage its target. Equipping an item causes it to target its owner, so
+equipping a Knife with an InflictsDamage component causes damage to the
+equipper! Bad! Perhapse weapon damage can be stored in a Weapon component?
+
+- Resistances:
+Create and test item that grants Resistances, both a Consumable and an Equippable.
+
+- AP System:
+This is a big one. I'd like to implement an AP system where a character may
+"pass" their turn at any time, but may only take actions for which they have
+sufficient AP. At 0 AP, autopass.
+
+- Fuzzy Death & Party Mechanics
+Another big one. Allow multiple player characters (adventuring party) and when
+they reach zero HP they fall unconscious but they only die after reaching 0 in
+all of HP and FP.
+-------------------------------------------------------------------------------
+
+DESIGN PILLARS:
+- Typed Damage/Resistances/Immunities
+- Multiple Attack Modes per Weapon(i.e. Knife can be use to Stab, Cut, or
+  Pommel-bludgeon).
+- Universal Context-Menu!
+- Language-based user-customizable spellcasting!
+- Party-Based Singleplayer stretcg_goal(& Multiplayer)!
+
+PLAN:
+- Refactor & implement features as they interest me, look back to RLTK
+  Tutorial for inspiration & implementation proof-of-concepts.
+
+BUGS:
+- 
+
+COMPLETED PLAN STEPS:
+- Read/Understand the Specs Book (2x)
+
+AT THE END I WILL HAVE...:
+- Lovingly Tended to my Cultivation of Focus
+- Tended to the growth of my Discipline
+- Learned much about Rust
+- Learned much about ECS Architecture
+- Learned much about Game Dev
+- Learned much abour Roguelikes
+- Gained Skill with VIM
+- Gained Skil with working from the Linux Terminal.
+------------------------------------------------------------------------------
+
+DESIGN NOTES:
+- Damage & MeleeIntent: Damage is particulate, the smallest quantity being a
+  DamageAtom enum which holds exactly one of several damage types and a value.
+	MeleeIntent is added first to a creature that wants to attack, then
+	the intent propogates to that creature's equipment. Behind the scenes,
+	each item individually applies its own damage. They are agregated into
+	a Vec<DamageAtom> before being filtered by Resistances and applied to
+	the MeleeIntent target' stats.

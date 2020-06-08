@@ -1,6 +1,6 @@
 use specs::prelude::*;
-use super::{Viewshed, Monster, Map, Position, WantsToMelee, RunState};
-use rltk::{Point, console};
+use super::{Viewshed, Monster, Map, Position, MeleeIntent, RunState, Confusion};
+use rltk::{Point};
 
 pub struct MonsterAI {}
 
@@ -14,33 +14,48 @@ impl<'a> System<'a> for MonsterAI { // 'a syntax is var name for a "lifetime"
                         WriteStorage<'a, Viewshed>,
                         ReadStorage<'a, Monster>,
                         WriteStorage<'a, Position>,
-                        WriteStorage<'a, WantsToMelee> );
+                        WriteStorage<'a, MeleeIntent>,
+                        WriteStorage<'a, Confusion> );
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, player_pos, player_entity, runstate, entities,
-             mut viewshed, monster, mut position, mut wants_to_melee) = data;
+             mut viewshed, monster, mut position, mut melee_intent, mut confusion) = data;
        
         if *runstate != RunState::MonsterTurn { return; }
 
         for (entity, mut viewshed, _monster, mut pos) in (&entities, &mut viewshed, &monster, &mut position).join() { 
-            let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
-            if distance <= 1.0 {
-                wants_to_melee.insert(entity, WantsToMelee{ target: *player_entity }).expect("Uname to insert attack.");
-            } else if viewshed.visible_tiles.contains(&*player_pos) {
-                let path = rltk::a_star_search( //path to player
-                    map.xy_idx(pos.x, pos.y),
-                    map.xy_idx(player_pos.x, player_pos.y),
-                    &*map
-                );
+            let mut can_act = true;
 
-                if path.success && path.steps.len() > 1 {
-                    let mut idx = map.xy_idx(pos.x, pos.y);
-                    map.blocked[idx] = false;
-                    pos.x = path.steps[1] as i32 % map.width;
-                    pos.y = path.steps[1] as i32 / map.width;
-                    idx = map.xy_idx(pos.x, pos.y);
-                    map.blocked[idx] = true;
-                    viewshed.dirty = true;
+            let is_confused = confusion.get_mut(entity);
+            if let Some(confused_creature) = is_confused {
+                confused_creature.turns -= 1;
+                if confused_creature.turns < 1 {
+                    confusion.remove(entity);
+                }
+                can_act = false;
+            }
+
+            if can_act {
+                let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+                if distance <= 1.5 {
+                    melee_intent.insert(entity, MeleeIntent{ target: *player_entity })
+                        .expect("Uname to insert attack.");
+                } else if viewshed.visible_tiles.contains(&*player_pos) {
+                    let path = rltk::a_star_search( //path to player
+                        map.xy_idx(pos.x, pos.y),
+                        map.xy_idx(player_pos.x, player_pos.y),
+                        &*map
+                    );
+
+                    if path.success && path.steps.len() > 1 {
+                        let mut idx = map.xy_idx(pos.x, pos.y);
+                        map.blocked[idx] = false;
+                        pos.x = path.steps[1] as i32 % map.width;
+                        pos.y = path.steps[1] as i32 / map.width;
+                        idx = map.xy_idx(pos.x, pos.y);
+                        map.blocked[idx] = true;
+                        viewshed.dirty = true;
+                    }
                 }
             }
         }

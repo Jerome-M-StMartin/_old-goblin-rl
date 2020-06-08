@@ -2,18 +2,20 @@ use rltk::{RGB, Rltk, RandomNumberGenerator, BaseMap, Algorithm2D, Point};
 use super::{Rect};
 use std::cmp::{max, min};
 use specs::prelude::*;
+use serde::{Serialize, Deserialize};
 
 pub const MAPWIDTH: usize = 80;
 pub const MAPHEIGHT: usize = 43;
 pub const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum TileType {
     Wall,
-    Floor
+    Floor,
+    StairsDown
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
     pub tiles : Vec<TileType>,
     pub rooms : Vec<Rect>,
@@ -22,6 +24,10 @@ pub struct Map {
     pub revealed_tiles : Vec<bool>,
     pub visible_tiles : Vec<bool>,
     pub blocked : Vec<bool>,
+    pub depth: i32,
+
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
     pub tile_content: Vec<Vec<Entity>>
 }
 
@@ -76,7 +82,7 @@ impl Map {
         }
     }
 
-    pub fn new_map_rooms_and_corridors() -> Map { // constructor
+    pub fn new_map_rooms_and_corridors(new_depth: i32) -> Map { // constructor
         let mut map = Map {
             tiles : vec![TileType::Wall; MAPCOUNT],
             rooms: Vec::new(),
@@ -85,6 +91,7 @@ impl Map {
             revealed_tiles: vec![false; MAPCOUNT],
             visible_tiles: vec![false; MAPCOUNT],
             blocked: vec![false; MAPCOUNT],
+            depth: new_depth,
             tile_content: vec![Vec::new(); MAPCOUNT]
         };
 
@@ -122,6 +129,10 @@ impl Map {
                 map.rooms.push(new_room);
             }
         }
+        
+        let stairs_pos = map.rooms[map.rooms.len() - 1].center();
+        let stairs_idx = map.xy_idx(stairs_pos.0, stairs_pos.1);
+        map.tiles[stairs_idx] = TileType::StairsDown;
 
         map
     }
@@ -183,6 +194,10 @@ pub fn draw_map(ecs: &World, ctx : &mut Rltk) {
                 TileType::Wall => {
                     glyph = rltk::to_cp437('#');
                     fg = RGB::from_f32(0., 1.0, 0.);
+                }
+                TileType::StairsDown => {
+                    glyph = rltk::to_cp437('>');
+                    fg = RGB::from_f32(0., 1.0, 1.0);
                 }
             }
             if !map.visible_tiles[idx] { fg = fg.to_greyscale() }

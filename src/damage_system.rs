@@ -1,34 +1,90 @@
 use specs::prelude::*;
-use super::{CombatStats, Damage, Player, Name, gamelog::GameLog};
+use std::cmp::max;
+use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
+            Resistances, ResistanceDeltas};
 
 pub struct DamageSystem {}
 
 impl<'a> System<'a> for DamageSystem {
-    type SystemData = ( WriteStorage<'a, CombatStats>,
-                        WriteStorage<'a, Damage> );
+    type SystemData = ( ReadStorage<'a, Name>,
+                        WriteStorage<'a, Stats>,
+                        WriteStorage<'a, DamageQueue>,
+                        WriteStorage<'a, Resistances>,
+                        WriteStorage<'a, ResistanceDeltas>,
+                        WriteExpect<'a, GameLog> );
 
     fn run (&mut self, data: Self::SystemData) {
-        let (mut stats, mut damage) = data;
-
-        for (mut stats, damage) in (&mut stats, &damage).join() {
-            stats.hp -= damage.amount.iter().sum::<i32>();
-        }
+        let (names, mut stats, mut damage_queues, mut resistances, mut resistance_deltas, mut log) = data;
         
-        damage.clear();
+        //If there have been resistance changes, apply them.
+        for (res, res_deltas) in (&mut resistances, &mut resistance_deltas).join() { 
+            for i in 0..res_deltas.queue.len() {
+                let resistance = res_deltas.queue[i];
+                match resistance {
+                    DamageAtom::Bludgeon(val) => {
+                        res.bludgeon = DamageAtom::Bludgeon(res.bludgeon.value() + val); },
+                    DamageAtom::Pierce(val) => {
+                        res.pierce = DamageAtom::Pierce(res.pierce.value() + val); },
+                    DamageAtom::Slash(val) => {
+                        res.slash = DamageAtom::Slash(res.slash.value() + val); },
+                    DamageAtom::Thermal(val) => {
+                        res.thermal = DamageAtom::Thermal(res.thermal.value() + val); }
+                }
+            }
+        }
+        resistance_deltas.clear();
+        
+        //Apply resistanes to dmg_queue and dmg_queue to stats.
+        for (name, stats, d_q, res) in
+            (&names, &mut stats, &mut damage_queues, (&resistances).maybe()).join() {
+            
+            //If this entity has resistances, apply them to damage_queue
+            if let Some(resistance) = res { 
+                for i in 0..d_q.queue.len() {
+                    let d_atom = &d_q.queue[i];
+                    match d_atom {
+                        DamageAtom::Bludgeon(val) => {
+                            d_q.queue[i] = DamageAtom::Bludgeon(val - resistance.bludgeon.value()); },
+                        DamageAtom::Pierce(val) => {
+                            d_q.queue[i] = DamageAtom::Pierce(val - resistance.pierce.value()); },
+                        DamageAtom::Slash(val) => {
+                            d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value()); },
+                        DamageAtom::Thermal(val) => {
+                            d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value()); }
+                    }
+                }
+            }
+            
+            //Apply DamageAtoms in damage_queue to stats
+            let mut total_dmg: i32 = 0;
+            let damage_iter = d_q.queue.iter();
+            for dmg in damage_iter {
+                match dmg {
+                    DamageAtom::Pierce(dmg) => total_dmg += dmg,
+                    DamageAtom::Slash(dmg) => total_dmg += dmg,
+                    DamageAtom::Bludgeon(dmg) => total_dmg += dmg,
+                    DamageAtom::Thermal(dmg) => total_dmg += dmg
+                }
+            }
+            stats.hp = max(0, stats.hp - total_dmg);
+            log.entries.push(format!("{} suffers {} damage.", &name.name, total_dmg));
+        }
+
+        damage_queues.clear()
     }
 }
 
 pub fn delete_the_dead(ecs: &mut World) {
     let mut dead: Vec<Entity> = Vec::new();
     
-    { //scope in for borrow checker (seems like bad form ???)
-        let combat_stats = ecs.read_storage::<CombatStats>();
+    { //scope in for borrow checker
+        let stats = ecs.read_storage::<Stats>();
         let players = ecs.read_storage::<Player>();
         let entities = ecs.entities();
         let names = ecs.read_storage::<Name>();
         let mut log = ecs.write_resource::<GameLog>();
 
-        for (entity, stats) in (&entities, &combat_stats).join() {
+        for (entity, stats) in (&entities, &stats).join() {
             if stats.hp < 1 {
                 let player = players.get(entity);
                 match player {

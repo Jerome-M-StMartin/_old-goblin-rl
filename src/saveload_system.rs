@@ -39,7 +39,7 @@ pub fn does_save_exist() -> bool {
     Path::new("./savegame.json").exists()
 }
 
-#[cfg(not(target_arch = "wasm32"))] //macro prevents saving in web assembly since it's sandboxed anyway.
+#[cfg(not(target_arch = "wasm32"))] //macro to prevent saving in web assembly since it's sandboxed anyway.
 pub fn save_game(ecs : &mut World) {
     // Create helper
     let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
@@ -56,9 +56,9 @@ pub fn save_game(ecs : &mut World) {
         let writer = File::create("./savegame.json").unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
         serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster, 
-            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
-            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper
+            Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
+            AoE, Confusion, Heals, InBackpack, PickUpIntent, UseItemIntent,
+            DropItemIntent, EquipIntent, Equippable, Equipped, /*EquippedMap,*/ Weapon, SerializationHelper
         );
     }
 
@@ -89,9 +89,9 @@ pub fn load_game(ecs: &mut World) {
                      &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>());
 
         deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Monster, 
-            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
-            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper
+            Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
+            AoE, Confusion, Heals, InBackpack, PickUpIntent, UseItemIntent,
+            DropItemIntent, EquipIntent, Equippable, Equipped, /*EquippedMap,*/ Weapon, SerializationHelper
         );
     }
 
