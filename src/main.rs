@@ -1,6 +1,6 @@
 extern crate serde;
 
-use rltk::{GameState, Rltk, Point};
+use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 mod components;
@@ -28,8 +28,11 @@ mod inventory_system;
 use inventory_system::ItemCollectionSystem;
 use inventory_system::ItemUseSystem;
 use inventory_system::ItemDropSystem;
+mod equip_system;
+use equip_system::EquipSystem;
 pub mod saveload_system;
 mod random_table;
+mod c_menu_system;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { 
@@ -37,7 +40,7 @@ pub enum RunState {
     PreRun,
     PlayerTurn,
     MonsterTurn,
-    ShowInventory,
+    ShowInventory { focus: gui::InventoryFocus },
     ShowDropItem,
     ShowTargeting{range: i32, item: Entity},
     MainMenu {menu_selection: gui::MainMenuSelection},
@@ -47,6 +50,7 @@ pub enum RunState {
 
 pub struct State {
     pub ecs: World,
+    pub tooltips_on: bool,
 }
 
 impl State {
@@ -65,6 +69,8 @@ impl State {
         pick_up.run_now(&self.ecs);
         let mut items = ItemUseSystem{};
         items.run_now(&self.ecs);
+        let mut equips = EquipSystem{};
+        equips.run_now(&self.ecs);
         let mut drop_items = ItemDropSystem{};
         drop_items.run_now(&self.ecs);
         self.ecs.maintain();
@@ -143,6 +149,12 @@ impl GameState for State {
         {
             let runstate = self.ecs.fetch::<RunState>();
             newrunstate = *runstate;
+           
+            //reset cursor to inactive state
+            if *runstate != RunState::AwaitingInput {
+                let mut cursor = self.ecs.fetch_mut::<Cursor>();
+                cursor.active = false;
+            }
         }
 
         ctx.cls(); //clearscreen
@@ -164,8 +176,17 @@ impl GameState for State {
                         let idx = map.xy_idx(pos.x, pos.y);
                         if map.visible_tiles[idx] {ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
                     }
+                    
+                    match ctx.key {
+                        None => {}
+                        Some(key) => match key {
+                            VirtualKeyCode::T =>
+                                self.tooltips_on = !self.tooltips_on,
+                            _ => {}
+                        }
+                    }
 
-                    gui::draw_ui(&self.ecs, ctx);
+                    gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
                 }
             }
         }
@@ -180,6 +201,7 @@ impl GameState for State {
                 newrunstate = player_input(self, ctx);
             }
             RunState::PlayerTurn => {
+
                 self.run_systems();
                 self.ecs.maintain();
                 newrunstate = RunState::MonsterTurn;
@@ -192,6 +214,7 @@ impl GameState for State {
             RunState::ShowDropItem => {
                 let result = gui::drop_item_menu(self, ctx);
                 match result.0 {
+                    gui::ItemMenuResult::ChangeFocus => {}
                     gui::ItemMenuResult::NoResponse => {}
                     gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::ItemMenuResult::Selected => {
@@ -203,24 +226,26 @@ impl GameState for State {
                     }
                 }
             }
-            RunState::ShowInventory => {
-                let result = gui::show_inventory(self, ctx);
+            RunState::ShowInventory {focus} => {
+                let result = gui::show_inventory(self, ctx, focus);
 
                 match result.0 {
                     gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::ChangeFocus => 
+                        newrunstate = RunState::ShowInventory{focus: result.1.unwrap()},
                     gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::ItemMenuResult::Selected => {
-                        let item_entity = result.1.unwrap();
-                        
+                        let item_entity = result.2.unwrap();
                         let is_ranged = self.ecs.read_storage::<Ranged>();
                         let ranged_item = is_ranged.get(item_entity);
+                        
                         if let Some(ranged_item) = ranged_item {
                             newrunstate = RunState::ShowTargeting {range: ranged_item.range, item: item_entity};
                         } else {
                             let mut intent = self.ecs.write_storage::<UseItemIntent>();
                             intent.insert(*self.ecs.fetch::<Entity>(),
                                 UseItemIntent {item: item_entity, target: None})
-                                .expect("Unable to insert intent."); 
+                                .expect("Unable to insert UseItemIntent."); 
                             newrunstate = RunState::PlayerTurn;
                         }
                     }
@@ -229,12 +254,13 @@ impl GameState for State {
             RunState::ShowTargeting {range, item} => {
                 let result = gui::ranged_target(self, ctx, range);
                 match result.0 {
+                    gui::ItemMenuResult::ChangeFocus => {}
                     gui::ItemMenuResult::NoResponse => {}
                     gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::ItemMenuResult::Selected => {
                         let mut intent = self.ecs.write_storage::<UseItemIntent>();
                         intent.insert(*self.ecs.fetch::<Entity>(), UseItemIntent {item, target: result.1})
-                            .expect("Unable to insert intent.");
+                            .expect("Unable to insert UseItemIntent.");
                         newrunstate = RunState::PlayerTurn;
                     }
                 }
@@ -275,15 +301,24 @@ impl GameState for State {
     }
 }
 
+struct Cursor { 
+    pub x: i32, 
+    pub y: i32,
+    pub active: bool
+}
+
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
     let mut context = RltkBuilder::simple80x50()
-        .with_title("Full OSP")
+        .with_title("Wizard of the Old Tongue")
         .build()?;
 
     context.with_post_scanlines(true);
 
-    let mut gs = State { ecs: World::new() };
+    let mut gs = State {
+        ecs: World::new(),
+        tooltips_on: false,
+    };
 
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -310,22 +345,19 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Equippable>();
     gs.ecs.register::<Equipped>();
     gs.ecs.register::<Resistances>();
-    gs.ecs.register::<ResistanceDeltas>();
     gs.ecs.register::<Weapon>();
-    gs.ecs.register::<Unequipped>();
-    gs.ecs.register::<EquippedMap>();
     gs.ecs.register::<EquipIntent>();
+    gs.ecs.register::<UnequipIntent>();
+    gs.ecs.register::<BasicAttack>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+    gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
     let map : Map = Map::new_map_rooms_and_corridors(1);
-    let (player_x, player_y) = map.rooms[0].center();
-    
+    let (player_x, player_y) = map.rooms[0].center(); 
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
-
-    gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
     for room in map.rooms.iter().skip(1) {
         spawner::spawn_room(&mut gs.ecs, room, 1);
@@ -336,9 +368,10 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(gamelog::GameLog {
-        entries: vec!["The Wandering Wood Moves With The Passing of One's Peripheral Gaze".to_string()]});
+        entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
-
+ 
+    gs.ecs.insert(Cursor { x: player_x, y: player_y, active: false });
 
     rltk::main_loop(context, gs)
 }

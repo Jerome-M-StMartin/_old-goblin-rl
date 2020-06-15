@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use std::cmp::max;
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
-            Resistances, ResistanceDeltas};
+            Resistances};
 
 pub struct DamageSystem {}
 
@@ -9,30 +9,11 @@ impl<'a> System<'a> for DamageSystem {
     type SystemData = ( ReadStorage<'a, Name>,
                         WriteStorage<'a, Stats>,
                         WriteStorage<'a, DamageQueue>,
-                        WriteStorage<'a, Resistances>,
-                        WriteStorage<'a, ResistanceDeltas>,
+                        ReadStorage<'a, Resistances>,
                         WriteExpect<'a, GameLog> );
 
     fn run (&mut self, data: Self::SystemData) {
-        let (names, mut stats, mut damage_queues, mut resistances, mut resistance_deltas, mut log) = data;
-        
-        //If there have been resistance changes, apply them.
-        for (res, res_deltas) in (&mut resistances, &mut resistance_deltas).join() { 
-            for i in 0..res_deltas.queue.len() {
-                let resistance = res_deltas.queue[i];
-                match resistance {
-                    DamageAtom::Bludgeon(val) => {
-                        res.bludgeon = DamageAtom::Bludgeon(res.bludgeon.value() + val); },
-                    DamageAtom::Pierce(val) => {
-                        res.pierce = DamageAtom::Pierce(res.pierce.value() + val); },
-                    DamageAtom::Slash(val) => {
-                        res.slash = DamageAtom::Slash(res.slash.value() + val); },
-                    DamageAtom::Thermal(val) => {
-                        res.thermal = DamageAtom::Thermal(res.thermal.value() + val); }
-                }
-            }
-        }
-        resistance_deltas.clear();
+        let (names, mut stats, mut damage_queues, resistances, mut log) = data;
         
         //Apply resistanes to dmg_queue and dmg_queue to stats.
         for (name, stats, d_q, res) in

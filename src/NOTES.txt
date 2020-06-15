@@ -1,29 +1,23 @@
-05/30/2020 - Typed Damage Solo-Implementation
+Aeyohm
 
-- Damage System: (had open: melee_combat_system, inventory system, components)
-Equippables need to use entirely separate component than damaging items
-because the InflictsDamage component is used to determine if a used_item will
-damage its target. Equipping an item causes it to target its owner, so
-equipping a Knife with an InflictsDamage component causes damage to the
-equipper! Bad! Perhapse weapon damage can be stored in a Weapon component?
+- Context Menu Prototype
 
 - Resistances:
-Create and test item that grants Resistances, both a Consumable and an Equippable.
+Implement temp resistance boosts via barrier_scroll.
 
-- AP System:
-This is a big one. I'd like to implement an AP system where a character may
-"pass" their turn at any time, but may only take actions for which they have
-sufficient AP. At 0 AP, autopass.
+- Weapon Attack Mode Switching
 
-- Fuzzy Death & Party Mechanics
-Another big one. Allow multiple player characters (adventuring party) and when
-they reach zero HP they fall unconscious but they only die after reaching 0 in
-all of HP and FP.
 -------------------------------------------------------------------------------
+
+FLUFF NOTES:
+- Backpack as a uber-bag-of-holding, a godly gift bequeathed upon the hero at
+the beginning of the journey. "It's dangerous to go alone, take this:" ...
+"A... bag?" The bag is a named artifact: All Mother. "If you can lift it, All
+Mother can carry it."
 
 DESIGN PILLARS:
 - Typed Damage/Resistances/Immunities
-- Multiple Attack Modes per Weapon(i.e. Knife can be use to Stab, Cut, or
+- Multiple Attack Modes per Weapon(i.e. Knife can be used to Stab, Cut, or
   Pommel-bludgeon).
 - Universal Context-Menu!
 - Language-based user-customizable spellcasting!
@@ -34,20 +28,21 @@ PLAN:
   Tutorial for inspiration & implementation proof-of-concepts.
 
 BUGS:
-- 
+- "yen" symbol showing up as "crossed zero" symbol. Issue is in RLTK code. 
 
-COMPLETED PLAN STEPS:
-- Read/Understand the Specs Book (2x)
+FUTURE PERFORMANCE IMPROVEMENTS:
+- Separate EquipSystem from UnequipSystem so I can do a proper join without
+  iterating over all living entities each frame to look for
+  (EquipIntent).maybe() and (UnequipIntent).maybe().
 
 AT THE END I WILL HAVE...:
-- Lovingly Tended to my Cultivation of Focus
-- Tended to the growth of my Discipline
+- Lovingly Cultivated my Focus and Discipline
 - Learned much about Rust
 - Learned much about ECS Architecture
 - Learned much about Game Dev
-- Learned much abour Roguelikes
-- Gained Skill with VIM
-- Gained Skil with working from the Linux Terminal.
+- Learned much about Roguelikes
+- Learned much about VIM
+- Learned much about working from the Linux Terminal.
 ------------------------------------------------------------------------------
 
 DESIGN NOTES:
@@ -58,3 +53,17 @@ DESIGN NOTES:
 	each item individually applies its own damage. They are agregated into
 	a Vec<DamageAtom> before being filtered by Resistances and applied to
 	the MeleeIntent target' stats.
+
+
+SOLVED PROBLEMS:
+- THE GREAT MISUNDERSTANDING
+I have been assuming that UseIntent attaches to the Item entity, but in fact
+it attaches to the Creature entity who is using the item. 
+- IMPLEMENTING STATE INTO MENUS
+Appeared daunting but it turns out I have the skills to implement this. Now
+the inventory menu has two States: select items-in-backpack or select equipped
+items.
+- GLOBAL TOGGLE-ABLE TOOLTIPS
+Fell into the impossible attempt of trying to create a boolean toggle without
+initializing the variable out of scope.
+- WASD-CURSOR

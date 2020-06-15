@@ -5,7 +5,7 @@ use specs::saveload::{SimpleMarker, MarkedBuilder};
 use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Monster, BlocksTile, Rect,
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
-             EquipmentSlot};
+             EquipmentSlot, Weapon, BasicAttack, Resistances};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -29,7 +29,8 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
                      max_mp: 8,
                      mp: 8,
                      mind:1, body:1, soul:1})
-        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Bludgeon(2)]})
+        .with(BasicAttack::default())
+        .with(Resistances::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }
@@ -75,6 +76,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
             "Magic Missile Scroll" => magic_missile_scroll(ecs, x, y),
             "Scroll of Chitin" => barrier_scroll(ecs, x, y),
             "Knife" => knife(ecs, x, y),
+            "Leather Armor" => leather_armor(ecs, x, y),
             _ => {}
         }
     }
@@ -82,14 +84,15 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
 
 fn room_table(map_depth: i32) -> RandomTable {
     RandomTable::new()
-        .add("Goblin", 10)
+        .add("Goblin", 9)
         .add("Orc", 1 + map_depth)
-        .add("Health Potion", 5)
+        .add("Health Potion", 4)
         .add("Fireball Scroll", 1 + map_depth)
-        .add("Confusion Scroll", 1 + map_depth)
-        .add("Magic Missile Scroll", 4)
+        .add("Confusion Scroll", 0 + map_depth)
+        .add("Magic Missile Scroll", 2)
         .add("Scroll of Chitin", 0 + map_depth)
         .add("Knife", 6 - map_depth)
+        .add("Leather Armor", 6 - map_depth)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { monster(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -107,15 +110,12 @@ fn monster<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharTy
         .with(Monster {})
         .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
         .with(Name { name: name.to_string() })
-        .with(Stats {max_hp: 4,
-                     hp: 4,
-                     max_fp: 8,
-                     fp: 8,
-                     max_mp: 2,
-                     mp: 2,
+        .with(Stats {max_hp: 4, hp: 4,
+                     max_fp: 8, fp: 8,
+                     max_mp: 2, mp: 2,
                      mind:1, body:1, soul:1})
         .with(BlocksTile {})
-        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Bludgeon(1)]})
+        .with(BasicAttack::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
@@ -162,7 +162,7 @@ fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
             fg: RGB::named(rltk::MAGENTA),
             bg: RGB::named(rltk::BLACK),
             render_order: 2})
-        .with(Name {name: "Magic Missile Scroll".to_string() })
+        .with(Name {name: "Scroll of Magic Missile".to_string() })
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Item {})
@@ -180,7 +180,7 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
             bg: RGB::named(rltk::BLACK),
             render_order: 2
         })
-        .with(Name{name: "Confusion Scroll".to_string() })
+        .with(Name{name: "Scroll of Confusion".to_string() })
         .with(Item {})
         .with(Consumable {})
         .with(Ranged {range: 6})
@@ -198,9 +198,14 @@ fn barrier_scroll(ecs: &mut World, x: i32, y: i32) {
             bg: RGB::named(rltk::BLACK),
             render_order: 2
         })
-        .with(Name{name: "Scroll of Chitin".to_string() })
+        .with(Name{name: "Scroll of Chitinflesh".to_string() })
         .with(Item {})
         .with(Consumable {})
+        .with(Resistances {
+            bludgeon: DamageAtom::Bludgeon(1),
+            pierce: DamageAtom::Pierce(1),
+            slash: DamageAtom::Slash(1),
+            thermal: DamageAtom::Thermal(0) })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
@@ -217,7 +222,30 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
         .with(Name{name: "Knife".to_string() })
         .with(Item {})
         .with(Equippable {slot: EquipmentSlot::LeftHand})
-        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Pierce(2)]})
+        .with(Weapon {primary: Some(DamageAtom::Slash(4)),
+                      secondary: Some(DamageAtom::Pierce(1)),
+                      tertiary: Some(DamageAtom::Bludgeon(0)) })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+}
+
+fn leather_armor(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position {x, y})
+        .with(Renderable {
+            glyph: rltk::to_cp437('¥'),
+            fg: RGB::named(rltk::BROWN1),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name {name: "Leather Armor".to_string()})
+        .with(Item {})
+        .with(Equippable {slot: EquipmentSlot::Armor})
+        .with(Resistances {
+            bludgeon: DamageAtom::Bludgeon(1),
+            pierce: DamageAtom::Pierce(1),
+            slash: DamageAtom::Slash(2),
+            thermal: DamageAtom::Thermal(1) })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }

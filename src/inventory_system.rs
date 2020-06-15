@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, Stats,
             DropItemIntent, Consumable, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
-            Equippable, Equipped, Resistances, BasicAttack, Unequipped, Weapon, EquippedMap, EquipIntent};
+            Equippable, Equipped, EquipIntent, UnequipIntent};
 //use rltk::{console};
 
 pub struct ItemCollectionSystem {}
@@ -17,20 +17,22 @@ impl<'a> System<'a> for ItemCollectionSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, mut pickup_intent, mut positions, names, mut backpack) = data;
+        let (player_entity, mut gamelog, mut pickup_intents, mut positions, names, mut in_backpack) = data;
 
-        for desire in pickup_intent.join() {
-            positions.remove(desire.object);
-            backpack.insert(desire.object, InBackpack { owner: desire.desired_by })
-                .expect("Unable to insert item into backpack.");
+        for intent in pickup_intents.join() {
+            //If item is not already picked-up...(Is Some if item has position, else None).
+            if let Some(_p) = positions.remove(intent.item) {
+                in_backpack.insert(intent.item, InBackpack { owner: intent.desired_by })
+                    .expect("Unable to insert item into backpack.");
             
-            if desire.desired_by == *player_entity {
-                gamelog.entries.push(format!("{} placed into inventory.",
-                        names.get(desire.object).unwrap().name));
+                if intent.desired_by == *player_entity {
+                    gamelog.entries.push(format!("{} placed into inventory.", 
+                            names.get(intent.item).unwrap().name));
+                }
             }
         }
 
-        pickup_intent.clear();
+        pickup_intents.clear();
     }
 }
 
@@ -53,14 +55,16 @@ impl<'a> System<'a> for ItemUseSystem {
                         WriteStorage<'a, Confusion>,
                         ReadStorage<'a, Equippable>,
                         WriteStorage<'a, EquipIntent>,
+                        ReadStorage<'a, Equipped>,
+                        WriteStorage<'a, UnequipIntent>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (player_entity, mut gamelog, map, entities, mut use_item_intent, names,
              consumables, heals, inflicts_damage, mut stats, mut damage_queue,
-             aoe, mut confusion, equippable, mut equip_intent) = data;
+             aoe, mut confusion, equippable, mut equip_intent, equipped, mut unequip_intent) = data;
         
-        for (entity, use_intent, equipment) in (&entities, &use_item_intent, (&equippable).maybe()).join() {
+        for (entity, use_intent) in (&entities, &use_item_intent).join() {
             let mut is_item_used = true;
             let mut targets: Vec<Entity> = Vec::new();
            
@@ -93,13 +97,17 @@ impl<'a> System<'a> for ItemUseSystem {
                     }
                 }
             }
-            
-            //If item with use_intent is equippable, insert equip intent.
+
+            //If item is equippable, insert EquipIntent or UnequipIntent.
             //Further logic for this item is to be handled by EquipSystem.
-            if let Some(_e) = equipment {
-                equip_intent.insert(entity, EquipIntent {wearer: targets[0]})
-                    .expect("Failed to insert EquipIntent component.");
-                continue;
+            if let Some(_e) = equippable.get(use_intent.item) {//if equippable
+                if let Some(_e) = equipped.get(use_intent.item) {//if already equipped
+                    unequip_intent.insert(entity, UnequipIntent {item: use_intent.item})
+                        .expect("Failed to insert UnequipIntent component.");
+                } else {//if not yet equipped
+                    equip_intent.insert(entity, EquipIntent {item: use_intent.item})
+                        .expect("Failed to insert EquipIntent component.");
+                }
             }
 
             //damaging item logic
@@ -169,7 +177,8 @@ impl<'a> System<'a> for ItemUseSystem {
             for mob in add_confusion.iter() {
                 confusion.insert(mob.0, Confusion {turns: mob.1}).expect("Unable to insert status.");
             }
-        
+       
+            //Delete used consumables
             if is_item_used {
                 let consumable = consumables.get(use_intent.item);
                 match consumable {
@@ -221,108 +230,86 @@ impl<'a> System<'a> for ItemDropSystem {
     }
 }
 
-pub struct EquipSystem {}
+/*pub struct EquipSystem {}
 
 impl<'a> System<'a> for EquipSystem {
     type SystemData = ( Entities<'a>,
                         WriteStorage<'a, Equipped>,
-                        WriteStorage<'a, Unequipped>,
                         WriteStorage<'a, EquipIntent>,
                         WriteStorage<'a, InBackpack>,
                         ReadStorage<'a, Equippable>,
-                        WriteStorage<'a, EquippedMap>,
                         ReadStorage<'a, Weapon>,
-                        WriteStorage<'a, BasicAttack>
+                        WriteStorage<'a, BasicAttack>,
+                        WriteStorage<'a, Resistances>,
+                        //WriteStorage<'a, UnequipIntent>
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut equipped, mut unequipped, mut equip_intents, mut in_backpack,
-             equippables, mut equipped_maps, weapons,  mut basic_attacks) = data;
-        
-        //Equipping Logic
-        for (entity, equippable, equip_intent, weapon) in
-            (&entities, &equippables, &mut equip_intents, (&weapons).maybe()).join() {
-            
-            let target_owner = equip_intent.wearer;
-            let target_slot = equippable.slot;
-            //let equips_map = equipped_maps.get_mut(target_owner).unwrap();
+        let (entities, mut equipped, mut equip_intents, mut in_backpack, equippables,
+            weapons,  mut basic_attacks, mut resistances) = data;
 
-            //Try equipping
-            if let Some(formerly_equipped) =
-                //equips_map.equip(equipped_maps, target_owner, target_slot, entity) {
-                EquippedMap::equip(&mut equipped_maps, target_owner, target_slot, entity) {
+        //Equipping Logic:
+        //This join will iterate over all living entities since Entitites is the only non-Maybe()
+        //storage in the join(). This is OK here; equipping/unequipping is a rare event.
+        for (owner, equip_intent) in
+            (&entities, (&mut equip_intents).maybe()).join() {//For each entity with EquipIntent...
+
+            
+            //If owner entity has EquipIntent...
+            if let Some(intent) = equip_intent {
+                let ent_to_equip : Entity = intent.item;
+                let target_slot = equippables.get(ent_to_equip).unwrap().slot; 
+                let mut ent_to_unequip = None;
                 
-                equipped.remove(formerly_equipped);
-                unequipped.insert(formerly_equipped, Unequipped {}).
-                    expect("Failed to insert Unequipped component.");
-                in_backpack.insert(formerly_equipped, InBackpack {owner: target_owner})
-                    .expect("Failed to insert InBackpack component.");
-            } else { //entity successfully inserted into hashmap without collision
-                in_backpack.remove(entity);
-                equipped.insert(entity, Equipped {owner: target_owner, slot: target_slot})
-                    .expect("Failed to insert Equipped component.");
-            }
-            
-            //"OnEquip" Weapon logic
-            if let Some(weapon) = weapon {
-                if let Some(primary) = weapon.primary {
-                    BasicAttack::modify(&mut basic_attacks, target_owner, primary);
-                    //let &mut base_atk = basic_attacks.get(target_owner).unwrap();
-                    //base_atk.modify(primary);
+
+                //For each equipped equipment...
+                for (entity, e) in (&entities, &equipped).join() {
+                    if e.owner == owner && e.slot == target_slot {//if there's an equip-slot collision...
+                        ent_to_unequip = Some(entity);
+                        break;
+                    }
+                }
+                //if there was an equip-slot collision...
+                if let Some(ent) = ent_to_unequip {
+                   
+                    //Unequip the old entity in this slot.
+                    equipped.remove(ent);
+                    in_backpack.insert(ent, InBackpack {owner})
+                        .expect("Unable to insert InBackpack component.");               
+
+                    //if unequipped entity has a Resistance component...
+                    if let Some(resists_to_remove) = resistances.get(ent) {
+                        *resistances.get_mut(owner).unwrap() =
+                            *resistances.get(owner).unwrap() - *resists_to_remove;
+                    }
+                }
+
+                in_backpack.remove(ent_to_equip);
+                equipped.insert(ent_to_equip, Equipped {owner: owner, slot: target_slot})
+                        .expect("Unable to insert Equipped component.");
+
+                //if equipped entity has a Weapon component...
+                if let Some(w) = weapons.get(ent_to_equip) {// w == weapon
+                    let (p, s, t) = (w.primary, w.secondary, w.tertiary);
+                    match (p, s, t) {
+                        (Some(primary), _, _) => {
+                            BasicAttack::modify(&mut basic_attacks, owner, primary); },
+                        (None, Some(secondary), _) => {
+                            BasicAttack::modify(&mut basic_attacks, owner, secondary); },
+                        (None, None, Some(tertiary)) => {
+                            BasicAttack::modify(&mut basic_attacks, owner, tertiary); },
+                        (_, _, _) => {}
+                    }
+                }
+
+                //if equipped entity has a Resistance component...
+                if let Some(resists_to_add) = resistances.get(ent_to_equip) {
+                    *resistances.get_mut(owner).unwrap() =
+                        *resistances.get(owner).unwrap() + *resists_to_add;
                 }
             }
         }
 
-        equip_intents.clear();                
-
-        //Unequipping Logic
-        for (_unequipped, in_backpack, weapon) in
-            (&mut unequipped, &in_backpack, (&weapons).maybe()).join() {
-            
-            //Weapon unequip logic
-            if let Some(_w) = weapon {
-                BasicAttack::reset(&mut basic_attacks, in_backpack.owner);
-                //let  &mut base_atk = basic_attacks.get(in_backpack.owner).unwrap();
-                //base_atk.reset();
-            }
-        }
-
-        unequipped.clear();
-
+        equip_intents.clear();
     }
-}
-            /*//equip if equippable & unequip whatever else was equipped in the slot, if any
-            let equip_item = equippable.get(use_intent.item);
-            match equip_item {
-                None => {}
-                Some(item_to_equip) => {
-                    let target_slot = item_to_equip.slot;
-                    let target = targets[0];
-
-                    //Remove any items the target has in the item's slot
-                    let mut to_unequip: Vec<Entity> = Vec::new();
-                    for (item_entity, already_equipped, name) in (&entities, &equipped, &names).join() {
-                        if already_equipped.owner == target && already_equipped.slot == target_slot {
-                            to_unequip.push(item_entity);
-                            if target == *player_entity {
-                                gamelog.entries.push(format!("You unequip {}.", name.name));
-                            }
-                        }
-                    }
-                    for item in to_unequip.iter() {
-                        equipped.remove(*item);
-                        backpack.insert(*item, InBackpack {owner: target})
-                            .expect("Unable to insert backpack entry.");
-                    }
-
-                    //wield item
-                    equipped.insert(use_intent.item, Equipped {owner: target, slot: target_slot})
-                        .expect("Unable to insert equipped component.");
-                    backpack.remove(use_intent.item);
-                    if target == *player_entity {
-                        gamelog.entries.push(format!("You equip {}.", names.get(use_intent.item)
-                                .unwrap().name));
-                    }
-                }
-            }*/
-
+}*/

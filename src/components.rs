@@ -1,10 +1,11 @@
 use specs::prelude::*;
 use specs_derive::*;
-use rltk::RGB;
+use rltk::{RGB};
 use serde::{Serialize, Deserialize};
 use specs::saveload::{Marker, ConvertSaveload};
 use specs::error::NoError;
-use std::collections::HashMap;
+use std::ops::{Add, Sub};
+use super::c_menu_system::MenuOption;
 
 //serialization helper code. Each component that contains an Entity must impl ConvertSaveload.
 pub struct SerializeMe;
@@ -15,7 +16,7 @@ pub struct SerializationHelper {
     pub map: super::map::Map
 }
 
-//Should these be using NullStorage?...
+//Does the Component macro know to use NullStorage?...
 //-------------Fieldless Components-----------------------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Monster {}
@@ -36,6 +37,22 @@ pub struct Item {}//--------------------------------------
 pub struct Position {
     pub x: i32,
     pub y: i32
+}
+
+#[derive(Component, Debug, ConvertSaveload, Clone)]
+pub struct Stats { //creature component
+    //Resources
+    pub max_hp: i32,
+    pub hp: i32,
+    pub max_fp: i32,
+    pub fp: i32,
+    pub max_mp: i32,
+    pub mp: i32,
+
+    //Attributes
+    pub mind: i32,
+    pub body: i32,
+    pub soul: i32
 }
 
 #[derive(Component, ConvertSaveload, Clone)]
@@ -78,21 +95,35 @@ pub struct Confusion {//effect component
     pub turns: i32
 }
 
+#[derive(Component, Debug, ConvertSaveload)]
+pub struct InBackpack { //item component
+    pub owner: Entity
+}
+
+/*#[derive(PartialEq, Eq, Copy, Clone, Debug, Hash, Serialize, Deserialize)]
+pub enum BuffAtom {
+    Dodge,
+    Block,
+    Resistance,
+}
+
+#[derive(Component, Debug, ConvertSaveload, Clone)]
+pub struct Buff { //item or creature component
+    pub buff_type: BuffAtom,
+    pub buff_value: i32,
+}*/
+    
 #[derive(PartialEq, Eq, Copy, Clone, Debug, Hash, Serialize, Deserialize)]
 pub enum EquipmentSlot {
     LeftHand,
     RightHand,
-    Head,
-    Neck,
-    Torso,
-    Waist,
-    Legs,
-    Feet,
-    Hands,
-    Finger1,
-    Finger2,
-    Finger3,
-    Finger4
+    Helm,
+    Armor,
+    Boots,
+    Gloves,
+    Necklace,
+    Ring,
+    Back
 }
 
 #[derive(Component, Serialize, Deserialize, Clone)]
@@ -106,31 +137,6 @@ pub struct Equipped { //item component
     pub slot: EquipmentSlot
 }
 
-#[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Unequipped {} //temp flag to signal that unequip logic is required in EquipSystem
-
-//    !!! NOT  SAVEABLE, seems like ConvertSaveload doesn't work with HashMap<_, Entity>?  !!!
-#[derive(Component, Debug, Clone)]
-pub struct EquippedMap { //creature component
-    map: HashMap<EquipmentSlot, Entity>
-}
-
-impl EquippedMap {
-    pub fn equip(storage: &mut WriteStorage<EquippedMap>,
-                 wearer: Entity, slot: EquipmentSlot, equippable: Entity) -> Option<Entity> {
-        
-        if let Some(equips_map) = storage.get_mut(wearer) {
-            equips_map.map.insert(slot, equippable)
-        } else {
-            //------------------> capacity must match # of EquipmentSlot enum variants.
-            let mut new_equipped_map = EquippedMap {map: HashMap::<EquipmentSlot, Entity>::with_capacity(13)};
-            new_equipped_map.map.insert(slot, equippable);
-            storage.insert(wearer, new_equipped_map).expect("Failed to store EquippedMap.");
-            None
-        }
-    }
-}
-
 #[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct Weapon { //item component
     //Attack Modes
@@ -139,48 +145,29 @@ pub struct Weapon { //item component
     pub tertiary: Option<DamageAtom>,
 }
 
-#[derive(Component, Debug, ConvertSaveload)]
-pub struct InBackpack { //item component
-    pub owner: Entity
-}
-
-#[derive(Component, Debug, ConvertSaveload, Clone)]
-pub struct Stats { //creature component
-    //Resources
-    pub max_hp: i32,
-    pub hp: i32,
-    pub max_fp: i32,
-    pub fp: i32,
-    pub max_mp: i32,
-    pub mp: i32,
-
-    //Attributes
-    pub mind: i32,
-    pub body: i32,
-    pub soul: i32
-}
-
 #[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct BasicAttack { //creature component
     base: DamageAtom,
-    current: DamageAtom
+    pub current: DamageAtom
 }
 
 impl BasicAttack {    
-    pub fn modify(storage: &mut WriteStorage<BasicAttack>, target_ent: Entity, delta: DamageAtom) {
-        if let Some(basic_attack) = storage.get_mut(target_ent) {
+    pub fn modify(storage: &mut WriteStorage<BasicAttack>, target: Entity, delta: DamageAtom) {
+        if let Some(basic_attack) = storage.get_mut(target) {
             basic_attack.current = delta;
         } else {
-            eprintln!("Tried to modify BasicAttack on ent with no such component.");
+            eprintln!("Tried to modify BasicAttack of ent with no such component.");
         }
     }
-    pub fn reset(storage: &mut WriteStorage<BasicAttack>, target_ent: Entity) {
-        if let Some(basic_attack) = storage.get_mut(target_ent) {
+
+    pub fn reset(storage: &mut WriteStorage<BasicAttack>, target: Entity) {
+        if let Some(basic_attack) = storage.get_mut(target) {
             basic_attack.current = basic_attack.base;
         } else {
-            eprintln!("Tried to modify BasicAttack on ent with no such component.");
+            eprintln!("Tried to reset BasicAttack of ent with no such component.");
         }
     }
+
 }
 
 impl Default for BasicAttack {
@@ -191,8 +178,6 @@ impl Default for BasicAttack {
         }
     }
 }
-
-
 
 //------------------------Damage & Resistance Components--------------------------------------
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
@@ -230,7 +215,7 @@ impl DamageQueue {
     }
 }
 
-#[derive(Component, Debug, ConvertSaveload, Clone)]
+#[derive(Component, Debug, ConvertSaveload, Clone, Copy)]
 pub struct Resistances {
     pub bludgeon: DamageAtom,
     pub pierce: DamageAtom,
@@ -238,22 +223,60 @@ pub struct Resistances {
     pub thermal: DamageAtom
 }
 
-impl Resistances {
-    pub fn modify(&mut self, delta: &Resistances) {
-        self.bludgeon =
-            DamageAtom::Bludgeon(self.bludgeon.value() + delta.bludgeon.value());
-        self.pierce =
-            DamageAtom::Pierce(self.pierce.value() + delta.pierce.value());
-        self.slash =
-            DamageAtom::Slash(self.slash.value() + delta.slash.value());
-        self.thermal =
-            DamageAtom::Thermal(self.thermal.value() + delta.thermal.value());
+impl Add for Resistances {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            bludgeon: DamageAtom::Bludgeon( self.bludgeon.value() + other.bludgeon.value() ),
+            pierce: DamageAtom::Pierce( self.pierce.value() + other.pierce.value() ),
+            slash: DamageAtom::Slash( self.slash.value() + other.slash.value() ),
+            thermal: DamageAtom::Thermal( self.thermal.value() + other.thermal.value() ) 
+        }
     }
 }
 
-#[derive(Component, Debug, ConvertSaveload, Clone)]
-pub struct ResistanceDeltas {//similar to intent, removed each tick after application
-   pub queue: Vec<DamageAtom>
+impl Sub for Resistances {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        Self {
+            bludgeon: DamageAtom::Bludgeon( self.bludgeon.value() - other.bludgeon.value() ),
+            pierce: DamageAtom::Pierce( self.pierce.value() - other.pierce.value() ),
+            slash: DamageAtom::Slash( self.slash.value() - other.slash.value() ),
+            thermal: DamageAtom::Thermal( self.thermal.value() - other.thermal.value() ) 
+        }
+    }
+}
+
+/*impl Resistances {
+    pub fn modify(storage: &mut WriteStorage<Resistances>, target: Entity, source: Entity) {
+        let sr = storage.get(source).unwrap().clone();
+        if let Some(tr) = storage.get_mut(target) {
+            tr.bludgeon =
+                DamageAtom::Bludgeon(tr.bludgeon.value() + sr.bludgeon.value());
+            tr.pierce =
+                DamageAtom::Pierce(tr.pierce.value() + sr.pierce.value());
+            tr.slash =
+                DamageAtom::Slash(tr.slash.value() + sr.slash.value());
+            tr.thermal =
+                DamageAtom::Thermal(tr.thermal.value() + sr.thermal.value());
+        } else {
+            eprintln!("Tried to modify Resistances of ent with no such component.");
+        }
+    }
+}*/
+
+impl Default for Resistances {
+    fn default() -> Resistances {
+        Resistances {
+            bludgeon: DamageAtom::Bludgeon(0),
+            pierce: DamageAtom::Pierce(0),
+            slash: DamageAtom::Slash(0),
+            thermal: DamageAtom::Thermal(0)
+        }
+    }
+
 }
 
 #[derive(Component, Debug, ConvertSaveload, Clone)]
@@ -269,7 +292,7 @@ pub struct MeleeIntent{
 
 #[derive(Component, Debug, ConvertSaveload)]
 pub struct PickUpIntent {
-    pub object: Entity,
+    pub item: Entity,
     pub desired_by: Entity
 }
 
@@ -286,5 +309,17 @@ pub struct DropItemIntent {
 
 #[derive(Component, Debug, ConvertSaveload)]
 pub struct EquipIntent {
-    pub wearer: Entity
+    pub item: Entity
+}
+
+#[derive(Component, Debug, ConvertSaveload)]
+pub struct UnequipIntent {
+    pub item: Entity
 }//----------------------------------------------
+
+//This ContextualMenu thing provides a good vessel for learning how to allow a system to
+//run less frequently than once-per-frame. I think once per second would be fine for this.
+#[derive(Component, Debug, ConvertSaveload)]
+pub struct ContextMenuOptions {
+    pub options: Vec<MenuOption>
+}
