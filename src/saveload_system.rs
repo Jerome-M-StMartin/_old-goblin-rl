@@ -55,7 +55,7 @@ pub fn save_game(ecs : &mut World) {
 
         let writer = File::create("./savegame.json").unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
-        serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster, 
+        serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Heals, InBackpack, PickUpIntent, UseItemIntent,
             DropItemIntent, EquipIntent, Equippable, Equipped, /*EquippedMap,*/ Weapon, SerializationHelper
@@ -88,7 +88,7 @@ pub fn load_game(ecs: &mut World) {
         let mut d = (&mut ecs.entities(), &mut ecs.write_storage::<SimpleMarker<SerializeMe>>(),
                      &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>());
 
-        deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Monster, 
+        deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Heals, InBackpack, PickUpIntent, UseItemIntent,
             DropItemIntent, EquipIntent, Equippable, Equipped, /*EquippedMap,*/ Weapon, SerializationHelper

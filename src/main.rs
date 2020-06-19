@@ -13,8 +13,8 @@ mod rect;
 pub use rect::Rect;
 mod visibility_system;
 use visibility_system::VisibilitySystem;
-mod monster_ai_system;
-use monster_ai_system::MonsterAI;
+mod hostile_ai_system;
+use hostile_ai_system::HostileAI;
 mod map_indexing_system;
 use map_indexing_system::MapIndexingSystem;
 mod melee_combat_system;
@@ -39,7 +39,7 @@ pub enum RunState {
     AwaitingInput,
     PreRun,
     PlayerTurn,
-    MonsterTurn,
+    HostileTurn,
     ShowInventory { focus: gui::InventoryFocus },
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting{range: i32, item: Entity},
@@ -55,14 +55,14 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut melee = MeleeCombatSystem{};
+        melee.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
         vis.run_now(&self.ecs);
-        let mut mob = MonsterAI{};
+        let mut mob = HostileAI{};
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};
         mapindex.run_now(&self.ecs);
-        let mut melee = MeleeCombatSystem{};
-        melee.run_now(&self.ecs);
         let mut damage = DamageSystem{};
         damage.run_now(&self.ecs);
         let mut pick_up = ItemCollectionSystem{};
@@ -204,9 +204,9 @@ impl GameState for State {
 
                 self.run_systems();
                 self.ecs.maintain();
-                newrunstate = RunState::MonsterTurn;
+                newrunstate = RunState::HostileTurn;
             }
-            RunState::MonsterTurn => {
+            RunState::HostileTurn => {
                 self.run_systems();
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
@@ -362,7 +362,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
-    gs.ecs.register::<Monster>();
+    gs.ecs.register::<Hostile>();
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<Stats>();
@@ -389,6 +389,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<BasicAttack>();
     gs.ecs.register::<BlocksAttacks>();
     gs.ecs.register::<Menuable>();
+    gs.ecs.register::<Creature>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

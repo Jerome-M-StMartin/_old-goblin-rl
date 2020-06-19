@@ -2,7 +2,7 @@ use rltk::{VirtualKeyCode, Rltk, Point, INPUT};
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, State, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Monster, gui::InventoryFocus};
+            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui::InventoryFocus};
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
@@ -122,7 +122,7 @@ fn get_item(ecs: &mut World) -> RunState{
 fn skip_turn(ecs: &mut World) -> RunState {
     let player_entity = ecs.fetch::<Entity>();
     let viewshed_components = ecs.read_storage::<Viewshed>();
-    let monsters = ecs.read_storage::<Monster>();
+    let hostiles = ecs.read_storage::<Hostile>();
 
     let worldmap_resource = ecs.fetch::<Map>();
 
@@ -131,7 +131,7 @@ fn skip_turn(ecs: &mut World) -> RunState {
     for tile in viewshed.visible_tiles.iter() {
         let idx = worldmap_resource.xy_idx(tile.x, tile.y);
         for entity_id in worldmap_resource.tile_content[idx].iter() {
-            let mob = monsters.get(*entity_id);
+            let mob = hostiles.get(*entity_id);
             match mob {
                 None => {}
                 Some(_) => { can_heal = false; }
@@ -153,7 +153,7 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     let input = INPUT.lock();
     let new_runstate : RunState;
 
-    //(Shift + ?) Controls
+    //(Shift + _) Controls
     if input.is_key_pressed(VirtualKeyCode::LShift) {
         new_runstate = match ctx.key {
             None => return RunState::AwaitingInput,
@@ -171,7 +171,7 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
         };
 
     } else {
-        //Non-(Shift + ?) Controls
+        //Non-(Shift + _) Controls
         new_runstate = match ctx.key {
             None => return RunState::AwaitingInput,
             Some(key) => match key {

@@ -18,7 +18,10 @@ pub struct SerializationHelper {
 //Does the Component macro know to use NullStorage?...
 //-------------Fieldless Components-----------------------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Monster {}
+pub struct Hostile {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Creature {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct BlocksTile {}

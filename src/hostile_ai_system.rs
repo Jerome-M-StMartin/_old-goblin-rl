@@ -1,10 +1,10 @@
 use specs::prelude::*;
-use super::{Viewshed, Monster, Map, Position, MeleeIntent, RunState, Confusion};
+use super::{Viewshed, Hostile, Map, Position, MeleeIntent, RunState, Confusion};
 use rltk::{Point};
 
-pub struct MonsterAI {}
+pub struct HostileAI {}
 
-impl<'a> System<'a> for MonsterAI { // 'a syntax is var name for a "lifetime"
+impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
     #[allow(clippy::type_complexity)]
     type SystemData = ( WriteExpect<'a, Map>,
                         ReadExpect<'a, Point>,
@@ -12,18 +12,18 @@ impl<'a> System<'a> for MonsterAI { // 'a syntax is var name for a "lifetime"
                         ReadExpect<'a, RunState>,
                         Entities<'a>,
                         WriteStorage<'a, Viewshed>,
-                        ReadStorage<'a, Monster>,
+                        ReadStorage<'a, Hostile>,
                         WriteStorage<'a, Position>,
                         WriteStorage<'a, MeleeIntent>,
                         WriteStorage<'a, Confusion> );
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, player_pos, player_entity, runstate, entities,
-             mut viewshed, monster, mut position, mut melee_intent, mut confusion) = data;
+             mut viewshed, hostile, mut position, mut melee_intent, mut confusion) = data;
        
-        if *runstate != RunState::MonsterTurn { return; }
+        if *runstate != RunState::HostileTurn { return; }
 
-        for (entity, mut viewshed, _monster, mut pos) in (&entities, &mut viewshed, &monster, &mut position).join() { 
+        for (entity, mut viewshed, _hostile, mut pos) in (&entities, &mut viewshed, &hostile, &mut position).join() { 
             let mut can_act = true;
 
             let is_confused = confusion.get_mut(entity);

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Menuable, MenuOption, Item, Position, Equippable, Monster};
+use super::{Menuable, MenuOption, Item, Position, Equippable, Hostile};
 pub struct ContextMenuSystem {}
 
 impl<'a> System<'a> for ContextMenuSystem {
@@ -8,7 +8,7 @@ impl<'a> System<'a> for ContextMenuSystem {
                         ReadStorage<'a, Item>,
                         WriteStorage<'a, Position>,
                         ReadStorage<'a, Equippable>,
-                        ReadStorage<'a, Monster>,
+                        ReadStorage<'a, Hostile>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {

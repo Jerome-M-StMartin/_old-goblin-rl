@@ -19,6 +19,7 @@ pub enum MainMenuResult {
     Selected {selected: MainMenuSelection}
 }
 
+#[derive(PartialEq, Copy, Clone)]
 pub enum MenuResult { Continue, Cancel, Selected }
 
 pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) ->
@@ -43,6 +44,7 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                 ctx.draw_box(0, 0, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
                 ctx.print_color(1, 0, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
 
+                //Draw the menu options.
                 let mut y = 1;
                 for (_, s) in &menuable.options {
                     ctx.print_color(2, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
@@ -50,13 +52,16 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                     
                 }
                 
+                //Draw the curr-selction arrow.
                 ctx.print_color(0, selection + 1, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
 
+                //Query player for choice.
                 match ctx.key {
                     None => {}
                     Some(key) => match key {
                         
-                        VirtualKeyCode::Escape => { result = (MenuResult::Cancel, None, 0, 0) },
+                        VirtualKeyCode::Escape |
+                        VirtualKeyCode::C => { result = (MenuResult::Cancel, None, 0, 0) },
 
                         VirtualKeyCode::W |
                         VirtualKeyCode::Up |
@@ -72,7 +77,8 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                         VirtualKeyCode::Tab => { result = (MenuResult::Continue, None, 0, focus + 1) }
 
                         VirtualKeyCode::Return |
-                        VirtualKeyCode::NumpadEnter => {
+                        VirtualKeyCode::NumpadEnter |
+                        VirtualKeyCode::E => {
                             result = ( MenuResult::Selected,
                                        Some( (menuable.options[selection as usize].0, ent) ),
                                        0,
@@ -81,12 +87,18 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                         _ => {}
                     }
                 }
-            }
-        }
+
+                //Disallow menu use if target is too far from player for interaction.
+                if !is_adjacent_to_player(ecs, cursor.x, cursor.y) {
+                    ctx.print_color(1, height, RGB::named(rltk::RED), RGB::named(rltk::BLACK), "TOO FAR AWAY");
+                    if result.0 != MenuResult::Cancel { result = (MenuResult::Continue, None, selection, focus); }
+                }
+            } else { result = (MenuResult::Cancel, None, 0, 0); }
+        } else { result = (MenuResult::Cancel, None, 0, 0); }
 
     } else if focus > 0 { //Loop focus back to first entity on the tile.
         result = open_context_menu(ecs, ctx, 0, 0);
-    }
+    } else { result = (MenuResult::Cancel, None, 0, 0); }
 
     return result;
 }
@@ -445,3 +457,10 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
     }
 }
 
+fn is_adjacent_to_player(ecs: &World, x: i32, y: i32) -> bool {
+    let player_pos = ecs.fetch::<Point>();
+    let x_dif = (x - player_pos.x).abs();
+    let y_dif = (y - player_pos.y).abs();
+    
+    x_dif <= 1 && y_dif <= 1
+}

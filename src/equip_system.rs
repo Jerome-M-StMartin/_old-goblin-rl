@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{EquipIntent, UnequipIntent, InBackpack, Equippable, Equipped, Weapon, BasicAttack,
-            Resistances, Name, gamelog::GameLog};
+            Resistances, Name, gamelog::GameLog, Creature};
 
 pub struct EquipSystem {}
 
@@ -16,17 +16,17 @@ impl<'a> System<'a> for EquipSystem {
                         ReadStorage<'a, Equippable>,
                         ReadStorage<'a, Weapon>,
                         ReadStorage<'a, Name>,
+                        ReadStorage<'a, Creature>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, mut log, mut equipped, mut equip_intents, mut unequip_intents, mut in_backpack,
-            mut basic_attacks, mut resistances, equippables, weapons, names) = data;
+            mut basic_attacks, mut resistances, equippables, weapons, names, creature) = data;
 
         //Equipping Logic:
-        //This join will iterate over all living entities since Entitites is the only non-Maybe()
-        //storage in the join(). This is OK here; equipping/unequipping is a rare event.
-        for (owner, equip_intent, unequip_intent) in
-            (&entities, (&mut equip_intents).maybe(), (&mut unequip_intents).maybe()).join() {
+        //This join will iterate over all living creatures.
+        for (owner, _, equip_intent, unequip_intent) in
+            (&entities, creature, (&mut equip_intents).maybe(), (&mut unequip_intents).maybe()).join() {
             
             //If owner entity has EquipIntent...
             if let Some(intent) = equip_intent {

@@ -1,13 +1,13 @@
 Aeyohm
 
-- Context Menu Prototype
-Implemented!
+- Context Menu
+Foundation Implemented!
 BUGs:
 -No range limitation on Intent insertion via Cursor-activated C_Menu. Because
 both the Player's position (Point) and the cursor's position (Cursor) are
 globally available resources, it should be trivial to implement an adjacency
 check as a gui.rs fn to solve this.
--Ranged Use items auto-target the player when "Used" via C_Menu.
+-Ranged useable items auto-target the player when "Used" via C_Menu.
 
 Next:
 Nested Menus:
@@ -28,6 +28,8 @@ the beginning of the journey. "It's dangerous to go alone, take this:" ...
 Mother can carry it."
 
 DESIGN PILLARS:
+- Puzzles! Physical path unlocks and boss-battle behavior patterns.
+- Spawned Bosses & Story Bosses!
 - Typed Damage/Resistances/Immunities
 - Multiple Attack Modes per Weapon(i.e. Knife can be used to Stab, Cut, or
   Pommel-bludgeon).
@@ -38,14 +40,25 @@ DESIGN PILLARS:
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
   Tutorial for inspiration & implementation proof-of-concepts.
+- Planned & Unimplemented Features: State-Based NPC AI
+				    Chests w/ RNG Contents
+				    EXTREMELY Rare Mimics (0.001%)
+				    Non-RNG Story - Player as Hero
+				    Non-RNG Persistent World
+					Ethakiak, Pale Mountain
+				    RNG Zones - Wandering Wastes, Rainlands
+				    Spellweaving Metalanguage - Atheirei
+				    Teleportation
+				    NPC Neutrals/Friendlies/Allies
+- Feature Creep:  Morality System
+		  Player as Villian
+		  Machine Learning/Neural Networks
+		  Verticality/Z-axis beyond pitfalls/stairs.
+		  Multiplayer
+		  Party-Based
 
 BUGS:
-- "yen" symbol showing up as "crossed zero" symbol. Issue is in RLTK code. 
-
-FUTURE PERFORMANCE IMPROVEMENTS:
-- Separate EquipSystem from UnequipSystem so I can do a proper join without
-  iterating over all living entities each frame to look for
-  (EquipIntent).maybe() and (UnequipIntent).maybe().
+- Potion drinking doesn't use a turn?... I didn't lose hp when adj enemy.
 
 AT THE END I WILL HAVE...:
 - Lovingly Cultivated my Focus and Discipline
@@ -79,3 +92,6 @@ items.
 Fell into the impossible attempt of trying to create a boolean toggle without
 initializing the variable out of scope.
 - WASD-CURSOR - 6/14/2020
+- TEXT CONFUSION - 6/17/2020
+simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
+- UNIVERSAL CONTEXT MENU = 6/18/2020

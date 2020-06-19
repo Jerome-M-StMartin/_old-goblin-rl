@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, MarkedBuilder};
-use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Monster, BlocksTile, Rect,
+use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, BlocksTile, Rect,
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable};
@@ -19,6 +19,7 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
             bg: RGB::named(rltk::BLACK),
             render_order: 0,
         })
+        .with(Creature {})
         .with(Player {})
         .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
         .with(Name { name: "Player".to_string() })
@@ -31,7 +32,6 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
                      mind:1, body:1, soul:1})
         .with(BasicAttack::default())
         .with(Resistances::default())
-        .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }
@@ -63,7 +63,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
         }
     }
 
-    // Actually spawn the monsters
+    // Actually spawn the hostiles
     for spawn in spawn_points.iter() {
         let x = (*spawn.0 % MAPWIDTH) as i32;
         let y = (*spawn.0 / MAPWIDTH) as i32;
@@ -100,10 +100,10 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Round Shield", 4 - map_depth)
 }
 
-fn orc(ecs: &mut World, x: i32, y: i32) { monster(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
-fn goblin(ecs: &mut World, x: i32, y: i32) { monster(ecs, x, y, rltk::to_cp437('g'), "Goblin"); }
+fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
+fn goblin(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('g'), "Goblin"); }
 
-fn monster<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharType, name: S) {
+fn hostile<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharType, name: S) {
     ecs.create_entity()
         .with(Position { x, y })
         .with(Renderable {
@@ -112,7 +112,8 @@ fn monster<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharTy
             bg: RGB::named(rltk::BLACK),
             render_order: 1,
         })
-        .with(Monster {})
+        .with(Creature {})
+        .with(Hostile {})
         .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
         .with(Name { name: name.to_string() })
         .with(Stats {max_hp: 4, hp: 4,
