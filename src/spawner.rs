@@ -5,7 +5,8 @@ use specs::saveload::{SimpleMarker, MarkedBuilder};
 use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, BlocksTile, Rect,
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
-             EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable};
+             EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
+             Creature};
 
 const MAX_MONSTERS: i32 = 4;
 

@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{EquipIntent, UnequipIntent, InBackpack, Equippable, Equipped, Weapon, BasicAttack,
-            Resistances, Name, gamelog::GameLog, Creature};
+            Resistances, Name, gamelog::GameLog, Creature, Position};
 
 pub struct EquipSystem {}
 
@@ -13,6 +13,7 @@ impl<'a> System<'a> for EquipSystem {
                         WriteStorage<'a, InBackpack>,
                         WriteStorage<'a, BasicAttack>,
                         WriteStorage<'a, Resistances>,
+                        WriteStorage<'a, Position>,
                         ReadStorage<'a, Equippable>,
                         ReadStorage<'a, Weapon>,
                         ReadStorage<'a, Name>,
@@ -21,12 +22,12 @@ impl<'a> System<'a> for EquipSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, mut log, mut equipped, mut equip_intents, mut unequip_intents, mut in_backpack,
-            mut basic_attacks, mut resistances, equippables, weapons, names, creature) = data;
+            mut basic_attacks, mut resistances, mut positions, equippables, weapons, names, creature) = data;
 
         //Equipping Logic:
         //This join will iterate over all living creatures.
         for (owner, _, equip_intent, unequip_intent) in
-            (&entities, creature, (&mut equip_intents).maybe(), (&mut unequip_intents).maybe()).join() {
+            (&entities, &creature, (&mut equip_intents).maybe(), (&mut unequip_intents).maybe()).join() {
             
             //If owner entity has EquipIntent...
             if let Some(intent) = equip_intent {
@@ -34,7 +35,6 @@ impl<'a> System<'a> for EquipSystem {
                 let target_slot = equippables.get(ent_to_equip).unwrap().slot; 
                 let mut ent_to_unequip = None;
                 
-
                 //For each equipped equipment...
                 for (entity, e) in (&entities, &equipped).join() {
                     //if there's an equip-slot collision...
@@ -59,6 +59,7 @@ impl<'a> System<'a> for EquipSystem {
                 }
 
                 in_backpack.remove(ent_to_equip);
+                positions.remove(ent_to_equip);
                 equipped.insert(ent_to_equip, Equipped {owner: owner, slot: target_slot})
                         .expect("Unable to insert Equipped component.");
                 log.entries.push(format!("{} equipped {}.",
