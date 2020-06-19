@@ -5,7 +5,6 @@ use serde::{Serialize, Deserialize};
 use specs::saveload::{Marker, ConvertSaveload};
 use specs::error::NoError;
 use std::ops::{Add, Sub};
-use super::c_menu_system::MenuOption;
 
 //serialization helper code. Each component that contains an Entity must impl ConvertSaveload.
 pub struct SerializeMe;
@@ -143,6 +142,12 @@ pub struct Weapon { //item component
     pub primary: Option<DamageAtom>,
     pub secondary: Option<DamageAtom>,
     pub tertiary: Option<DamageAtom>,
+}
+
+#[derive(Component, Debug, ConvertSaveload, Clone)]
+pub struct BlocksAttacks {
+    pub chance: f32,
+    pub coverage: u8
 }
 
 #[derive(Component, Debug, ConvertSaveload, Clone)]
@@ -317,9 +322,28 @@ pub struct UnequipIntent {
     pub item: Entity
 }//----------------------------------------------
 
-//This ContextualMenu thing provides a good vessel for learning how to allow a system to
-//run less frequently than once-per-frame. I think once per second would be fine for this.
-#[derive(Component, Debug, ConvertSaveload)]
-pub struct ContextMenuOptions {
-    pub options: Vec<MenuOption>
+#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum MenuOption {
+    PickUp,
+    DropIt,
+    Use,
+    Equip,
+    Attack,
+    //Examine
+}
+
+//Provides a good vessel for learning how to allow a system to run less than once-per-frame.
+#[derive(Debug, Component, ConvertSaveload)]
+pub struct Menuable {
+    pub options: Vec<(MenuOption, String)>,
+    pub dirty: bool,
+}
+
+impl Default for Menuable {
+    fn default() -> Menuable {
+        Menuable {
+            options: Vec::<(MenuOption, String)>::new(), 
+            dirty: true,
+        }
+    }
 }

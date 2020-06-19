@@ -66,7 +66,7 @@ pub fn try_move_cursor(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
 
     cursor.x += delta_x;
     cursor.y += delta_y;
-    
+
     return RunState::AwaitingInput;
 }
 
@@ -176,6 +176,8 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             None => return RunState::AwaitingInput,
             Some(key) => match key {
               
+                VirtualKeyCode::C => return RunState::ShowContextMenu { selection: 0, focus: 0 },
+
                 //Cursor Controls----
                 VirtualKeyCode::W => try_move_cursor(0, -1, &mut gs.ecs),
                 VirtualKeyCode::A => try_move_cursor(-1, 0, &mut gs.ecs),

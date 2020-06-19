@@ -2,7 +2,7 @@ use rltk::{ RGB, Rltk, Point, VirtualKeyCode };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
-             Viewshed, RunState, Equipped, Cursor};
+             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor};
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum InventoryFocus { Backpack, Equipment }
@@ -17,6 +17,78 @@ pub enum MainMenuSelection { NewGame, LoadGame, Quit }
 pub enum MainMenuResult {
     NoSelection {selected: MainMenuSelection},
     Selected {selected: MainMenuSelection}
+}
+
+pub enum MenuResult { Continue, Cancel, Selected }
+
+pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) ->
+                                (MenuResult, Option<(MenuOption, Entity)>, i8, i8) {
+   
+    let mut result = (MenuResult::Continue, None, selection, focus);
+    
+    let cursor = ecs.fetch::<Cursor>();
+    let map = ecs.fetch::<Map>();
+    let contents = &map.tile_content[map.xy_idx(cursor.x, cursor.y)];
+    
+    if contents.len() > focus as usize { //Is there context for the menu?
+        let ent = contents[focus as usize]; //Menu Context
+        let menuable = ecs.read_storage::<Menuable>();
+        
+        if let Some(menuable) = &menuable.get(ent) { //Is Context Menuable?
+            if !&menuable.options.is_empty() { //Is Menuable component populated?
+            
+                let num_options = menuable.options.len() as i8;
+                let height = num_options + 1; 
+
+                ctx.draw_box(0, 0, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+                ctx.print_color(1, 0, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
+
+                let mut y = 1;
+                for (_, s) in &menuable.options {
+                    ctx.print_color(2, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
+                    y += 1;
+                    
+                }
+                
+                ctx.print_color(0, selection + 1, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+
+                match ctx.key {
+                    None => {}
+                    Some(key) => match key {
+                        
+                        VirtualKeyCode::Escape => { result = (MenuResult::Cancel, None, 0, 0) },
+
+                        VirtualKeyCode::W |
+                        VirtualKeyCode::Up |
+                        VirtualKeyCode::Numpad8 |
+                        VirtualKeyCode::K => { result = (MenuResult::Continue, None,
+                                                         max(0, selection - 1), focus) }
+
+                        VirtualKeyCode::S |
+                        VirtualKeyCode::Down |
+                        VirtualKeyCode::Numpad2 |
+                        VirtualKeyCode::J => { result = (MenuResult::Continue, None,
+                                                         min(num_options - 1, selection + 1), focus ) }                                   
+                        VirtualKeyCode::Tab => { result = (MenuResult::Continue, None, 0, focus + 1) }
+
+                        VirtualKeyCode::Return |
+                        VirtualKeyCode::NumpadEnter => {
+                            result = ( MenuResult::Selected,
+                                       Some( (menuable.options[selection as usize].0, ent) ),
+                                       0,
+                                       0 );
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+    } else if focus > 0 { //Loop focus back to first entity on the tile.
+        result = open_context_menu(ecs, ctx, 0, 0);
+    }
+
+    return result;
 }
 
 pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
@@ -110,7 +182,9 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
     ctx.print_color(x+3, y-2,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventory");
     ctx.print_color(x+3, min(y+items_max, max_menu_height) + 1,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB to change focus | ESC to Cancel");
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: <-/->");
+    ctx.print_color(x+18, min(y+items_max, max_menu_height) + 1,
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
     
     //draw focus box
     match focus {
@@ -200,51 +274,6 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
     }
 }
 
-//Get rid of this and related shit
-pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option<Entity>) {
-    let player_entity = gs.ecs.fetch::<Entity>();
-    let names = gs.ecs.read_storage::<Name>();
-    let backpack = gs.ecs.read_storage::<InBackpack>();
-    let entities = gs.ecs.entities();
-
-    let inventory = (&backpack, &names).join().filter(|item| item.0.owner == *player_entity );
-    let count = inventory.count();
-
-    let mut y = (25 - (count / 2)) as i32;
-    ctx.draw_box(15, y-2, 31, (count+3) as i32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(18, y-2, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Drop Which Item?");
-    ctx.print_color(18, y+count as i32+1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESCAPE to cancel");
-
-    let mut selectable : Vec<Entity> = Vec::new();
-    let mut j = 0;
-    for (entity, _pack, name) in (&entities, &backpack, &names).join().filter(|item| item.1.owner == *player_entity) {
-        ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
-        ctx.set(19, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
-
-        ctx.print(21, y, &name.name.to_string());
-        selectable.push(entity);
-        y += 1;
-        j += 1;
-    }
-
-    match ctx.key {
-        None => (ItemMenuResult::NoResponse, None),
-        Some(key) => {
-            match key {
-                VirtualKeyCode::Escape => { (ItemMenuResult::Cancel, None) }
-                _ => { 
-                    let selection = rltk::letter_to_option(key);
-                    if selection > -1 && selection < count as i32 {
-                        return (ItemMenuResult::Selected, Some(selectable[selection as usize]));
-                    }  
-                    (ItemMenuResult::NoResponse, None)
-                }
-            }
-        }
-    }   
-}
-
 pub fn ranged_target(gs: &mut State, ctx: &mut Rltk, range: i32) -> (ItemMenuResult, Option<Point>) {
     let player_entity = gs.ecs.fetch::<Entity>();
     let player_pos = gs.ecs.fetch::<Point>();
@@ -299,15 +328,27 @@ pub fn ranged_target(gs: &mut State, ctx: &mut Rltk, range: i32) -> (ItemMenuRes
 }
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {
-    ctx.draw_box(0, 43, 79, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    let map = ecs.fetch::<Map>();
 
+    let depth = format!("Depth: {}", map.depth);
+    let ctx_w = ctx.width_pixels as i32 / 8;
+    let ctx_h = ctx.height_pixels as i32 / 8;
+
+    ctx.draw_box(0, ctx_h - 7, ctx_w - 1, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.print_color(2, ctx_h - 7, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
+
+    let mouse_pos = ctx.mouse_pos();
+    ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::MAGENTA));
+    
+    draw_cursor(ecs, ctx);
+    draw_stats(ecs, ctx, ctx_h, depth.len() as i32);
+    draw_tooltips(ecs, ctx, tooltips);
+    draw_log(ecs, ctx, ctx_h);
+}
+
+fn draw_stats(ecs: &World, ctx: &mut Rltk, ctx_h: i32, depth: i32) {
     let stats = ecs.read_storage::<Stats>();
     let players = ecs.read_storage::<Player>();
-    let log = ecs.fetch::<GameLog>();
-    let map = ecs.fetch::<Map>();
-    let depth = format!("Depth: {}", map.depth);
-
-    ctx.print_color(2, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
 
     for (_player, stats) in (&players, &stats).join() {
         let mut hp_bar = "".to_string();
@@ -318,34 +359,38 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {
         for _ in stats.hp..stats.max_hp { hp_bar.push_str("."); }
         let health = format!("[{}]", &hp_bar);
 
-        for _ in 0..stats.fp { fp_bar.push_str("○"); }
+        for _ in 0..stats.fp { fp_bar.push_str(">"); }
         for _ in stats.fp..stats.max_fp { fp_bar.push_str("."); }
         let fatigue = format!("[{}]", &fp_bar);
 
-        for _ in 0..stats.mp { mp_bar.push_str("○"); }
+        for _ in 0..stats.mp { mp_bar.push_str("*"); }
         for _ in stats.mp..stats.max_mp { mp_bar.push_str("."); }
         let mana = format!("[{}]", &mp_bar);
 
-        ctx.print_color(depth.len() + 3,
-                        43, RGB::named(rltk::RED), RGB::named(rltk::BLACK), &health);
-        ctx.print_color(depth.len() + 6 + stats.max_hp as usize,
-                        43, RGB::named(rltk::GREEN), RGB::named(rltk::BLACK), &fatigue);
-        ctx.print_color(depth.len() + 9 + stats.max_hp as usize + stats.max_fp as usize,
-                        43, RGB::named(rltk::BLUE), RGB::named(rltk::BLACK), &mana);
+        ctx.print_color(depth + 3, ctx_h - 7,
+                        RGB::named(rltk::RED), RGB::named(rltk::BLACK), &health);
+        ctx.print_color(depth + 6 + stats.max_hp, ctx_h - 7,
+                        RGB::named(rltk::GREEN), RGB::named(rltk::BLACK), &fatigue);
+        ctx.print_color(depth + 9 + stats.max_hp + stats.max_fp, ctx_h - 7,
+                        RGB::named(rltk::BLUE), RGB::named(rltk::BLACK), &mana);
     }
+}
 
-    let mut y = 44;
-    for s in log.entries.iter().rev() {
-        if y < 49 { ctx.print(2, y, s); }
-        y += 1;
-    }
+fn draw_log(ecs: &World, ctx: &mut Rltk, ctx_h: i32) {
+    let log = ecs.fetch::<GameLog>();
 
-    let mouse_pos = ctx.mouse_pos();
-    ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::MAGENTA));
+    let mut y = ctx_h - 2;
+    let mut i = 0;
     
-    draw_cursor(ecs, ctx);
-
-    draw_tooltips(ecs, ctx, tooltips);
+    for s in log.entries.iter().rev() {
+        if i > 4 { break; }
+        
+        ctx.print_color(2, y,
+            RGB::from_u8(255 - (i * 20),255 - (i * 20),255 - (i * 20)),
+            RGB::named(rltk::BLACK), s);
+        y -= 1;
+        i += 1;
+    }
 }
 
 fn draw_cursor(ecs: &World, ctx: &mut Rltk) {
@@ -353,7 +398,7 @@ fn draw_cursor(ecs: &World, ctx: &mut Rltk) {
     if cursor.active { ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::MAGENTA3)); }
 }
 
-pub fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
+fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
 
     let map = ecs.fetch::<Map>();
     let names = ecs.read_storage::<Name>();
@@ -399,3 +444,4 @@ pub fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
         }
     }
 }
+

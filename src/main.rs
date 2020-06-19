@@ -27,12 +27,12 @@ mod spawner;
 mod inventory_system;
 use inventory_system::ItemCollectionSystem;
 use inventory_system::ItemUseSystem;
-use inventory_system::ItemDropSystem;
 mod equip_system;
 use equip_system::EquipSystem;
 pub mod saveload_system;
 mod random_table;
 mod c_menu_system;
+use c_menu_system::ContextMenuSystem;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { 
@@ -41,7 +41,7 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     ShowInventory { focus: gui::InventoryFocus },
-    ShowDropItem,
+    ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting{range: i32, item: Entity},
     MainMenu {menu_selection: gui::MainMenuSelection},
     SaveGame,
@@ -71,8 +71,8 @@ impl State {
         items.run_now(&self.ecs);
         let mut equips = EquipSystem{};
         equips.run_now(&self.ecs);
-        let mut drop_items = ItemDropSystem{};
-        drop_items.run_now(&self.ecs);
+        let mut context_menu = ContextMenuSystem{};
+        context_menu.run_now(&self.ecs);
         self.ecs.maintain();
     }
 
@@ -211,22 +211,60 @@ impl GameState for State {
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
-            RunState::ShowDropItem => {
-                let result = gui::drop_item_menu(self, ctx);
+            RunState::ShowContextMenu { selection, focus } => {
+                let result = gui::open_context_menu(&self.ecs, ctx, selection, focus);
+
                 match result.0 {
-                    gui::ItemMenuResult::ChangeFocus => {}
-                    gui::ItemMenuResult::NoResponse => {}
-                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
-                    gui::ItemMenuResult::Selected => {
-                        let item_entity = result.1.unwrap();
-                        let mut intent = self.ecs.write_storage::<DropItemIntent>();
-                        intent.insert(*self.ecs.fetch::<Entity>(), DropItemIntent {item: item_entity})
-                            .expect("Unable to insert intent.");
-                        newrunstate = RunState::PlayerTurn;
+                    gui::MenuResult::Continue => {
+                        newrunstate = RunState::ShowContextMenu { selection: result.2, focus: result.3 };
+                    }
+                    gui::MenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::MenuResult::Selected => {
+                        let player = self.ecs.fetch::<Entity>();
+                        match result.1 {
+                            None => {}
+                            Some( (menu_option, target_ent) ) => match (menu_option, target_ent) {
+                                (MenuOption::PickUp, _) => {
+                                    let mut storage = self.ecs.write_storage::<PickUpIntent>();
+                                    storage.insert(*player,
+                                        PickUpIntent { item: target_ent, desired_by: *player })
+                                        .expect("Unable to insert PickUpIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                                (MenuOption::Use, _) => {
+                                    let mut storage = self.ecs.write_storage::<UseItemIntent>();
+                                    storage.insert(*player,
+                                        UseItemIntent { item: target_ent, target: None })
+                                        .expect("Unable to insert UseItemIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                                (MenuOption::DropIt, _) => {
+                                    let mut storage = self.ecs.write_storage::<DropItemIntent>();
+                                    storage.insert(*player,
+                                        DropItemIntent { item: target_ent })
+                                        .expect("Unable to insert DropItemIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                                (MenuOption::Equip, _) => {
+                                    let mut storage = self.ecs.write_storage::<EquipIntent>();
+                                    storage.insert(*player,
+                                        EquipIntent { item: target_ent })
+                                        .expect("Unable to insert EquipIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                                (MenuOption::Attack, _) => {
+                                    let mut storage = self.ecs.write_storage::<MeleeIntent>();
+                                    storage.insert(*player,
+                                        MeleeIntent { target: target_ent })
+                                        .expect("Unable to insert MeleeIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                            }
+                        }
                     }
                 }
             }
-            RunState::ShowInventory {focus} => {
+            RunState::ShowInventory { focus } => {
                 let result = gui::show_inventory(self, ctx, focus);
 
                 match result.0 {
@@ -349,6 +387,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<EquipIntent>();
     gs.ecs.register::<UnequipIntent>();
     gs.ecs.register::<BasicAttack>();
+    gs.ecs.register::<BlocksAttacks>();
+    gs.ecs.register::<Menuable>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

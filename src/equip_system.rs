@@ -93,7 +93,9 @@ impl<'a> System<'a> for EquipSystem {
                 //Unequip it
                 equipped.remove(ent);
                 in_backpack.insert(ent, InBackpack {owner})
-                    .expect("Unable to insert InBackpack component.");               
+                    .expect("Unable to insert InBackpack component.");
+                log.entries.push(format!("{} unequipped {}.",
+                        names.get(owner).unwrap().name, names.get(ent).unwrap().name));
 
                 //if unequipped entity has a Resistance component...
                 if let Some(resists_to_remove) = resistances.get(ent) {

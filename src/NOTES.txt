@@ -1,6 +1,18 @@
 Aeyohm
 
 - Context Menu Prototype
+Implemented!
+BUGs:
+-No range limitation on Intent insertion via Cursor-activated C_Menu. Because
+both the Player's position (Point) and the cursor's position (Cursor) are
+globally available resources, it should be trivial to implement an adjacency
+check as a gui.rs fn to solve this.
+-Ranged Use items auto-target the player when "Used" via C_Menu.
+
+Next:
+Nested Menus:
+e.g. Selecting the "Attack" option opens a new C_Menu with "Melee" and
+"Ranged" options.
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.
@@ -21,7 +33,7 @@ DESIGN PILLARS:
   Pommel-bludgeon).
 - Universal Context-Menu!
 - Language-based user-customizable spellcasting!
-- Party-Based Singleplayer stretcg_goal(& Multiplayer)!
+- Party-Based Singleplayer stretch_goal(& Multiplayer)!
 
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
@@ -66,4 +78,4 @@ items.
 - GLOBAL TOGGLE-ABLE TOOLTIPS
 Fell into the impossible attempt of trying to create a boolean toggle without
 initializing the variable out of scope.
-- WASD-CURSOR
+- WASD-CURSOR - 6/14/2020
