@@ -55,6 +55,8 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut items = ItemUseSystem{};
+        items.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
@@ -67,8 +69,6 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pick_up = ItemCollectionSystem{};
         pick_up.run_now(&self.ecs);
-        let mut items = ItemUseSystem{};
-        items.run_now(&self.ecs);
         let mut equips = EquipSystem{};
         equips.run_now(&self.ecs);
         let mut context_menu = ContextMenuSystem{};
@@ -151,9 +151,13 @@ impl GameState for State {
             newrunstate = *runstate;
            
             //reset cursor to inactive state
-            if *runstate != RunState::AwaitingInput {
-                let mut cursor = self.ecs.fetch_mut::<Cursor>();
-                cursor.active = false;
+            match *runstate {
+                RunState::AwaitingInput => {}
+                RunState::ShowTargeting {range: _, item: _} => {}
+                _ => {
+                    let mut cursor = self.ecs.fetch_mut::<Cursor>();
+                    cursor.active = false;
+                }
             }
         }
 
@@ -221,41 +225,49 @@ impl GameState for State {
                     gui::MenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::MenuResult::Selected => {
                         let player = self.ecs.fetch::<Entity>();
+                        let ranged_storage = self.ecs.read_storage::<Ranged>();
+                        let ranged_item = ranged_storage.get((result.1).unwrap().1);
+
                         match result.1 {
                             None => {}
-                            Some( (menu_option, target_ent) ) => match (menu_option, target_ent) {
+                            Some( (menu_option, chosen_ent) ) => match (menu_option, chosen_ent) {
                                 (MenuOption::PickUp, _) => {
                                     let mut storage = self.ecs.write_storage::<PickUpIntent>();
                                     storage.insert(*player,
-                                        PickUpIntent { item: target_ent, desired_by: *player })
+                                        PickUpIntent { item: chosen_ent, desired_by: *player })
                                         .expect("Unable to insert PickUpIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
                                 (MenuOption::Use, _) => {
-                                    let mut storage = self.ecs.write_storage::<UseItemIntent>();
-                                    storage.insert(*player,
-                                        UseItemIntent { item: target_ent, target: None })
-                                        .expect("Unable to insert UseItemIntent.");
-                                    newrunstate = RunState::PlayerTurn;
+                                    if let Some(r) = ranged_item {
+                                        newrunstate =
+                                            RunState::ShowTargeting { range: r.range, item: chosen_ent };
+                                    } else {
+                                        let mut storage = self.ecs.write_storage::<UseItemIntent>();
+                                        storage.insert(*player,
+                                            UseItemIntent { item: chosen_ent, target: None })
+                                            .expect("Unable to insert UseItemIntent.");
+                                        newrunstate = RunState::PlayerTurn;
+                                    }
                                 }
                                 (MenuOption::DropIt, _) => {
                                     let mut storage = self.ecs.write_storage::<DropItemIntent>();
                                     storage.insert(*player,
-                                        DropItemIntent { item: target_ent })
+                                        DropItemIntent { item: chosen_ent })
                                         .expect("Unable to insert DropItemIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
                                 (MenuOption::Equip, _) => {
                                     let mut storage = self.ecs.write_storage::<EquipIntent>();
                                     storage.insert(*player,
-                                        EquipIntent { item: target_ent })
+                                        EquipIntent { item: chosen_ent })
                                         .expect("Unable to insert EquipIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
                                 (MenuOption::Attack, _) => {
                                     let mut storage = self.ecs.write_storage::<MeleeIntent>();
                                     storage.insert(*player,
-                                        MeleeIntent { target: target_ent })
+                                        MeleeIntent { target: chosen_ent })
                                         .expect("Unable to insert MeleeIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
@@ -274,8 +286,8 @@ impl GameState for State {
                     gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::ItemMenuResult::Selected => {
                         let item_entity = result.2.unwrap();
-                        let is_ranged = self.ecs.read_storage::<Ranged>();
-                        let ranged_item = is_ranged.get(item_entity);
+                        let ranged_storage = self.ecs.read_storage::<Ranged>();
+                        let ranged_item = ranged_storage.get(item_entity);
                         
                         if let Some(ranged_item) = ranged_item {
                             newrunstate = RunState::ShowTargeting {range: ranged_item.range, item: item_entity};
@@ -290,12 +302,11 @@ impl GameState for State {
                 }
             }
             RunState::ShowTargeting {range, item} => {
-                let result = gui::ranged_target(self, ctx, range);
+                let result = gui::target_selection_mode(&mut self.ecs, ctx, range);
                 match result.0 {
-                    gui::ItemMenuResult::ChangeFocus => {}
-                    gui::ItemMenuResult::NoResponse => {}
-                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
-                    gui::ItemMenuResult::Selected => {
+                    gui::MenuResult::Continue => {}
+                    gui::MenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::MenuResult::Selected => {
                         let mut intent = self.ecs.write_storage::<UseItemIntent>();
                         intent.insert(*self.ecs.fetch::<Entity>(), UseItemIntent {item, target: result.1})
                             .expect("Unable to insert UseItemIntent.");

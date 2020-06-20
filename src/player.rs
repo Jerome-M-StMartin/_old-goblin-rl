@@ -1,10 +1,71 @@
-use rltk::{VirtualKeyCode, Rltk, Point, INPUT};
+use rltk::{VirtualKeyCode, Rltk, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, State, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui::InventoryFocus};
+            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui::InventoryFocus,
+            gui};
 
-pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
+pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
+    let new_runstate : RunState;
+
+    gui::enable_cursor_control(&mut gs.ecs, ctx); 
+
+    new_runstate = match ctx.key {
+        None => return RunState::AwaitingInput,
+        Some(key) => match key {
+          
+            VirtualKeyCode::C => return RunState::ShowContextMenu { selection: 0, focus: 0 },
+
+            //skip turn; wait
+            VirtualKeyCode::Numpad5 => skip_turn(&mut gs.ecs),
+            VirtualKeyCode::Space => skip_turn(&mut gs.ecs),
+
+            //grab item
+            VirtualKeyCode::G => get_item(&mut gs.ecs),
+
+            //open inventory
+            VirtualKeyCode::I => return RunState::ShowInventory{focus: InventoryFocus::Backpack},
+
+            //use stairs
+            VirtualKeyCode::Period => {
+                try_next_level(&mut gs.ecs)
+            }
+
+            //save
+            VirtualKeyCode::Escape => return RunState::SaveGame,
+
+            //orthogonals
+            VirtualKeyCode::Left |
+            VirtualKeyCode::Numpad4 |
+            VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
+            VirtualKeyCode::Right |
+            VirtualKeyCode::Numpad6 |
+            VirtualKeyCode::L => try_move_player(1, 0, &mut gs.ecs),
+            VirtualKeyCode::Up |
+            VirtualKeyCode::Numpad8 |
+            VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
+            VirtualKeyCode::Down |
+            VirtualKeyCode::Numpad2 |
+            VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
+            
+            //diagonals
+            VirtualKeyCode::Numpad9 |
+            VirtualKeyCode::U => try_move_player(1, -1, &mut gs.ecs),
+            VirtualKeyCode::Numpad7 |
+            VirtualKeyCode::Y => try_move_player(-1, -1, &mut gs.ecs),
+            VirtualKeyCode::Numpad3 |
+            VirtualKeyCode::M => try_move_player(1, 1, &mut gs.ecs),
+            VirtualKeyCode::Numpad1 |
+            VirtualKeyCode::N => try_move_player(-1, 1, &mut gs.ecs),          
+
+            _ => return RunState::AwaitingInput,
+        },
+    };
+    
+    return new_runstate;
+}
+
+fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
@@ -54,35 +115,11 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
     return RunState::AwaitingInput;
 }
 
-pub fn try_move_cursor(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
-    
-    let map = ecs.fetch::<Map>();
-    let mut cursor = ecs.fetch_mut::<Cursor>();
-
-    cursor.active = true; //set false when leaving RunState::AwaitingInput.
-
-    if cursor.x + delta_x < 1 || cursor.x + delta_x > map.width-1 ||
-    cursor.y + delta_y < 1 || cursor.y + delta_y > map.height-1 {return RunState::AwaitingInput;}
-
-    cursor.x += delta_x;
-    cursor.y += delta_y;
-
-    return RunState::AwaitingInput;
-}
-
-pub fn cursor_to_player(ecs: &mut World){
-    let mut cursor = ecs.fetch_mut::<Cursor>();
-    let player_pos = ecs.fetch::<Point>();
-
-    cursor.x = player_pos.x;
-    cursor.y = player_pos.y;
-}
-
-
-pub fn try_next_level(ecs: &mut World) -> RunState {
+fn try_next_level(ecs: &mut World) -> RunState {
     let player_pos = ecs.fetch::<Point>();
     let map = ecs.fetch::<Map>();
     let player_idx = map.xy_idx(player_pos.x, player_pos.y);
+
     if map.tiles[player_idx] == TileType::StairsDown {
         return RunState::NextLevel;
     } else {
@@ -148,91 +185,4 @@ fn skip_turn(ecs: &mut World) -> RunState {
     RunState::PlayerTurn
 }
 
-pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
-
-    let input = INPUT.lock();
-    let new_runstate : RunState;
-
-    //(Shift + _) Controls
-    if input.is_key_pressed(VirtualKeyCode::LShift) {
-        new_runstate = match ctx.key {
-            None => return RunState::AwaitingInput,
-            Some(key) => match key {
-                VirtualKeyCode::W => try_move_cursor(0, -3, &mut gs.ecs),
-                VirtualKeyCode::A => try_move_cursor(-3, 0, &mut gs.ecs),
-                VirtualKeyCode::S => try_move_cursor(0, 3, &mut gs.ecs),
-                VirtualKeyCode::D => try_move_cursor(3, 0, &mut gs.ecs),
-                VirtualKeyCode::X => {
-                    cursor_to_player(&mut gs.ecs);
-                    return RunState::AwaitingInput;
-                }
-                _ => return RunState::AwaitingInput,
-            }
-        };
-
-    } else {
-        //Non-(Shift + _) Controls
-        new_runstate = match ctx.key {
-            None => return RunState::AwaitingInput,
-            Some(key) => match key {
-              
-                VirtualKeyCode::C => return RunState::ShowContextMenu { selection: 0, focus: 0 },
-
-                //Cursor Controls----
-                VirtualKeyCode::W => try_move_cursor(0, -1, &mut gs.ecs),
-                VirtualKeyCode::A => try_move_cursor(-1, 0, &mut gs.ecs),
-                VirtualKeyCode::S => try_move_cursor(0, 1, &mut gs.ecs),
-                VirtualKeyCode::D => try_move_cursor(1, 0, &mut gs.ecs),
-                //-------------------
-
-                //skip turn; wait
-                VirtualKeyCode::Numpad5 => skip_turn(&mut gs.ecs),
-                VirtualKeyCode::Space => skip_turn(&mut gs.ecs),
-
-                //grab item
-                VirtualKeyCode::G => get_item(&mut gs.ecs),
-
-                //open inventory
-                VirtualKeyCode::I => return RunState::ShowInventory{focus: InventoryFocus::Backpack},
-
-                //use stairs
-                VirtualKeyCode::Period => {
-                    cursor_to_player(&mut gs.ecs);
-                    try_next_level(&mut gs.ecs)
-                }
-
-                //save
-                VirtualKeyCode::Escape => return RunState::SaveGame,
-
-                //orthogonals
-                VirtualKeyCode::Left |
-                VirtualKeyCode::Numpad4 |
-                VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
-                VirtualKeyCode::Right |
-                VirtualKeyCode::Numpad6 |
-                VirtualKeyCode::L => try_move_player(1, 0, &mut gs.ecs),
-                VirtualKeyCode::Up |
-                VirtualKeyCode::Numpad8 |
-                VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
-                VirtualKeyCode::Down |
-                VirtualKeyCode::Numpad2 |
-                VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
-                
-                //diagonals
-                VirtualKeyCode::Numpad9 |
-                VirtualKeyCode::U => try_move_player(1, -1, &mut gs.ecs),
-                VirtualKeyCode::Numpad7 |
-                VirtualKeyCode::Y => try_move_player(-1, -1, &mut gs.ecs),
-                VirtualKeyCode::Numpad3 |
-                VirtualKeyCode::M => try_move_player(1, 1, &mut gs.ecs),
-                VirtualKeyCode::Numpad1 |
-                VirtualKeyCode::N => try_move_player(-1, 1, &mut gs.ecs),          
-
-                _ => return RunState::AwaitingInput,
-            },
-        };
-    }
-    
-    return new_runstate;
-}
 

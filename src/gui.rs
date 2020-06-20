@@ -1,4 +1,4 @@
-use rltk::{ RGB, Rltk, Point, VirtualKeyCode };
+use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
@@ -286,57 +286,107 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
     }
 }
 
-pub fn ranged_target(gs: &mut State, ctx: &mut Rltk, range: i32) -> (ItemMenuResult, Option<Point>) {
-    let player_entity = gs.ecs.fetch::<Entity>();
-    let player_pos = gs.ecs.fetch::<Point>();
-    let viewsheds = gs.ecs.read_storage::<Viewshed>();
-    
+pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
+    let input = INPUT.lock();
+    let mut movement = 1;
+    if input.is_key_pressed(VirtualKeyCode::LShift) { movement = 3 };
+        
     match ctx.key {
         None => {}
         Some(key) => match key {
-            VirtualKeyCode::Escape => return (ItemMenuResult::Cancel, None),
+            VirtualKeyCode::W => try_move_cursor((0, -movement), ecs),
+            VirtualKeyCode::A => try_move_cursor((-movement, 0), ecs),
+            VirtualKeyCode::S => try_move_cursor((0, movement), ecs),
+            VirtualKeyCode::D => try_move_cursor((movement, 0), ecs),
+            VirtualKeyCode::X => if movement == 3 { cursor_to_player(ecs); }
             _ => {}
         }
-    }
+    };
+}
 
-    ctx.print_color(5, 0, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Select Target:");
+fn try_move_cursor(delta: (i32, i32), ecs: &mut World) {
+    let map = ecs.fetch::<Map>();
+    let mut cursor = ecs.fetch_mut::<Cursor>();
+
+    cursor.active = true; //Is set to false when leaving RunState::AwaitingInput.
+
+    if cursor.x + delta.0 < 1 || cursor.x + delta.0 > map.width-1 ||
+    cursor.y + delta.1 < 1 || cursor.y + delta.1 > map.height-1 {return;}
+
+    cursor.x += delta.0;
+    cursor.y += delta.1;
+}
+
+fn cursor_to_player(ecs: &mut World) {
+    let player_pos = ecs.fetch::<Point>();
+    let mut cursor = ecs.fetch_mut::<Cursor>();
+
+    cursor.active = true;
+    cursor.x = player_pos.x;
+    cursor.y = player_pos.y;
+}
+
+pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (MenuResult, Option<Point>) {
+    
+    enable_cursor_control(ecs, ctx); 
+
+    let player_ent = ecs.fetch::<Entity>();
+    let player_pos = ecs.fetch::<Point>();
+    let cursor = ecs.fetch::<Cursor>();
+    let viewsheds = ecs.read_storage::<Viewshed>();
+
+    //Later Step: Remove mouse-cursor functionality from show_ui & replace w/ Cursor.
 
     //Highlight targetable cells
     let mut targetable_cells = Vec::new();
-    let visible = viewsheds.get(*player_entity); 
+    let visible = viewsheds.get(*player_ent); 
     if let Some(visible) = visible {
         //viewshed exists
         for idx in visible.visible_tiles.iter() {
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(*player_pos, *idx);
             if distance <= range as f32 {
-                ctx.set_bg(idx.x, idx.y, RGB::named(rltk::BLUE));
+                ctx.set_bg(idx.x, idx.y, RGB::named(rltk::CYAN));
                 targetable_cells.push(idx);
             }
         }
     } else {
-        return (ItemMenuResult::Cancel, None);
+        let mut log = ecs.fetch_mut::<GameLog>();
+        log.entries.push("Cannot target while blind!".to_string());
+        return (MenuResult::Cancel, None);
     }
 
-    //Show mouse-hovered cell & enable click-select
-    let mouse_pos = ctx.mouse_pos();
     let mut valid_target = false;
     for idx in targetable_cells.iter() {
-        if idx.x == mouse_pos.0 && idx.y == mouse_pos.1 { valid_target = true; }
+         if idx.x == cursor.x && idx.y == cursor.y { valid_target = true; }       
     }
 
     if valid_target {
-        ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::CYAN));
-        if ctx.left_click {
-            return (ItemMenuResult::Selected, Some(Point::new(mouse_pos.0, mouse_pos.1)));
-        }
+        ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::MAGENTA));
     } else {
-        ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::RED));
-        if ctx.left_click {
-            return (ItemMenuResult::Cancel, None);
+        ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::RED));
+    }
+
+    match ctx.key {
+        None => {}
+        Some(key) => match key {
+            VirtualKeyCode::Escape |
+            VirtualKeyCode::C => {
+                return ( MenuResult::Cancel, None ); }
+
+            VirtualKeyCode::E |
+            VirtualKeyCode::Return |
+            VirtualKeyCode::NumpadEnter => {
+                if valid_target {
+                    return ( MenuResult::Selected, Some(Point::new(cursor.x, cursor.y)) ); 
+                } else {
+                    return ( MenuResult::Continue, None );
+                }
+            }
+            _ => {}
         }
     }
 
-    (ItemMenuResult::NoResponse, None)
+    return (MenuResult::Continue, None);
 }
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {

@@ -1,18 +1,7 @@
 Aeyohm
 
 - Context Menu
-Foundation Implemented!
-BUGs:
--No range limitation on Intent insertion via Cursor-activated C_Menu. Because
-both the Player's position (Point) and the cursor's position (Cursor) are
-globally available resources, it should be trivial to implement an adjacency
-check as a gui.rs fn to solve this.
--Ranged useable items auto-target the player when "Used" via C_Menu.
-
-Next:
-Nested Menus:
-e.g. Selecting the "Attack" option opens a new C_Menu with "Melee" and
-"Ranged" options.
+Nested Menus
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.

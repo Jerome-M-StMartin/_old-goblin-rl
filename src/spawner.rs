@@ -50,7 +50,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
         for _i in 0 .. num_spawns {
             let mut added = false;
             let mut tries = 0;
-            while !added && tries < 20 {
+            while !added && tries < 80 {
                 let x = (room.x1 + rng.roll_dice(1, i32::abs(room.x2 - room.x1))) as usize;
                 let y = (room.y1 + rng.roll_dice(1, i32::abs(room.y2 - room.y1))) as usize;
                 let idx = (y * MAPWIDTH) + x;
@@ -90,15 +90,15 @@ fn room_table(map_depth: i32) -> RandomTable {
     RandomTable::new()
         .add("Goblin", 11)
         .add("Orc", 1 + map_depth)
-        .add("Health Potion", 4)
+        .add("Health Potion", 1)
         .add("Fireball Scroll", 0 + map_depth)
         .add("Confusion Scroll", 0 + map_depth)
-        .add("Magic Missile Scroll", 2)
+        .add("Magic Missile Scroll", 7)
         .add("Scroll of Chitin", 0 + map_depth)
-        .add("Knife", 6 - map_depth * 2)
-        .add("Leather Armor", 3 - map_depth)
+        .add("Knife", 5 - map_depth * 2)
+        .add("Leather Armor", 1 - map_depth)
         .add("Longsword", 1 + map_depth)
-        .add("Round Shield", 4 - map_depth)
+        .add("Round Shield", 1 - map_depth)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
