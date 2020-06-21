@@ -40,7 +40,6 @@ pub enum RunState {
     PreRun,
     PlayerTurn,
     HostileTurn,
-    ShowInventory { focus: gui::InventoryFocus },
     ShowPlayerMenu { menu_state: gui::PlayerMenuState },
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting { range: i32, item: Entity },
@@ -333,31 +332,6 @@ impl GameState for State {
                                     newrunstate = RunState::PlayerTurn;
                                 }
                             }
-                        }
-                    }
-                }
-            }
-            RunState::ShowInventory { focus } => {
-                let result = gui::show_inventory(self, ctx, focus);
-
-                match result.0 {
-                    gui::ItemMenuResult::NoResponse => {}
-                    gui::ItemMenuResult::ChangeFocus => 
-                        newrunstate = RunState::ShowInventory{focus: result.1.unwrap()},
-                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
-                    gui::ItemMenuResult::Selected => {
-                        let item_entity = result.2.unwrap();
-                        let ranged_storage = self.ecs.read_storage::<Ranged>();
-                        let ranged_item = ranged_storage.get(item_entity);
-                        
-                        if let Some(ranged_item) = ranged_item {
-                            newrunstate = RunState::ShowTargeting {range: ranged_item.range, item: item_entity};
-                        } else {
-                            let mut intent = self.ecs.write_storage::<UseItemIntent>();
-                            intent.insert(*self.ecs.fetch::<Entity>(),
-                                UseItemIntent {item: item_entity, target: None})
-                                .expect("Unable to insert UseItemIntent."); 
-                            newrunstate = RunState::PlayerTurn;
                         }
                     }
                 }

@@ -289,9 +289,8 @@ impl GameState for State {
                         let ranged_storage = self.ecs.read_storage::<Ranged>();
                         let ranged_item = ranged_storage.get(out.result.unwrap().1);
 
-                        eprintln!("Matching...");
                         match out.result {
-                            None => {eprintln!("NONE");}
+                            None => {}
                             Some( (menu_option, chosen_ent) ) => match (menu_option, chosen_ent) {
                                 (MenuOption::PickUp, _) => {
                                     let mut storage = self.ecs.write_storage::<PickUpIntent>();

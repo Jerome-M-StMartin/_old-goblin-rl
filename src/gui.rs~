@@ -173,16 +173,20 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
     let items_in_bkpk = (&backpack).join().filter(|item| item.owner == *player_entity).count() as i32;
     let items_equipped = (&equipped).join().filter(|item| item.owner == *player_entity).count() as i32;
 
+
     let x = 5;
-    let menu_width = (ctx.width_pixels / 8) as i32 - (x * 2);
-    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2); 
+    let menu_width = (ctx.width_pixels / 8) as i32 / 2 - (x * 2);
+    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2);
     let mut box_top = 0;
     let mut box_bottom = 0;
     let mut y: i32;
     let mut selection_tracker = 0;
     let mut curr_ent = *player_entity; //Only set to p_ent to aboid "possibly uninitualized" err.
     let mut num_options = 0;
-    
+
+    if state.focus > 1 { state.focus = 0; }
+    if state.focus < 0 { state.focus = 1; }
+
     //Based on curr focus, draw menu box & populate with relevant selections...
     match state.focus {
         0 => {
@@ -191,17 +195,18 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             box_bottom = items_in_bkpk + 3;
             
             ctx.draw_box(x, box_top, menu_width, box_bottom,
-                RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-            ctx.print_color(x+3, y-2,
+                RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));           
+            ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Backpack");
             
             for (ent, name, _in_pack) in (&entities, &names, &backpack).join()
                                      .filter(|tuple| tuple.2.owner == *player_entity) {
-                ctx.print(x, y, &name.name.to_string());
-                y += 1;
+                ctx.print(x + 2, y, &name.name.to_string());
+                
                 if selection_tracker == state.selection { curr_ent = ent; }
                 selection_tracker += 1;
                 num_options += 1;
+                y += 1;
             }
         }
         1 => {
@@ -211,12 +216,12 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
 
             ctx.draw_box(x, box_top, menu_width, box_bottom,
                 RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-            ctx.print_color(x+3, y-2,
+            ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
 
             for (ent, name, _equipment) in (&entities, &names, &equipped).join()
                                   .filter(|tuple| tuple.2.owner == *player_entity) {
-                ctx.print(x, y, &name.name.to_string());
+                ctx.print(x + 2, y, &name.name.to_string());
                 y += 1;
                 if selection_tracker == state.selection { curr_ent = ent; }
                 selection_tracker += 1;
@@ -226,12 +231,18 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
         _ => {}
     }
  
-    ctx.print_color(x+3, max(box_bottom, max_menu_height),
+    ctx.print_color(x+1, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
-    ctx.print_color(x+18, max(box_bottom, max_menu_height),
+    ctx.print_color(x+18, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
-    ctx.print_color(x, box_top + state.selection as i32 + 2,
-        RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    
+    if num_options > 0 {
+        ctx.print_color(x, box_top + state.selection as i32 + 2,
+            RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    } else {
+        ctx.print_color(x + 2, box_top + 2,
+            RGB::named(rltk::RED), RGB::named(rltk::BLACK), "Empty");
+    }
 
     //Query player for choice.
     if let Some(substate) = state.substate {
@@ -283,10 +294,6 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             }
         }
     }
-
-    //Keep focus in bounds. Not ideal that this is hard-coded but 'tis what 'tis.
-    if state.focus > 2 { state.focus = 0; }
-    if state.focus < 0 { state.focus = 2; }
 
     return state;
 }
@@ -360,119 +367,15 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
     return state;
 }
 
-pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
-                                                (ItemMenuResult, Option<InventoryFocus>, Option<Entity>) {
-    let entities = gs.ecs.entities();
-    let player_entity = gs.ecs.fetch::<Entity>();
-    let names = gs.ecs.read_storage::<Name>();
-    let backpack = gs.ecs.read_storage::<InBackpack>();
-    let equipped = gs.ecs.read_storage::<Equipped>();
-
-    let items_in_bkpk = (&backpack).join().filter(|item| item.owner == *player_entity).count();
-    let items_equipped = (&equipped).join().filter(|item| item.owner == *player_entity).count();
-    let items_max = max(items_in_bkpk, items_equipped) as i32;
-
-    let x = 5;
-    let menu_width = (ctx.width_pixels / 8) as i32 - (x * 2);
-    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2); 
-    let mut y = (max_menu_height / 2) - (items_max / 2);
-
-    //draw outer menu box
-    ctx.draw_box(x, y-2, menu_width, items_max+3,
-        RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(x+3, y-2,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventory");
-    ctx.print_color(x+3, min(y+items_max, max_menu_height) + 1,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: <-/->");
-    ctx.print_color(x+18, min(y+items_max, max_menu_height) + 1,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
-    
-    //draw focus box
-    match focus {
-        InventoryFocus::Backpack => {
-            ctx.draw_box(x+1, y-1, (menu_width / 2) - 1, (items_in_bkpk + 1) as i32,
-                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
-            ctx.print_color(x+5, y-1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK),
-                "Items in Backpack");
-        }
-        InventoryFocus::Equipment => {
-            ctx.draw_box( (menu_width / 2) + x+1, y-1, (menu_width / 2) - 2, (items_equipped + 1) as i32,
-                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
-            ctx.print_color( (menu_width / 2) + x+5, y-1,
-                RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
-        }
-    }
-
-    let mut selectable: Vec<Entity> = Vec::new();
-    let mut j = 0; //for "a, b, c, .." menu selection options.
-
-    //draw unequipped items
-    for (entity, name, _in_pack) in (&entities, &names, &backpack).join()
-        .filter(|item| item.2.owner == *player_entity) {
-        
-        ctx.set(x+2, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(x+3, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
-        ctx.set(x+4, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
-        
-        ctx.print(x+6, y, &name.name.to_string());
-        selectable.push(entity);
-        y += 1;
-        j += 1;
-    }
-        
-    j = 0;
-    y = (max_menu_height / 2) - (items_max / 2);
-
-    //draw equipped items
-    for (entity, name, _equipped) in (&entities, &names, &equipped).join()
-        .filter(|item| item.2.owner == *player_entity) {
-        
-        ctx.set( (menu_width / 2) + x+2, y,
-            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set( (menu_width / 2) + x+3, y,
-            RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
-        ctx.set( (menu_width / 2) + x+4, y,
-            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
-        ctx.set( (menu_width / 2) + x+5, y,
-            RGB::named(rltk::BLACK), RGB::named(rltk::BLACK), rltk::to_cp437(' '));
-
-        ctx.print( (menu_width / 2) + x+6, y, &name.name.to_string());
-        selectable.push(entity);
-        y += 1;
-        j += 1;
-    }
-
-    match ctx.key {
-        None => (ItemMenuResult::NoResponse, None, None),
-        
-        Some(key) => {
-            match (key, focus) {
-                (VirtualKeyCode::Tab, InventoryFocus::Backpack) => {
-                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Equipment), None) }
-               
-                (VirtualKeyCode::Tab, InventoryFocus::Equipment) => {
-                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Backpack), None) }
-                
-                (VirtualKeyCode::Escape, _) => { (ItemMenuResult::Cancel, None, None) }
-                
-                (_, InventoryFocus::Backpack) => {
-                    let selection = rltk::letter_to_option(key);
-                    if selection > -1 && selection < items_in_bkpk as i32 {
-                        return (ItemMenuResult::Selected, None, Some(selectable[selection as usize]));
-                    }
-                    (ItemMenuResult::NoResponse, None, None)
-                }
-                
-                (_, InventoryFocus::Equipment) => {
-                    let selection = rltk::letter_to_option(key);
-                    if selection > -1 && selection < items_equipped as i32 {
-                       return (ItemMenuResult::Selected, None, Some(selectable[items_in_bkpk + selection as usize]));
-                    }
-                    (ItemMenuResult::NoResponse, None, None)
-                }
-            }
-        }
-    }
+fn ShowPMenuControls(ctx: &mut Rltk, x: i32, y: i32) {
+    ctx.draw_box(x, y, 45, 10, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.print(x + 2, y + 2, "Arrow (  ) indicates current selection.");
+    ctx.print_color(x + 9, y + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    ctx.print(x + 2, y + 3, "Up/Down: Navigate Current Page");
+    ctx.print(x + 2, y + 4, "Tab: Goto Next Page");
+    ctx.print(x + 2, y + 5, "Esc/C: Exit Menu");
+    ctx.print(x + 2, y + 6, "Return/Enter/E: Confirm Current Section");
+    ctx.print(x + 2, y + 7, "T: Show These Controls");
 }
 
 pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
@@ -766,3 +669,119 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
 
     MainMenuResult::NoSelection { selected: MainMenuSelection::NewGame }
 }
+
+
+/*pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
+                                                (ItemMenuResult, Option<InventoryFocus>, Option<Entity>) {
+    let entities = gs.ecs.entities();
+    let player_entity = gs.ecs.fetch::<Entity>();
+    let names = gs.ecs.read_storage::<Name>();
+    let backpack = gs.ecs.read_storage::<InBackpack>();
+    let equipped = gs.ecs.read_storage::<Equipped>();
+
+    let items_in_bkpk = (&backpack).join().filter(|item| item.owner == *player_entity).count();
+    let items_equipped = (&equipped).join().filter(|item| item.owner == *player_entity).count();
+    let items_max = max(items_in_bkpk, items_equipped) as i32;
+
+    let x = 5;
+    let menu_width = (ctx.width_pixels / 8) as i32 - (x * 2);
+    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2); 
+    let mut y = (max_menu_height / 2) - (items_max / 2);
+
+    //draw outer menu box
+    ctx.draw_box(x, y-2, menu_width, items_max+3,
+        RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.print_color(x+3, y-2,
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventory");
+    ctx.print_color(x+3, min(y+items_max, max_menu_height) + 1,
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: <-/->");
+    ctx.print_color(x+18, min(y+items_max, max_menu_height) + 1,
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
+    
+    //draw focus box
+    match focus {
+        InventoryFocus::Backpack => {
+            ctx.draw_box(x+1, y-1, (menu_width / 2) - 1, (items_in_bkpk + 1) as i32,
+                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
+            ctx.print_color(x+5, y-1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK),
+                "Items in Backpack");
+        }
+        InventoryFocus::Equipment => {
+            ctx.draw_box( (menu_width / 2) + x+1, y-1, (menu_width / 2) - 2, (items_equipped + 1) as i32,
+                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
+            ctx.print_color( (menu_width / 2) + x+5, y-1,
+                RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
+        }
+    }
+
+    let mut selectable: Vec<Entity> = Vec::new();
+    let mut j = 0; //for "a, b, c, .." menu selection options.
+
+    //draw unequipped items
+    for (entity, name, _in_pack) in (&entities, &names, &backpack).join()
+        .filter(|item| item.2.owner == *player_entity) {
+        
+        ctx.set(x+2, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
+        ctx.set(x+3, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
+        ctx.set(x+4, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
+        
+        ctx.print(x+6, y, &name.name.to_string());
+        selectable.push(entity);
+        y += 1;
+        j += 1;
+    }
+        
+    j = 0;
+    y = (max_menu_height / 2) - (items_max / 2);
+
+    //draw equipped items
+    for (entity, name, _equipped) in (&entities, &names, &equipped).join()
+        .filter(|item| item.2.owner == *player_entity) {
+        
+        ctx.set( (menu_width / 2) + x+2, y,
+            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
+        ctx.set( (menu_width / 2) + x+3, y,
+            RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
+        ctx.set( (menu_width / 2) + x+4, y,
+            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
+        ctx.set( (menu_width / 2) + x+5, y,
+            RGB::named(rltk::BLACK), RGB::named(rltk::BLACK), rltk::to_cp437(' '));
+
+        ctx.print( (menu_width / 2) + x+6, y, &name.name.to_string());
+        selectable.push(entity);
+        y += 1;
+        j += 1;
+    }
+
+    match ctx.key {
+        None => (ItemMenuResult::NoResponse, None, None),
+        
+        Some(key) => {
+            match (key, focus) {
+                (VirtualKeyCode::Tab, InventoryFocus::Backpack) => {
+                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Equipment), None) }
+               
+                (VirtualKeyCode::Tab, InventoryFocus::Equipment) => {
+                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Backpack), None) }
+                
+                (VirtualKeyCode::Escape, _) => { (ItemMenuResult::Cancel, None, None) }
+                
+                (_, InventoryFocus::Backpack) => {
+                    let selection = rltk::letter_to_option(key);
+                    if selection > -1 && selection < items_in_bkpk as i32 {
+                        return (ItemMenuResult::Selected, None, Some(selectable[selection as usize]));
+                    }
+                    (ItemMenuResult::NoResponse, None, None)
+                }
+                
+                (_, InventoryFocus::Equipment) => {
+                    let selection = rltk::letter_to_option(key);
+                    if selection > -1 && selection < items_equipped as i32 {
+                       return (ItemMenuResult::Selected, None, Some(selectable[items_in_bkpk + selection as usize]));
+                    }
+                    (ItemMenuResult::NoResponse, None, None)
+                }
+            }
+        }
+    }
+}*/
