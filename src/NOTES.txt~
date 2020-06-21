@@ -87,4 +87,5 @@ initializing the variable out of scope.
 - WASD-CURSOR - 6/14/2020
 - TEXT CONFUSION - 6/17/2020
 simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
-- UNIVERSAL CONTEXT MENU = 6/18/2020
+- UNIVERSAL CONTEXT MENU - 6/18/2020
+- NESTED PLAYER MENU - 6/21/20

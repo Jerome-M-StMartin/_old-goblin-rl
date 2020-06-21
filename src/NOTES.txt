@@ -1,19 +1,11 @@
 Aeyohm
 
-LIFETIME CHALLENGE:
-Currently it seems like the error message is saying that it is invalid for the
-references passed to player_input() to outlive 'static, but simultaneously
-they MUST be 'static because RunState, the fn's return type, is 'static.
-The fix seems to be to change the return type from player.rs.player_input()
-and match{} for the correct runstate in main.rs.tick().
-
-- Context Menu
-Nested Menus:
-Looks like I get to use Box<> for the first time!!!!
+- Nested Player Menu:
+Need to remove odd 3rd TAB page. How is that there?
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
 have the Pick Up option, etc.
-Need to reset input.selection in open_player_menu when it goes out of bounds.
+
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.
@@ -94,4 +86,5 @@ initializing the variable out of scope.
 - WASD-CURSOR - 6/14/2020
 - TEXT CONFUSION - 6/17/2020
 simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
-- UNIVERSAL CONTEXT MENU = 6/18/2020
+- UNIVERSAL CONTEXT MENU - 6/18/2020
+- NESTED PLAYER MENU - 6/21/20

@@ -35,13 +35,13 @@ mod c_menu_system;
 use c_menu_system::ContextMenuSystem;
 
 #[derive(PartialEq, Clone, Copy)]
-pub enum RunState<'a> { 
+pub enum RunState { 
     AwaitingInput,
     PreRun,
     PlayerTurn,
     HostileTurn,
     ShowInventory { focus: gui::InventoryFocus },
-    ShowPlayerMenu { input: gui::PlayerMenuInput<'a> },
+    ShowPlayerMenu { menu_state: gui::PlayerMenuState },
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting { range: i32, item: Entity },
     MainMenu { menu_selection: gui::MainMenuSelection },
@@ -145,7 +145,7 @@ impl State {
 }
 
 impl GameState for State {
-    fn tick<'a>(&'a mut self, ctx: &'a mut Rltk) { 
+    fn tick(&mut self, ctx: &mut Rltk) { 
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
@@ -277,11 +277,12 @@ impl GameState for State {
                     }
                 }
             }
-            RunState::ShowPlayerMenu { input } => {
-                let out = gui::open_player_menu(&mut self.ecs, ctx, input);
+            RunState::ShowPlayerMenu { menu_state } => {
+                let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
 
                 match out.mr {
-                    gui::MenuResult::Continue => {}
+                    gui::MenuResult::Continue => {
+                        newrunstate = RunState::ShowPlayerMenu { menu_state: out } }
                     gui::MenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::MenuResult::Selected => {
                         let player = self.ecs.fetch::<Entity>();

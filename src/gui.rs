@@ -103,11 +103,11 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
     return result;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+/*#[derive(Debug, Clone, PartialEq)]
 pub struct PlayerMenuInput<'a> {
     pub selection: i8,
     pub focus: i8,
-    pub submenu_input: Option<&'a SubmenuInput<'a>>,
+    pub submenu_input: Option<&'a mut SubmenuInput<'a>>,
 }
 impl<'a> Default for PlayerMenuInput<'a> {
     fn default() -> PlayerMenuInput<'a> {
@@ -119,20 +119,51 @@ impl<'a> Default for PlayerMenuInput<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PlayerMenuOutput<'a> {
     pub mr: MenuResult,
-    pub next_input: &'a PlayerMenuInput<'a>,
+    pub next_input: &'a mut PlayerMenuInput<'a>,
     pub result: Option<(MenuOption, Entity)>
 }
 
-pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: PlayerMenuInput<'a>) ->
-                                                                            PlayerMenuOutput<'a> {
-  
-    //Initialize output and mold into desired state as function logic propigates...
-    let mut output = PlayerMenuOutput { mr: MenuResult::Continue, next_input: &input, result: None };
-    
-    
+#[derive(Debug, Clone, PartialEq)]
+pub struct SubmenuInput<'a> {
+    pub e: Entity,
+    pub pos: (i32, i32),
+    pub selection: i8,
+    pub last_output: Option<&'a mut SubmenuOutput<'a>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SubmenuOutput<'a> {
+    pub mr: MenuResult,
+    pub next_input: &'a mut SubmenuInput<'a>,
+    pub result: Option<(MenuOption, Entity)>
+}*/
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PlayerMenuState {
+    pub selection: i8,
+    pub focus: i8,
+    pub mr: MenuResult,
+    pub substate: Option<SubState>,
+    pub result: Option<(MenuOption, Entity)>
+}
+
+impl Default for PlayerMenuState {
+    fn default() -> PlayerMenuState {
+            PlayerMenuState {
+            selection: 0,
+            focus: 0,
+            mr: MenuResult::Continue,
+            substate: None,
+            result: None
+        }
+    }
+}
+
+pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState) ->
+                                                                    PlayerMenuState {
     let entities = ecs.entities();
     let player_entity = ecs.fetch::<Entity>();
     let names = ecs.read_storage::<Name>();
@@ -145,15 +176,15 @@ pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: Player
     let x = 5;
     let menu_width = (ctx.width_pixels / 8) as i32 - (x * 2);
     let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2); 
-    let mut box_top: i32;
-    let mut box_bottom: i32;
+    let mut box_top = 0;
+    let mut box_bottom = 0;
     let mut y: i32;
     let mut selection_tracker = 0;
-    let mut curr_ent: Entity;
+    let mut curr_ent = *player_entity; //Only set to p_ent to aboid "possibly uninitualized" err.
     let mut num_options = 0;
     
     //Based on curr focus, draw menu box & populate with relevant selections...
-    match input.focus {
+    match state.focus {
         0 => {
             y = (max_menu_height / 2) - (items_in_bkpk / 2);
             box_top = y-2;
@@ -166,9 +197,9 @@ pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: Player
             
             for (ent, name, _in_pack) in (&entities, &names, &backpack).join()
                                      .filter(|tuple| tuple.2.owner == *player_entity) {
-                ctx.print( (menu_width / 2) + x+6, y, &name.name.to_string());
+                ctx.print(x + 3, y, &name.name.to_string());
                 y += 1;
-                if selection_tracker == input.selection { curr_ent = ent; }
+                if selection_tracker == state.selection { curr_ent = ent; }
                 selection_tracker += 1;
                 num_options += 1;
             }
@@ -185,9 +216,9 @@ pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: Player
 
             for (ent, name, _equipment) in (&entities, &names, &equipped).join()
                                   .filter(|tuple| tuple.2.owner == *player_entity) {
-                ctx.print( (menu_width / 2) + x+6, y, &name.name.to_string());
+                ctx.print(x + 3, y, &name.name.to_string());
                 y += 1;
-                if selection_tracker == input.selection { curr_ent = ent; }
+                if selection_tracker == state.selection { curr_ent = ent; }
                 selection_tracker += 1;
                 num_options += 1;
             }
@@ -195,27 +226,32 @@ pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: Player
         _ => {}
     }
  
-    ctx.print_color(x+3, min(box_bottom, max_menu_height),
+    ctx.print_color(x+3, max(box_bottom, max_menu_height),
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
-    ctx.print_color(x+18, min(box_bottom, max_menu_height),
+    ctx.print_color(x+18, max(box_bottom, max_menu_height),
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
-    ctx.print_color(x, box_top + input.selection as i32 + 1,
-        RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    
+    if num_options > 0 {
+        ctx.print_color(x, box_top + state.selection as i32 + 2,
+            RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    } else {
+        ctx.print_color(x, box_top + state.selection as i32 + 2,
+            RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "Empty");
+    }
 
     //Query player for choice.
-    if let Some(submenu_input) = input.submenu_input {
+    if let Some(substate) = state.substate {
         
-        let submenu_output = open_submenu(ecs, ctx, *submenu_input);
+        let new_substate = open_submenu(&ecs, ctx, substate);
         
-        match submenu_output.mr {
-            MenuResult::Continue => {
-                if let Some(submenu_input) = output.next_input.submenu_input {
-                    submenu_input.last_output = Some(&submenu_output);
-                }
-            }
-            MenuResult::Cancel => { input.submenu_input = None; }
+        match new_substate.sub_mr {
+            MenuResult::Continue => { state.substate = Some(new_substate); }
+            MenuResult::Cancel => { state.substate = None; }
             MenuResult::Selected => {
-                if let Some(result) = submenu_output.result { output.result = Some(result); }
+                if let Some(result) = new_substate.result { 
+                    state.result = Some(result);
+                    state.mr = MenuResult::Selected;
+                }
             }
         }
     } else {
@@ -224,80 +260,67 @@ pub fn open_player_menu<'a>(ecs: &'a mut World, ctx: &'a mut Rltk, input: Player
             Some(key) => match key {
                 
                 VirtualKeyCode::Escape |
-                VirtualKeyCode::C => { output.mr = MenuResult::Cancel; }
+                VirtualKeyCode::C => { state.mr = MenuResult::Cancel; }
 
                 VirtualKeyCode::W |
                 VirtualKeyCode::Up |
                 VirtualKeyCode::Numpad8 |
-                VirtualKeyCode::K => { output.next_input.selection = max(0, input.selection - 1); }
+                VirtualKeyCode::K => { state.selection = max(0, state.selection - 1); }
 
                 VirtualKeyCode::S |
                 VirtualKeyCode::Down |
                 VirtualKeyCode::Numpad2 |
-                VirtualKeyCode::J => { output.next_input.selection = min(num_options - 1, input.selection + 1); }
+                VirtualKeyCode::J => { state.selection = min(num_options - 1, state.selection + 1); }
 
-                VirtualKeyCode::Tab => { output.next_input.focus += 1; }
+                VirtualKeyCode::Tab => { state.focus += 1; }
 
                 VirtualKeyCode::Return |
                 VirtualKeyCode::NumpadEnter |
                 VirtualKeyCode::E => {
-                    let submenu_in = SubmenuInput {
+                    let init_substate = SubState {
                                         e: curr_ent,
                                         pos: (x, box_top + selection_tracker as i32 + 2),
-                                        selection: 0,
-                                        last_output: None };
-                    output.next_input.submenu_input = Some(&submenu_in);
+                                        sub_selection: 0,
+                                        sub_mr: MenuResult::Continue,
+                                        result: None };
+                    state.substate = Some(init_substate);
                 }
                 _ => {}
             }
         }
     }
 
-    if output.next_input.focus > 2 { output.next_input.focus = 0; }
-    if output.next_input.focus < 0 { output.next_input.focus = 2; }
+    //Keep focus in bounds. Not ideal that this is hard-coded but 'tis what 'tis.
+    if state.focus > 2 { state.focus = 0; }
+    if state.focus < 0 { state.focus = 2; }
 
-    return output;
+    return state;
 }
 
+//Lives inside of PlayerMenuState struct only.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SubmenuInput<'a> {
+pub struct SubState {
     pub e: Entity,
     pub pos: (i32, i32),
-    pub selection: i8,
-    pub last_output: Option<&'a SubmenuOutput<'a>>,
+    pub sub_selection: i8,
+    pub sub_mr: MenuResult,
+    pub result: Option<(MenuOption, Entity)>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SubmenuOutput<'a> {
-    pub mr: MenuResult,
-    pub next_input: &'a SubmenuInput<'a>,
-    pub result: Option<(MenuOption, Entity)>
-}
-
-fn open_submenu<'a>(ecs: &'a World, ctx: &'a mut Rltk, input: SubmenuInput<'a>) -> SubmenuOutput<'a> {
-
-    let mut output: SubmenuOutput;
-
-    if let Some(last_out) = input.last_output {
-        output = *last_out;
-    } else {
-        output = SubmenuOutput { mr: MenuResult::Continue,
-                                 next_input: &input,
-                                 result: None };
-    }
+fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
 
     let menuable_storage = ecs.read_storage::<Menuable>();
     
-    if let Some(menuable) = &menuable_storage.get(input.e) { //Is Context Menuable?
+    if let Some(menuable) = &menuable_storage.get(state.e) { //Is Context Menuable?
         if !&menuable.options.is_empty() { //Is Menuable component populated?
         
             let num_options = menuable.options.len() as i8;
             let height = num_options + 1;
-            let x = input.pos.0;
-            let mut y = input.pos.1;
+            let x = state.pos.0;
+            let mut y = state.pos.1;
 
             ctx.draw_box(x, y, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-            ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
+            ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Intent?");
 
             //Draw the menu options.
             for (_, s) in &menuable.options {
@@ -312,35 +335,35 @@ fn open_submenu<'a>(ecs: &'a World, ctx: &'a mut Rltk, input: SubmenuInput<'a>) 
                 Some(key) => match key {
                     
                     VirtualKeyCode::Escape |
-                    VirtualKeyCode::C => { output.mr = MenuResult::Cancel; },
+                    VirtualKeyCode::C => { state.sub_mr = MenuResult::Cancel; },
 
                     VirtualKeyCode::W |
                     VirtualKeyCode::Up |
                     VirtualKeyCode::Numpad8 |
-                    VirtualKeyCode::K => { output.next_input.selection = max(0, input.selection - 1); }
+                    VirtualKeyCode::K => { state.sub_selection = max(0, state.sub_selection - 1); }
 
                     VirtualKeyCode::S |
                     VirtualKeyCode::Down |
                     VirtualKeyCode::Numpad2 |
-                    VirtualKeyCode::J => { output.next_input.selection = min(num_options - 1, input.selection + 1); }                                   
+                    VirtualKeyCode::J => { state.sub_selection = min(num_options - 1, state.sub_selection + 1); }                                   
                     VirtualKeyCode::Return |
                     VirtualKeyCode::NumpadEnter |
                     VirtualKeyCode::E => {
-                        output.mr = MenuResult::Selected;
-                        output.result = Some( (menuable.options[input.selection as usize].0, input.e) );
+                        state.sub_mr = MenuResult::Selected;
+                        state.result = Some( (menuable.options[state.sub_selection as usize].0, state.e) );
                     }
                     _ => {}
                 }
             }
 
             //Draw the curr-selction arrow.
-            ctx.print_color(x, input.pos.1 + input.selection as i32 + 1,
+            ctx.print_color(x, state.pos.1 + state.sub_selection as i32 + 1,
                 RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
 
-        } else { output.mr = MenuResult::Cancel; }
-    } else { output.mr = MenuResult::Cancel; }
+        } else { state.sub_mr = MenuResult::Cancel; }
+    } else { state.sub_mr = MenuResult::Cancel; }
 
-    return output;
+    return state;
 }
 
 pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
