@@ -5,7 +5,7 @@ use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Curso
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui::InventoryFocus,
             gui};
 
-pub fn player_input<'a>(ecs: &'a mut World, ctx: &mut Rltk) -> RunState<'a> {
+pub fn player_input<'a>(ecs: &'a mut World, ctx: &'a mut Rltk) -> RunState<'a> {
     let new_runstate : RunState;
 
     gui::enable_cursor_control(&mut ecs, ctx); 

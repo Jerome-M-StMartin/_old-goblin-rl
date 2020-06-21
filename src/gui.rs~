@@ -274,7 +274,7 @@ pub struct SubmenuOutput<'a> {
     pub result: Option<(MenuOption, Entity)>
 }
 
-fn open_submenu<'a>(ecs: &'a World, ctx: &'a mut Rltk, input: SubmenuInput<'a>) -> SubmenuOutput<'a> {
+fn open_submenu<'a>(ecs: &'a World, ctx: &'a mut Rltk, input: SubmenuInput) -> SubmenuOutput<'a> {
 
     let mut output: SubmenuOutput;
 

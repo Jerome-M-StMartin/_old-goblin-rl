@@ -1,12 +1,5 @@
 Aeyohm
 
-LIFETIME CHALLENGE:
-Currently it seems like the error message is saying that it is invalid for the
-references passed to player_input() to outlive 'static, but simultaneously
-they MUST be 'static because RunState, the fn's return type, is 'static.
-The fix seems to be to change the return type from player.rs.player_input()
-and match{} for the correct runstate in main.rs.tick().
-
 - Context Menu
 Nested Menus:
 Looks like I get to use Box<> for the first time!!!!

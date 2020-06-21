@@ -51,6 +51,7 @@ pub enum RunState<'a> {
 
 pub struct State {
     pub ecs: World,
+    pub runstate: RunState,
     pub tooltips_on: bool,
 }
 

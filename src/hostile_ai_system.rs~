@@ -9,7 +9,7 @@ impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
     type SystemData = ( WriteExpect<'a, Map>,
                         ReadExpect<'a, Point>,
                         ReadExpect<'a, Entity>,
-                        ReadExpect<'a, RunState<'static>>,
+                        ReadExpect<'a, RunState<'a>>,
                         Entities<'a>,
                         WriteStorage<'a, Viewshed>,
                         ReadStorage<'a, Hostile>,
