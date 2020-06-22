@@ -1,12 +1,10 @@
 Aeyohm
 
-- Context Menu
-Nested Menus:
-Looks like I get to use Box<> for the first time!!!!
+- Nested Player Menu:
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
 have the Pick Up option, etc.
-Need to reset input.selection in open_player_menu when it goes out of bounds.
+
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.
@@ -44,12 +42,15 @@ PLAN:
 				    Spellweaving Metalanguage - Atheirei
 				    Teleportation
 				    NPC Neutrals/Friendlies/Allies
+				    Town & Boss Battle Music
 - Feature Creep:  Morality System
 		  Player as Villian
 		  Machine Learning/Neural Networks
 		  Verticality/Z-axis beyond pitfalls/stairs.
 		  Multiplayer
 		  Party-Based
+		  SFX
+		  Music beyond Town & Boss Battle Music
 
 KNOWN-UKNOWN BUGS:
 

@@ -1,11 +1,9 @@
 Aeyohm
 
 - Nested Player Menu:
-Need to remove odd 3rd TAB page. How is that there?
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
 have the Pick Up option, etc.
-
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.
@@ -33,22 +31,25 @@ DESIGN PILLARS:
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
   Tutorial for inspiration & implementation proof-of-concepts.
-- Planned & Unimplemented Features: State-Based NPC AI
+- Planned & Unimplemented Features: State-Based or Behaviour Tree NPC AI
 				    Chests w/ RNG Contents
 				    EXTREMELY Rare Mimics (0.001%)
 				    Non-RNG Story - Player as Hero
-				    Non-RNG Persistent World
+				    Non-RNG Persistent World Zones
 					Ethakiak, Pale Mountain
 				    RNG Zones - Wandering Wastes, Rainlands
 				    Spellweaving Metalanguage - Atheirei
 				    Teleportation
 				    NPC Neutrals/Friendlies/Allies
+				    Town & Boss Battle Music
 - Feature Creep:  Morality System
 		  Player as Villian
 		  Machine Learning/Neural Networks
 		  Verticality/Z-axis beyond pitfalls/stairs.
 		  Multiplayer
 		  Party-Based
+		  SFX
+		  Music beyond Town & Boss Battle Music
 
 KNOWN-UKNOWN BUGS:
 

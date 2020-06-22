@@ -209,38 +209,6 @@ impl GameState for State {
         ctx.cls(); //clearscreen
 
         match newrunstate {
-            RunState::MainMenu{..} => {}
-            _ => {
-                draw_map(&self.ecs, ctx);
-                
-                {
-                    let positions = self.ecs.read_storage::<Position>();
-                    let renderables = self.ecs.read_storage::<Renderable>();
-                    let map = self.ecs.fetch::<Map>();
-               
-                    //gather & sort render data before rendering so gui layering is proper
-                    let mut render_data = (&positions, &renderables).join().collect::<Vec<_>>();
-                    render_data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
-                    for (pos, render) in render_data.iter() {
-                        let idx = map.xy_idx(pos.x, pos.y);
-                        if map.visible_tiles[idx] {ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
-                    }
-                    
-                    match ctx.key {
-                        None => {}
-                        Some(key) => match key {
-                            VirtualKeyCode::T =>
-                                self.tooltips_on = !self.tooltips_on,
-                            _ => {}
-                        }
-                    }
-
-                    gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
-                }
-            }
-        }
-
-        match newrunstate {
             RunState::PreRun => {
                 self.run_systems();
                 self.ecs.maintain();
@@ -432,6 +400,39 @@ impl GameState for State {
                 }
             }
         }
+        match newrunstate {
+            RunState::MainMenu{..} => {}
+            RunState::GameOver => {}
+            _ => {
+                draw_map(&self.ecs, ctx);
+                
+                {
+                    let positions = self.ecs.read_storage::<Position>();
+                    let renderables = self.ecs.read_storage::<Renderable>();
+                    let map = self.ecs.fetch::<Map>();
+               
+                    //gather & sort render data before rendering so gui layering is proper
+                    let mut render_data = (&positions, &renderables).join().collect::<Vec<_>>();
+                    render_data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
+                    for (pos, render) in render_data.iter() {
+                        let idx = map.xy_idx(pos.x, pos.y);
+                        if map.visible_tiles[idx] {ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
+                    }
+                    
+                    match ctx.key {
+                        None => {}
+                        Some(key) => match key {
+                            VirtualKeyCode::T =>
+                                self.tooltips_on = !self.tooltips_on,
+                            _ => {}
+                        }
+                    }
+
+                    gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
+                }
+            }
+        }
+
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
             *runwriter = newrunstate;
