@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use std::cmp::max;
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
-            Resistances, RunState};
+            Resistances};
 
 pub struct DamageSystem {}
 

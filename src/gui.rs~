@@ -4,12 +4,6 @@ use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
              Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor};
 
-#[derive(PartialEq, Clone, Copy)]
-pub enum InventoryFocus { Backpack, Equipment }
-
-#[derive(PartialEq, Copy, Clone)]
-pub enum ItemMenuResult { Cancel, NoResponse, Selected, ChangeFocus }
-
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }
 
@@ -367,17 +361,6 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
     return state;
 }
 
-fn ShowPMenuControls(ctx: &mut Rltk, x: i32, y: i32) {
-    ctx.draw_box(x, y, 45, 10, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print(x + 2, y + 2, "Arrow (  ) indicates current selection.");
-    ctx.print_color(x + 9, y + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
-    ctx.print(x + 2, y + 3, "Up/Down: Navigate Current Page");
-    ctx.print(x + 2, y + 4, "Tab: Goto Next Page");
-    ctx.print(x + 2, y + 5, "Esc/C: Exit Menu");
-    ctx.print(x + 2, y + 6, "Return/Enter/E: Confirm Current Section");
-    ctx.print(x + 2, y + 7, "T: Show These Controls");
-}
-
 pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
     let input = INPUT.lock();
     let mut movement = 1;
@@ -556,12 +539,19 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
     let mut to_tooltip: Vec<(i32, i32, String)> = Vec::new();
     
     if global {
-        for (name, pos) in (&names, &positions).join() {
-            let idx = map.xy_idx(pos.x, pos.y);
-            if map.visible_tiles[idx] {
-                to_tooltip.push(( pos.x, pos.y, name.name.to_string()) );
+        let runstate = ecs.fetch::<RunState>();
+        match *runstate {
+            RunState::ShowPlayerMenu { menu_state: _ } => show_player_menu_controls(ctx),
+            _ => {
+                for (name, pos) in (&names, &positions).join() {
+                    let idx = map.xy_idx(pos.x, pos.y);
+                    if map.visible_tiles[idx] {
+                        to_tooltip.push(( pos.x, pos.y, name.name.to_string()) );
+                    }
+                }
             }
         }
+
     } else if cursor.active == true {
         if cursor.x >= map.width || cursor.y >= map.height { return; }
 
@@ -600,6 +590,21 @@ fn is_adjacent_to_player(ecs: &World, x: i32, y: i32) -> bool {
     let y_dif = (y - player_pos.y).abs();
     
     x_dif <= 1 && y_dif <= 1
+}
+
+fn show_player_menu_controls(ctx: &mut Rltk) {
+    //let x = ((ctx.width_pixels / 8) as i32 / 3);
+    //let y = ((ctx.height_pixels / 8) as i32 / 3);
+    let (x, y) = (0, 0);
+    ctx.draw_box(x, y, 45, 9, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Menu Controls");
+    ctx.print(x + 2, y + 2, "Arrow (  ) indicates current selection.");
+    ctx.print_color(x + 9, y + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    ctx.print(x + 2, y + 3, "Up/Down: Navigate Current Page");
+    ctx.print(x + 2, y + 4, "Tab: Goto Next Page");
+    ctx.print(x + 2, y + 5, "Esc/C: Exit Menu");
+    ctx.print(x + 2, y + 6, "Return/Enter/E: Confirm Current Selection");
+    ctx.print(x + 2, y + 7, "T: Show/Hide These Controls");
 }
 
 pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
@@ -670,118 +675,33 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
     MainMenuResult::NoSelection { selected: MainMenuSelection::NewGame }
 }
 
+pub fn game_over(ctx: &mut Rltk) -> MenuResult {
+    ctx.cls();
+    ctx.print_color_centered(15, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "Your journey has come to its close.");
+    ctx.print_color_centered(17, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "Though history yields not the forgotten, ");
+    ctx.print_color_centered(18, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "it is born of their actions none-the-less.");
+    ctx.print_color_centered(20, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "A new journey awaits.");
+    ctx.print_color_centered(29, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "Will you tread once more upon The Foot of The Mountain?");
 
-/*pub fn show_inventory(gs: &mut State, ctx: &mut Rltk, focus: InventoryFocus) ->
-                                                (ItemMenuResult, Option<InventoryFocus>, Option<Entity>) {
-    let entities = gs.ecs.entities();
-    let player_entity = gs.ecs.fetch::<Entity>();
-    let names = gs.ecs.read_storage::<Name>();
-    let backpack = gs.ecs.read_storage::<InBackpack>();
-    let equipped = gs.ecs.read_storage::<Equipped>();
+    let center = (ctx.width_pixels / 8) / 2;
 
-    let items_in_bkpk = (&backpack).join().filter(|item| item.owner == *player_entity).count();
-    let items_equipped = (&equipped).join().filter(|item| item.owner == *player_entity).count();
-    let items_max = max(items_in_bkpk, items_equipped) as i32;
-
-    let x = 5;
-    let menu_width = (ctx.width_pixels / 8) as i32 - (x * 2);
-    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2); 
-    let mut y = (max_menu_height / 2) - (items_max / 2);
-
-    //draw outer menu box
-    ctx.draw_box(x, y-2, menu_width, items_max+3,
-        RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(x+3, y-2,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventory");
-    ctx.print_color(x+3, min(y+items_max, max_menu_height) + 1,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: <-/->");
-    ctx.print_color(x+18, min(y+items_max, max_menu_height) + 1,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
-    
-    //draw focus box
-    match focus {
-        InventoryFocus::Backpack => {
-            ctx.draw_box(x+1, y-1, (menu_width / 2) - 1, (items_in_bkpk + 1) as i32,
-                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
-            ctx.print_color(x+5, y-1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK),
-                "Items in Backpack");
-        }
-        InventoryFocus::Equipment => {
-            ctx.draw_box( (menu_width / 2) + x+1, y-1, (menu_width / 2) - 2, (items_equipped + 1) as i32,
-                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK));
-            ctx.print_color( (menu_width / 2) + x+5, y-1,
-                RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
-        }
-    }
-
-    let mut selectable: Vec<Entity> = Vec::new();
-    let mut j = 0; //for "a, b, c, .." menu selection options.
-
-    //draw unequipped items
-    for (entity, name, _in_pack) in (&entities, &names, &backpack).join()
-        .filter(|item| item.2.owner == *player_entity) {
-        
-        ctx.set(x+2, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(x+3, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
-        ctx.set(x+4, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
-        
-        ctx.print(x+6, y, &name.name.to_string());
-        selectable.push(entity);
-        y += 1;
-        j += 1;
-    }
-        
-    j = 0;
-    y = (max_menu_height / 2) - (items_max / 2);
-
-    //draw equipped items
-    for (entity, name, _equipped) in (&entities, &names, &equipped).join()
-        .filter(|item| item.2.owner == *player_entity) {
-        
-        ctx.set( (menu_width / 2) + x+2, y,
-            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set( (menu_width / 2) + x+3, y,
-            RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
-        ctx.set( (menu_width / 2) + x+4, y,
-            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
-        ctx.set( (menu_width / 2) + x+5, y,
-            RGB::named(rltk::BLACK), RGB::named(rltk::BLACK), rltk::to_cp437(' '));
-
-        ctx.print( (menu_width / 2) + x+6, y, &name.name.to_string());
-        selectable.push(entity);
-        y += 1;
-        j += 1;
-    }
+    ctx.print_color(center - 5, 33, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+        "Be Reborn");
+    ctx.print_color(center - 7, 33, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK),
+        "->");
 
     match ctx.key {
-        None => (ItemMenuResult::NoResponse, None, None),
-        
-        Some(key) => {
-            match (key, focus) {
-                (VirtualKeyCode::Tab, InventoryFocus::Backpack) => {
-                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Equipment), None) }
-               
-                (VirtualKeyCode::Tab, InventoryFocus::Equipment) => {
-                    (ItemMenuResult::ChangeFocus, Some(InventoryFocus::Backpack), None) }
-                
-                (VirtualKeyCode::Escape, _) => { (ItemMenuResult::Cancel, None, None) }
-                
-                (_, InventoryFocus::Backpack) => {
-                    let selection = rltk::letter_to_option(key);
-                    if selection > -1 && selection < items_in_bkpk as i32 {
-                        return (ItemMenuResult::Selected, None, Some(selectable[selection as usize]));
-                    }
-                    (ItemMenuResult::NoResponse, None, None)
-                }
-                
-                (_, InventoryFocus::Equipment) => {
-                    let selection = rltk::letter_to_option(key);
-                    if selection > -1 && selection < items_equipped as i32 {
-                       return (ItemMenuResult::Selected, None, Some(selectable[items_in_bkpk + selection as usize]));
-                    }
-                    (ItemMenuResult::NoResponse, None, None)
-                }
-            }
+        None => MenuResult::Continue,
+        Some(key) => match key {
+            VirtualKeyCode::E |
+            VirtualKeyCode::Return |
+            VirtualKeyCode::NumpadEnter => MenuResult::Selected,
+            _ => MenuResult::Continue,
         }
     }
-}*/
+}
