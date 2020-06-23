@@ -33,13 +33,17 @@ pub mod saveload_system;
 mod random_table;
 mod c_menu_system;
 use c_menu_system::ContextMenuSystem;
+mod healing_system;
+use healing_system::HealingSystem;
+mod bleed_system;
+use bleed_system::BleedSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
     AwaitingInput,
     PreRun,
     PlayerTurn,
-    HostileTurn,
+    GameworldTurn,
     ShowPlayerMenu { menu_state: gui::PlayerMenuState },
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting { range: i32, item: Entity },
@@ -56,16 +60,20 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut mob = HostileAI{};
+        mob.run_now(&self.ecs);
         let mut items = ItemUseSystem{};
         items.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
         vis.run_now(&self.ecs);
-        let mut mob = HostileAI{};
-        mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};
         mapindex.run_now(&self.ecs);
+        let mut healing = HealingSystem{};
+        healing.run_now(&self.ecs);
+        let mut bleed = BleedSystem{};
+        bleed.run_now(&self.ecs);
         let mut damage = DamageSystem{};
         damage.run_now(&self.ecs);
         let mut pick_up = ItemCollectionSystem{};
@@ -251,12 +259,11 @@ impl GameState for State {
                 newrunstate = player_input(&mut self.ecs, ctx);
             }
             RunState::PlayerTurn => {
-
                 self.run_systems();
                 self.ecs.maintain();
-                newrunstate = RunState::HostileTurn;
+                newrunstate = RunState::GameworldTurn;
             }
-            RunState::HostileTurn => {
+            RunState::GameworldTurn => {
                 self.run_systems();
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
@@ -481,7 +488,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<UseItemIntent>();
     gs.ecs.register::<DropItemIntent>();
     gs.ecs.register::<Consumable>();
-    gs.ecs.register::<Heals>();
     gs.ecs.register::<Ranged>();
     gs.ecs.register::<AoE>();
     gs.ecs.register::<Confusion>();
@@ -495,6 +501,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<BlocksAttacks>();
     gs.ecs.register::<Menuable>();
     gs.ecs.register::<Creature>();
+    gs.ecs.register::<Bleeding>();
+    gs.ecs.register::<Healing>();
+    gs.ecs.register::<Immunities>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

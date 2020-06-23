@@ -1,10 +1,23 @@
 Aeyohm
 
+NEW SYSTEM & COMPONENT PARADIGM:
+- Components should "do" the same thing to ANY ent they compose.
+e.g.: Healing needs to be split into GrantsHealing and IsHealing.
+This way, it is absolutely clear which system should be handling
+which component type(s).
+
+NEW (To-Implement):
+For Bleed, damage_system needs to apply "damage" to FP first!
+
+TEST:
+- Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
+
 - Nested Player Menu:
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
 have the Pick Up option, etc.
-
+Need to keep PMenu open after submenu action is Selected.
+Need to move Submenu box origin to neater-looking position.
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.
@@ -32,11 +45,11 @@ DESIGN PILLARS:
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
   Tutorial for inspiration & implementation proof-of-concepts.
-- Planned & Unimplemented Features: State-Based NPC AI
+- Planned & Unimplemented Features: State-Based or Behaviour Tree NPC AI
 				    Chests w/ RNG Contents
 				    EXTREMELY Rare Mimics (0.001%)
 				    Non-RNG Story - Player as Hero
-				    Non-RNG Persistent World
+				    Non-RNG Persistent World Zones
 					Ethakiak, Pale Mountain
 				    RNG Zones - Wandering Wastes, Rainlands
 				    Spellweaving Metalanguage - Atheirei

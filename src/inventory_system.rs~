@@ -148,7 +148,7 @@ impl<'a> System<'a> for ItemUseSystem {
                 }
             }
             for (e, c) in to_heal.iter() {
-                healing_storage.insert(*e, c.clone())
+                healing_storage.insert(e, c.clone())
                     .expect("Unable to insert Healing component.");
             }
 

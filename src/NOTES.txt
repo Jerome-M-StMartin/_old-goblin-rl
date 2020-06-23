@@ -1,9 +1,23 @@
 Aeyohm
 
+NEW SYSTEM & COMPONENT PARADIGM:
+- Components should "do" the same thing to ANY ent they compose.
+e.g.: Healing needs to be split into GrantsHealing and IsHealing.
+This way, the way in which each component is used is absolutely clear
+without delving into the logic of the systems.
+
+NEW (To-Implement):
+For Bleed, damage_system needs to apply "damage" to FP first!
+
+TEST:
+- Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
+
 - Nested Player Menu:
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
 have the Pick Up option, etc.
+Need to keep PMenu open after submenu action is Selected.
+Need to move Submenu box origin to neater-looking position.
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.

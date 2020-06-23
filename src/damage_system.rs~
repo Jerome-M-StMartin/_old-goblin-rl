@@ -1,23 +1,29 @@
 use specs::prelude::*;
 use std::cmp::max;
+use rltk::{RandomNumberGenerator};
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
-            Resistances};
+            Resistances, RunState, Bleeding};
 
 pub struct DamageSystem {}
 
 impl<'a> System<'a> for DamageSystem {
-    type SystemData = ( ReadStorage<'a, Name>,
+    type SystemData = ( Entities<'a>,
+                        ReadStorage<'a, Name>,
                         WriteStorage<'a, Stats>,
                         WriteStorage<'a, DamageQueue>,
                         ReadStorage<'a, Resistances>,
-                        WriteExpect<'a, GameLog> );
+                        WriteExpect<'a, GameLog>,
+                        WriteStorage<'a, Bleeding> );
 
     fn run (&mut self, data: Self::SystemData) {
-        let (names, mut stats, mut damage_queues, resistances, mut log) = data;
+        let (entities, names, mut stats, mut damage_queues, resistances, mut log, mut bleeding_storage) = data;
         
+        let mut to_bleed = Vec::<Entity>::new();
+
         //Apply resistanes to dmg_queue and dmg_queue to stats.
-        for (name, stats, d_q, res) in
-            (&names, &mut stats, &mut damage_queues, (&resistances).maybe()).join() {
+        for (ent, name, stats, d_q, res, bleeding) in
+            (&entities, &names, &mut stats, &mut damage_queues,
+             (&resistances).maybe(), (&bleeding_storage).maybe()).join() {
             
             //If this entity has resistances, apply them to damage_queue
             if let Some(resistance) = res { 
@@ -32,25 +38,55 @@ impl<'a> System<'a> for DamageSystem {
                             d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value()); },
                         DamageAtom::Thermal(val) => {
                             d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value()); }
+                        _ => {}
                     }
                 }
             }
-            
-            //Apply DamageAtoms in damage_queue to stats
-            let mut total_dmg: i32 = 0;
+           
+            //Check for bleeding
+            let mut is_bleeding = false;
+            if let Some(_) = bleeding { is_bleeding = true; }
+
+            //Apply damage to stats
+            let mut hp_dmg: i32 = 0;
+            let mut fp_dmg: i32 = 0;
             let damage_iter = d_q.queue.iter();
+            
             for dmg in damage_iter {
                 match dmg {
-                    DamageAtom::Pierce(dmg) => total_dmg += dmg,
-                    DamageAtom::Slash(dmg) => total_dmg += dmg,
-                    DamageAtom::Bludgeon(dmg) => total_dmg += dmg,
-                    DamageAtom::Thermal(dmg) => total_dmg += dmg
+                    DamageAtom::Bludgeon(n) |
+                    DamageAtom::Pierce(n) |
+                    DamageAtom::Slash(n) |
+                    DamageAtom::Thermal(n) => { hp_dmg += n; },
+                    _ => { 
+                        if (stats.fp - fp_dmg) > 0 {
+                            fp_dmg += dmg.value();
+                            eprintln!("test");
+                        } else {
+                            hp_dmg += dmg.value();
+                        }
+                    }
+                }
+                
+                if !is_bleeding && bleed_roll(dmg) { 
+                    to_bleed.push(ent);
+                    log.entries.push(format!("{} is bleeding.", &name.name));
                 }
             }
-            stats.hp = max(0, stats.hp - total_dmg);
-            log.entries.push(format!("{} suffers {} damage.", &name.name, total_dmg));
+           
+            if hp_dmg > 0 {
+                stats.hp = max(0, stats.hp - hp_dmg);
+                log.entries.push(format!("{} suffers {} damage.", &name.name, hp_dmg));
+            }
+            if fp_dmg > 0 {
+                stats.fp = max(0, stats.fp - fp_dmg);
+                log.entries.push(format!("{} suffers {} fatigue.", &name.name, fp_dmg));
+            }
         }
 
+        for e in to_bleed.iter() {
+            bleeding_storage.insert(*e, Bleeding{}).expect("Unable to insert Bleeding component.");
+        }
         damage_queues.clear()
     }
 }
@@ -88,4 +124,20 @@ pub fn delete_the_dead(ecs: &mut World) {
     for victim in dead {
         ecs.delete_entity(victim).expect("Unable to delete dead entity.");
     }
+}
+
+fn bleed_roll( dmg: &DamageAtom ) -> bool {
+    let mut rng = RandomNumberGenerator::new();
+    let mut result: bool = false;
+    let bleed_range = rng.range(1,10);
+    
+    //dmg should be post-Resistance damage amount.
+    match *dmg {
+        DamageAtom::Slash(d) => if d > bleed_range { result = true; },
+        DamageAtom::Pierce(d) => if d > bleed_range * 2 { result = true; },
+        DamageAtom::Bludgeon(d) => if d > bleed_range * 4 { result = true; },
+        _ => result = false
+    }
+
+    result
 }

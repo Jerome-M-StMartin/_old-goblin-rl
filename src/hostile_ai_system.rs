@@ -21,7 +21,7 @@ impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
         let (mut map, player_pos, player_entity, runstate, entities,
              mut viewshed, hostile, mut position, mut melee_intent, mut confusion) = data;
        
-        if *runstate != RunState::HostileTurn { return; }
+        if *runstate != RunState::GameworldTurn { return; }
 
         for (entity, mut viewshed, _hostile, mut pos) in (&entities, &mut viewshed, &hostile, &mut position).join() { 
             let mut can_act = true;

@@ -6,7 +6,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Healing, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature};
+             Creature, Bleeding};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -33,6 +33,7 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
                      mind:1, body:1, soul:1})
         .with(BasicAttack::default())
         .with(Resistances::default())
+        .with(Bleeding {})
         .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }
