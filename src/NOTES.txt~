@@ -3,11 +3,8 @@ Aeyohm
 NEW SYSTEM & COMPONENT PARADIGM:
 - Components should "do" the same thing to ANY ent they compose.
 e.g.: Healing needs to be split into GrantsHealing and IsHealing.
-This way, it is absolutely clear which system should be handling
-which component type(s).
-
-NEW (To-Implement):
-For Bleed, damage_system needs to apply "damage" to FP first!
+This way, the way in which each component is used is absolutely clear
+without delving into the logic of the systems.
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
@@ -56,6 +53,8 @@ PLAN:
 				    Teleportation
 				    NPC Neutrals/Friendlies/Allies
 				    Town & Boss Battle Music
+				    Tiny Creatures that you must attack
+					from within inventory w/ c_menu!
 - Feature Creep:  Morality System
 		  Player as Villian
 		  Machine Learning/Neural Networks
@@ -85,6 +84,8 @@ DESIGN NOTES:
 	each item individually applies its own damage. They are agregated into
 	a Vec<DamageAtom> before being filtered by Resistances and applied to
 	the MeleeIntent target' stats.
+- Status Damage:
+  DamageAtom::Bleed/Poison/Suffocation/etc first remove FP before reducing HP.
 
 
 SOLVED PROBLEMS:

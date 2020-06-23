@@ -14,16 +14,18 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
         None => return RunState::AwaitingInput,
         Some(key) => match key {
           
-            VirtualKeyCode::C => return RunState::ShowContextMenu { selection: 0, focus: 0 },
+            VirtualKeyCode::Return => return RunState::ShowContextMenu { selection: 0, focus: 0 },
 
             //skip turn; wait
-            VirtualKeyCode::Numpad5 => skip_turn(ecs),
+            //VirtualKeyCode::Numpad5 |
+            VirtualKeyCode::X |
             VirtualKeyCode::Space => skip_turn(ecs),
 
             //grab item
             VirtualKeyCode::G => get_item(ecs),
 
-            //open inventory
+            //open backpack/inventory
+            VirtualKeyCode::B |
             VirtualKeyCode::I => return RunState::ShowPlayerMenu { menu_state: PlayerMenuState::default() },
 
             //use stairs
@@ -36,27 +38,27 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
 
             //orthogonals
             VirtualKeyCode::Left |
-            VirtualKeyCode::Numpad4 |
-            VirtualKeyCode::H => try_move_player(-1, 0, ecs),
+            //VirtualKeyCode::Numpad4 |
+            VirtualKeyCode::A => try_move_player(-1, 0, ecs),
             VirtualKeyCode::Right |
-            VirtualKeyCode::Numpad6 |
-            VirtualKeyCode::L => try_move_player(1, 0, ecs),
+            //VirtualKeyCode::Numpad6 |
+            VirtualKeyCode::D => try_move_player(1, 0, ecs),
             VirtualKeyCode::Up |
-            VirtualKeyCode::Numpad8 |
-            VirtualKeyCode::K => try_move_player(0, -1, ecs),
+            //VirtualKeyCode::Numpad8 |
+            VirtualKeyCode::W => try_move_player(0, -1, ecs),
             VirtualKeyCode::Down |
-            VirtualKeyCode::Numpad2 |
-            VirtualKeyCode::J => try_move_player(0, 1, ecs),
+            //VirtualKeyCode::Numpad2 |
+            VirtualKeyCode::S => try_move_player(0, 1, ecs),
             
             //diagonals
-            VirtualKeyCode::Numpad9 |
-            VirtualKeyCode::U => try_move_player(1, -1, ecs),
-            VirtualKeyCode::Numpad7 |
-            VirtualKeyCode::Y => try_move_player(-1, -1, ecs),
-            VirtualKeyCode::Numpad3 |
-            VirtualKeyCode::M => try_move_player(1, 1, ecs),
-            VirtualKeyCode::Numpad1 |
-            VirtualKeyCode::N => try_move_player(-1, 1, ecs),          
+            //VirtualKeyCode::Numpad9 |
+            VirtualKeyCode::E => try_move_player(1, -1, ecs),
+            //VirtualKeyCode::Numpad7 |
+            VirtualKeyCode::Q => try_move_player(-1, -1, ecs),
+            //VirtualKeyCode::Numpad3 |
+            VirtualKeyCode::V => try_move_player(1, 1, ecs),
+            //VirtualKeyCode::Numpad1 |
+            VirtualKeyCode::Z => try_move_player(-1, 1, ecs),          
 
             _ => return RunState::AwaitingInput,
         },

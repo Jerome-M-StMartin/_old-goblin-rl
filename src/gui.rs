@@ -55,20 +55,20 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                         VirtualKeyCode::C => { result = (MenuResult::Cancel, None, 0, 0) },
 
                         VirtualKeyCode::W |
-                        VirtualKeyCode::Up |
-                        VirtualKeyCode::Numpad8 |
+                        //VirtualKeyCode::Up |
+                        //VirtualKeyCode::Numpad8 |
                         VirtualKeyCode::K => { result = (MenuResult::Continue, None,
                                                          max(0, selection - 1), focus) }
 
                         VirtualKeyCode::S |
-                        VirtualKeyCode::Down |
-                        VirtualKeyCode::Numpad2 |
+                        //VirtualKeyCode::Down |
+                        //VirtualKeyCode::Numpad2 |
                         VirtualKeyCode::J => { result = (MenuResult::Continue, None,
                                                          min(num_options - 1, selection + 1), focus ) }                                   
                         VirtualKeyCode::Tab => { result = (MenuResult::Continue, None, 0, focus + 1) }
 
                         VirtualKeyCode::Return |
-                        VirtualKeyCode::NumpadEnter |
+                        //VirtualKeyCode::NumpadEnter |
                         VirtualKeyCode::E => {
                             result = ( MenuResult::Selected,
                                        Some( (menuable.options[selection as usize].0, ent) ),
@@ -96,44 +96,6 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
 
     return result;
 }
-
-/*#[derive(Debug, Clone, PartialEq)]
-pub struct PlayerMenuInput<'a> {
-    pub selection: i8,
-    pub focus: i8,
-    pub submenu_input: Option<&'a mut SubmenuInput<'a>>,
-}
-impl<'a> Default for PlayerMenuInput<'a> {
-    fn default() -> PlayerMenuInput<'a> {
-        PlayerMenuInput {
-            selection: 0,
-            focus: 0,
-            submenu_input: None
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PlayerMenuOutput<'a> {
-    pub mr: MenuResult,
-    pub next_input: &'a mut PlayerMenuInput<'a>,
-    pub result: Option<(MenuOption, Entity)>
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct SubmenuInput<'a> {
-    pub e: Entity,
-    pub pos: (i32, i32),
-    pub selection: i8,
-    pub last_output: Option<&'a mut SubmenuOutput<'a>>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct SubmenuOutput<'a> {
-    pub mr: MenuResult,
-    pub next_input: &'a mut SubmenuInput<'a>,
-    pub result: Option<(MenuOption, Entity)>
-}*/
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PlayerMenuState {
@@ -262,19 +224,19 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
                 VirtualKeyCode::C => { state.mr = MenuResult::Cancel; }
 
                 VirtualKeyCode::W |
-                VirtualKeyCode::Up |
-                VirtualKeyCode::Numpad8 |
+                //VirtualKeyCode::Up |
+                //VirtualKeyCode::Numpad8 |
                 VirtualKeyCode::K => { state.selection = max(0, state.selection - 1); }
 
                 VirtualKeyCode::S |
-                VirtualKeyCode::Down |
-                VirtualKeyCode::Numpad2 |
+                //VirtualKeyCode::Down |
+                //VirtualKeyCode::Numpad2 |
                 VirtualKeyCode::J => { state.selection = min(num_options - 1, state.selection + 1); }
 
                 VirtualKeyCode::Tab => { state.focus += 1; }
 
                 VirtualKeyCode::Return |
-                VirtualKeyCode::NumpadEnter |
+                //VirtualKeyCode::NumpadEnter |
                 VirtualKeyCode::E => {
                     let init_substate = SubState {
                                         e: curr_ent,
@@ -333,16 +295,16 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
                     VirtualKeyCode::C => { state.sub_mr = MenuResult::Cancel; },
 
                     VirtualKeyCode::W |
-                    VirtualKeyCode::Up |
-                    VirtualKeyCode::Numpad8 |
+                    //VirtualKeyCode::Up |
+                    //VirtualKeyCode::Numpad8 |
                     VirtualKeyCode::K => { state.sub_selection = max(0, state.sub_selection - 1); }
 
                     VirtualKeyCode::S |
-                    VirtualKeyCode::Down |
-                    VirtualKeyCode::Numpad2 |
+                    //VirtualKeyCode::Down |
+                    //VirtualKeyCode::Numpad2 |
                     VirtualKeyCode::J => { state.sub_selection = min(num_options - 1, state.sub_selection + 1); }                                   
                     VirtualKeyCode::Return |
-                    VirtualKeyCode::NumpadEnter |
+                    //VirtualKeyCode::NumpadEnter |
                     VirtualKeyCode::E => {
                         state.sub_mr = MenuResult::Selected;
                         state.result = Some( (menuable.options[state.sub_selection as usize].0, state.e) );
@@ -369,11 +331,11 @@ pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
     match ctx.key {
         None => {}
         Some(key) => match key {
-            VirtualKeyCode::W => try_move_cursor((0, -movement), ecs),
-            VirtualKeyCode::A => try_move_cursor((-movement, 0), ecs),
-            VirtualKeyCode::S => try_move_cursor((0, movement), ecs),
-            VirtualKeyCode::D => try_move_cursor((movement, 0), ecs),
-            VirtualKeyCode::X => if movement == 3 { cursor_to_player(ecs); }
+            VirtualKeyCode::K => try_move_cursor((0, -movement), ecs),
+            VirtualKeyCode::H => try_move_cursor((-movement, 0), ecs),
+            VirtualKeyCode::J => try_move_cursor((0, movement), ecs),
+            VirtualKeyCode::L => try_move_cursor((movement, 0), ecs),
+            VirtualKeyCode::P => cursor_to_player(ecs),
             _ => {}
         }
     };

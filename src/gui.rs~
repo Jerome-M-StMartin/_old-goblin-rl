@@ -369,11 +369,11 @@ pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
     match ctx.key {
         None => {}
         Some(key) => match key {
-            VirtualKeyCode::W => try_move_cursor((0, -movement), ecs),
-            VirtualKeyCode::A => try_move_cursor((-movement, 0), ecs),
-            VirtualKeyCode::S => try_move_cursor((0, movement), ecs),
-            VirtualKeyCode::D => try_move_cursor((movement, 0), ecs),
-            VirtualKeyCode::X => if movement == 3 { cursor_to_player(ecs); }
+            VirtualKeyCode::K => try_move_cursor((0, -movement), ecs),
+            VirtualKeyCode::H => try_move_cursor((-movement, 0), ecs),
+            VirtualKeyCode::J => try_move_cursor((0, movement), ecs),
+            VirtualKeyCode::L => try_move_cursor((movement, 0), ecs),
+            VirtualKeyCode::P => cursor_to_player(ecs),
             _ => {}
         }
     };
@@ -596,15 +596,15 @@ fn show_player_menu_controls(ctx: &mut Rltk) {
     //let x = ((ctx.width_pixels / 8) as i32 / 3);
     //let y = ((ctx.height_pixels / 8) as i32 / 3);
     let (x, y) = (0, 0);
-    ctx.draw_box(x, y, 45, 9, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.draw_box(x, y, 45, 10, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
     ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Menu Controls");
     ctx.print(x + 2, y + 2, "Arrow (  ) indicates current selection.");
     ctx.print_color(x + 9, y + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
-    ctx.print(x + 2, y + 3, "Up/Down: Navigate Current Page");
-    ctx.print(x + 2, y + 4, "Tab: Goto Next Page");
-    ctx.print(x + 2, y + 5, "Esc/C: Exit Menu");
-    ctx.print(x + 2, y + 6, "Return/Enter/E: Confirm Current Selection");
-    ctx.print(x + 2, y + 7, "T: Show/Hide These Controls");
+    ctx.print(x + 2, y + 4, "Up/Down: Navigate Current Page");
+    ctx.print(x + 2, y + 5, "Tab: Goto Next Page");
+    ctx.print(x + 2, y + 6, "Esc/C: Exit Menu");
+    ctx.print(x + 2, y + 7, "Return/Enter/E: Confirm Current Selection");
+    ctx.print(x + 2, y + 8, "T: Show/Hide These Controls");
 }
 
 pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
