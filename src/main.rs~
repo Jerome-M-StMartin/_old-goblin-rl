@@ -86,6 +86,8 @@ impl State {
         pick_up.run_now(&self.ecs);
         let mut equips = EquipSystem{};
         equips.run_now(&self.ecs);
+        let mut particles = particle_system::ParticleSpawnSystem{};
+        particles.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -513,6 +515,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Heals>();
     gs.ecs.register::<Immunities>();
     gs.ecs.register::<Particle>();
+    gs.ecs.register::<Hunger>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

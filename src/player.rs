@@ -2,8 +2,8 @@ use rltk::{VirtualKeyCode, Rltk, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui,
-            gui::PlayerMenuState};
+            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
+            HungerState, gui::PlayerMenuState};
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
@@ -162,7 +162,8 @@ fn skip_turn(ecs: &mut World) -> RunState {
     let player_entity = ecs.fetch::<Entity>();
     let viewshed_components = ecs.read_storage::<Viewshed>();
     let hostiles = ecs.read_storage::<Hostile>();
-
+    let hunger_storage = ecs.read_storage::<Hunger>();
+    let hunger = hunger_storage.get(*player_entity);
     let worldmap_resource = ecs.fetch::<Map>();
 
     let mut can_heal = true;
@@ -181,7 +182,16 @@ fn skip_turn(ecs: &mut World) -> RunState {
     if can_heal {
         let mut stats = ecs.write_storage::<Stats>();
         let p_stats = stats.get_mut(*player_entity).unwrap();
-        p_stats.hp = max(p_stats.hp, min(p_stats.hp + 1, f32::floor(p_stats.max_hp as f32 / 2.0) as i32));
+        let new_hp = max(p_stats.hp, min(p_stats.hp + 1, f32::floor(p_stats.max_hp as f32 / 2.0) as i32));
+        
+        if let Some(h) = hunger {
+            match h.state {
+                HungerState::Famished => p_stats.hp = min(new_hp, max(3, new_hp)),
+                HungerState::Starving => {},
+                _ => p_stats.hp = new_hp,
+            }
+        }
+
     }
 
     RunState::PlayerTurn

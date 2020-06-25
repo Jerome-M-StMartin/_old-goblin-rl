@@ -76,6 +76,11 @@ pub struct Renderable {
     pub render_order: i32
 }
 
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Particle {
+    pub lifetime_ms: f32,
+}
+
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Viewshed {
     pub visible_tiles: Vec<rltk::Point>,
@@ -109,6 +114,15 @@ pub struct Heals {
     //This CAUSES Healing when this item is used.
     pub duration: i32,
     pub amount: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum HungerState { Stuffed, Normal, Hungry, Famished, Starving }
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Hunger {
+    pub state: HungerState,
+    pub clock: i32,
 }
 
 #[derive(Component, Debug, ConvertSaveload)]

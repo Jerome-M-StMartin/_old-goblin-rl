@@ -1,14 +1,5 @@
 Aeyohm
 
-
-BUG!:
-Somehow items have in_backpack components according to the eprintln in c_menu
-without ever being picked up and without showing up in the PMenu. WTF? How?
-Furthermore, scrolls are not being updated with Drop MenuOptions after being
-picked up, and worse, they get an Equip option. This is BAD.
-UPDATE: They do NOT have equip components, they DO have the Equip MenuOption.
-
-
 - Use Items:
 Add Useable component for Use MenuOption instead of using Item component
 directly.
@@ -111,3 +102,4 @@ initializing the variable out of scope.
 simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
 - UNIVERSAL CONTEXT MENU - 6/18/2020
 - NESTED PLAYER MENU - 6/21/20
+- SWAPPED STORAGE NAMES BUG - 6/24/20

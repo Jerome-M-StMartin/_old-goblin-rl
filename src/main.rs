@@ -39,6 +39,8 @@ use healing_system::HealingSystem;
 mod bleed_system;
 use bleed_system::BleedSystem;
 mod particle_system;
+mod hunger_system;
+use hunger_system::HungerSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
@@ -80,6 +82,8 @@ impl State {
         healing.run_now(&self.ecs);
         let mut bleed = BleedSystem{};
         bleed.run_now(&self.ecs);
+        let mut hunger = HungerSystem{};
+        hunger.run_now(&self.ecs);
         let mut damage = DamageSystem{};
         damage.run_now(&self.ecs);
         let mut pick_up = ItemCollectionSystem{};
@@ -515,6 +519,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Heals>();
     gs.ecs.register::<Immunities>();
     gs.ecs.register::<Particle>();
+    gs.ecs.register::<Hunger>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

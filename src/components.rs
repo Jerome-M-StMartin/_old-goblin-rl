@@ -116,6 +116,15 @@ pub struct Heals {
     pub amount: i32,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub enum HungerState { Stuffed, Satiated, Hungry, Famished, Starving }
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Hunger {
+    pub state: HungerState,
+    pub clock: i32,
+}
+
 #[derive(Component, Debug, ConvertSaveload)]
 pub struct InBackpack { //item component
     pub owner: Entity

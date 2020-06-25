@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
-            Equippable, Equipped, EquipIntent, UnequipIntent};
+            Equippable, Equipped, EquipIntent, UnequipIntent, particle_system::ParticleBuilder};
 //use rltk::{console};
 
 pub struct ItemCollectionSystem {}
@@ -17,7 +17,8 @@ impl<'a> System<'a> for ItemCollectionSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, mut pickup_intents, mut positions, names, mut in_backpack) = data;
+        let (player_entity, mut gamelog, mut pickup_intents, mut positions,
+             names, mut in_backpack) = data;
 
         for intent in pickup_intents.join() {
             //If item is not already picked-up...(Is Some if item has position, else None).
@@ -41,6 +42,7 @@ pub struct ItemUseSystem {}
 impl<'a> System<'a> for ItemUseSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( ReadExpect<'a, Entity>,
+                        WriteExpect<'a, ParticleBuilder>,
                         WriteExpect<'a, GameLog>,
                         ReadExpect<'a, Map>,
                         Entities<'a>,
@@ -60,7 +62,7 @@ impl<'a> System<'a> for ItemUseSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, map, entities, mut use_item_intent, names,
+        let (player_entity, mut particle_builder, mut gamelog, map, entities, mut use_item_intent, names,
              consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
              aoe, mut confusion, equippable, mut equip_intent, equipped, mut unequip_intent) = data;
 
@@ -91,6 +93,11 @@ impl<'a> System<'a> for ItemUseSystem {
                                 for mob in map.tile_content[idx].iter() {
                                     targets.push(*mob);
                                 }
+
+                                //spawn particles
+                                particle_builder.request(tile_idx.x, tile_idx,
+                                    rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK),
+                                    rltk::to_cp437('░'), 200.0);
                             }
                         }
                             

@@ -57,7 +57,7 @@ pub fn save_game(ecs : &mut World) {
         let mut serializer = serde_json::Serializer::new(writer);
         serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
-            AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle,
+            AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper
         );
     }
@@ -90,7 +90,7 @@ pub fn load_game(ecs: &mut World) {
 
         deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
-            AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle,
+            AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper
         );
     }
