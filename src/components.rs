@@ -46,8 +46,6 @@ pub struct Healing {
 }
 //--------------------------------------------------------
 
-
-
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Position {
     pub x: i32,
@@ -78,6 +76,11 @@ pub struct Renderable {
     pub render_order: i32
 }
 
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Particle {
+    pub lifetime_ms: f32,
+}
+
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Viewshed {
     pub visible_tiles: Vec<rltk::Point>,
@@ -103,6 +106,14 @@ pub struct AoE { //effect component
 #[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct Confusion {//effect component
     pub turns: i32
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Heals {
+    //item component, not to be confused with "Healing"
+    //This CAUSES Healing when this item is used.
+    pub duration: i32,
+    pub amount: i32,
 }
 
 #[derive(Component, Debug, ConvertSaveload)]
@@ -136,7 +147,7 @@ pub enum EquipmentSlot {
     Back
 }
 
-#[derive(Component, Serialize, Deserialize, Clone)]
+#[derive(Debug, Component, Serialize, Deserialize, Clone)]
 pub struct Equippable { //item component
     pub slot: EquipmentSlot
 }
@@ -341,17 +352,15 @@ pub enum MenuOption {
 }
 
 //Provides a good vessel for learning how to allow a system to run less than once-per-frame.
-#[derive(Debug, Component, ConvertSaveload)]
+#[derive(Debug, Component, ConvertSaveload, Clone)]
 pub struct Menuable {
     pub options: Vec<(MenuOption, String)>,
-    pub dirty: bool,
 }
 
 impl Default for Menuable {
     fn default() -> Menuable {
         Menuable {
             options: Vec::<(MenuOption, String)>::new(), 
-            dirty: true,
         }
     }
 }

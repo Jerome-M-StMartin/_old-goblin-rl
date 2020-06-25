@@ -2,27 +2,31 @@ use specs::prelude::*;
 use std::cmp::max;
 use rltk::{RandomNumberGenerator};
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
-            Resistances, RunState, Bleeding};
+            Resistances, RunState, Bleeding, particle_system::ParticleBuilder, Position};
 
 pub struct DamageSystem {}
 
 impl<'a> System<'a> for DamageSystem {
     type SystemData = ( Entities<'a>,
-                        ReadStorage<'a, Name>,
+                        WriteExpect<'a, ParticleBuilder>,
+                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, Stats>,
                         WriteStorage<'a, DamageQueue>,
+                        WriteStorage<'a, Bleeding>,
                         ReadStorage<'a, Resistances>,
-                        WriteExpect<'a, GameLog>,
-                        WriteStorage<'a, Bleeding> );
+                        ReadStorage<'a, Name>,
+                        ReadStorage<'a, Position>,
+                      );
 
     fn run (&mut self, data: Self::SystemData) {
-        let (entities, names, mut stats, mut damage_queues, resistances, mut log, mut bleeding_storage) = data;
+        let (entities, mut particle_builder, mut log, mut stats, mut damage_queues, mut bleeding_storage,
+             resistances, names, positions) = data;
         
         let mut to_bleed = Vec::<Entity>::new();
 
         //Apply resistanes to dmg_queue and dmg_queue to stats.
-        for (ent, name, stats, d_q, res, bleeding) in
-            (&entities, &names, &mut stats, &mut damage_queues,
+        for (ent, name, pos, stats, d_q, res, bleeding) in
+            (&entities, &names, &positions, &mut stats, &mut damage_queues,
              (&resistances).maybe(), (&bleeding_storage).maybe()).join() {
             
             //If this entity has resistances, apply them to damage_queue
@@ -76,6 +80,10 @@ impl<'a> System<'a> for DamageSystem {
             if hp_dmg > 0 {
                 stats.hp = max(0, stats.hp - hp_dmg);
                 log.entries.push(format!("{} suffers {} damage.", &name.name, hp_dmg));
+                
+                //spawn particle
+                particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::ORANGE),
+                    rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
             }
             if fp_dmg > 0 {
                 stats.fp = max(0, stats.fp - fp_dmg);

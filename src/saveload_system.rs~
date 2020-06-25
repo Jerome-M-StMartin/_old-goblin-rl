@@ -90,8 +90,8 @@ pub fn load_game(ecs: &mut World) {
 
         deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
-            AoE, Confusion, Heals, InBackpack, PickUpIntent, UseItemIntent,
-            DropItemIntent, EquipIntent, Equippable, Equipped, /*EquippedMap,*/ Weapon, SerializationHelper
+            AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent,
+            DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper
         );
     }
 

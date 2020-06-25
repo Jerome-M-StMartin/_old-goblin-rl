@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent,
-            DropItemIntent, Consumable, Healing, DamageOnUse, DamageQueue, Map, AoE, Confusion,
+            DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
             Equippable, Equipped, EquipIntent, UnequipIntent};
 //use rltk::{console};
 
@@ -21,7 +21,7 @@ impl<'a> System<'a> for ItemCollectionSystem {
 
         for intent in pickup_intents.join() {
             //If item is not already picked-up...(Is Some if item has position, else None).
-            if let Some(_p) = positions.remove(intent.item) {
+            if let Some(_) = positions.remove(intent.item) {
                 in_backpack.insert(intent.item, InBackpack { owner: intent.desired_by })
                     .expect("Unable to insert item into backpack.");
             
@@ -48,6 +48,7 @@ impl<'a> System<'a> for ItemUseSystem {
                         ReadStorage<'a, Name>,
                         ReadStorage<'a, Consumable>,
                         WriteStorage<'a, Healing>,
+                        ReadStorage<'a, Heals>,
                         ReadStorage<'a, DamageOnUse>,
                         WriteStorage<'a, DamageQueue>,
                         ReadStorage<'a, AoE>,
@@ -60,7 +61,7 @@ impl<'a> System<'a> for ItemUseSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (player_entity, mut gamelog, map, entities, mut use_item_intent, names,
-             consumables, mut healing_storage, inflicts_damage, mut damage_queue,
+             consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
              aoe, mut confusion, equippable, mut equip_intent, equipped, mut unequip_intent) = data;
 
         for (entity, use_intent) in (&entities, &use_item_intent).join() {
@@ -133,22 +134,22 @@ impl<'a> System<'a> for ItemUseSystem {
             }
 
             //healing item logic
-            let mut to_heal = Vec::<(Entity, Healing)>::new(); 
+            let mut to_heal = Vec::<(Entity, (i32, i32))>::new(); 
             {
-                let healing_component = healing_storage.get(use_intent.item);
-                match healing_component {
+                let heals_component = heals_storage.get(use_intent.item);
+                match heals_component {
                     None => {}
-                    Some(healing_component) => {
+                    Some(h) => {
                         is_item_used = false;
                         for target in targets.iter() {
-                            to_heal.push((*target, healing_component.clone())); 
+                            to_heal.push((*target, (h.duration, h.amount) )); 
                             is_item_used = true;
                         }
                     }
                 }
             }
             for (e, c) in to_heal.iter() {
-                healing_storage.insert(e, c.clone())
+                healing_storage.insert(*e, Healing { duration: c.0, amount: c.1 })
                     .expect("Unable to insert Healing component.");
             }
 
@@ -208,19 +209,19 @@ impl<'a> System<'a> for ItemDropSystem {
     fn run(&mut self, data: Self::SystemData) {
         let (player_entity, mut gamelog, entities, mut drop_intent, names, mut positions, mut backpack) = data;
         
-        for (entity, to_drop) in (&entities, &drop_intent).join() {
+        for (entity, drop_intent) in (&entities, &drop_intent).join() {
             let mut dropper_pos: Position = Position {x: 0, y: 0};
             {
                 let dropped_pos = positions.get(entity).unwrap();
                 dropper_pos.x = dropped_pos.x;
                 dropper_pos.y = dropped_pos.y;
             }
-            positions.insert(to_drop.item, Position {x: dropper_pos.x, y: dropper_pos.y})
+            positions.insert(drop_intent.item, Position {x: dropper_pos.x, y: dropper_pos.y})
                 .expect("Unable to insert dropped item position.");
-            backpack.remove(to_drop.item);
+            backpack.remove(drop_intent.item);
 
             if entity == *player_entity {
-                gamelog.entries.push(format!("{} dropped.", names.get(to_drop.item).unwrap().name));
+                gamelog.entries.push(format!("{} dropped.", names.get(drop_intent.item).unwrap().name));
             }
         }
 

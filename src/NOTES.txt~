@@ -1,10 +1,17 @@
 Aeyohm
 
-NEW SYSTEM & COMPONENT PARADIGM:
-- Components should "do" the same thing to ANY ent they compose.
-e.g.: Healing needs to be split into GrantsHealing and IsHealing.
-This way, the way in which each component is used is absolutely clear
-without delving into the logic of the systems.
+
+BUG!:
+Somehow items have in_backpack components according to the eprintln in c_menu
+without ever being picked up and without showing up in the PMenu. WTF? How?
+Furthermore, scrolls are not being updated with Drop MenuOptions after being
+picked up, and worse, they get an Equip option. This is BAD.
+UPDATE: They do NOT have equip components, they DO have the Equip MenuOption.
+
+
+- Use Items:
+Add Useable component for Use MenuOption instead of using Item component
+directly.
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.

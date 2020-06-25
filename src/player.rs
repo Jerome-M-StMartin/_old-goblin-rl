@@ -56,7 +56,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
             //VirtualKeyCode::Numpad7 |
             VirtualKeyCode::Q => try_move_player(-1, -1, ecs),
             //VirtualKeyCode::Numpad3 |
-            VirtualKeyCode::V => try_move_player(1, 1, ecs),
+            VirtualKeyCode::C => try_move_player(1, 1, ecs),
             //VirtualKeyCode::Numpad1 |
             VirtualKeyCode::Z => try_move_player(-1, 1, ecs),          
 
@@ -131,7 +131,7 @@ fn try_next_level(ecs: &mut World) -> RunState {
     }
 }
 
-fn get_item(ecs: &mut World) -> RunState{
+fn get_item(ecs: &mut World) -> RunState {
     let entities = ecs.entities();
     let player_pos = ecs.fetch::<Point>();
     let player_entity = ecs.fetch::<Entity>();

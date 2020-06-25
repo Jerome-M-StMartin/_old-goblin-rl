@@ -29,6 +29,8 @@ impl<'a> System<'a> for ContextMenuSystem {
                 }
 
                 if let Some(_) = in_backpack.get(ent) {
+                    
+                    eprintln!("{:?}", in_backpack.get(ent));
                     menu.options.push( (MenuOption::DropIt, "Drop".to_string()) );
                 }
                 

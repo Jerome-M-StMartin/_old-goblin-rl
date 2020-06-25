@@ -3,7 +3,7 @@ use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, MarkedBuilder};
 use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, BlocksTile, Rect,
-             map::MAPWIDTH, Item, Healing, Consumable, DamageOnUse, DamageAtom, Ranged,
+             map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
              Creature};
@@ -157,14 +157,14 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
             render_order: 2})
         .with(Name {name: "Health Potion".to_string() })
         .with(Consumable {})
-        .with(Healing { duration: 1, amount: 8 })
+        .with(Heals { duration: 1, amount: 8 })
         .with(Item {})
         .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
-fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
+pub fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {

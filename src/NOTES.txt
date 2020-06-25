@@ -1,10 +1,8 @@
 Aeyohm
 
-NEW SYSTEM & COMPONENT PARADIGM:
-- Components should "do" the same thing to ANY ent they compose.
-e.g.: Healing needs to be split into GrantsHealing and IsHealing.
-This way, the way in which each component is used is absolutely clear
-without delving into the logic of the systems.
+- Use Items:
+Add Useable component for Use MenuOption instead of using Item component
+directly.
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
@@ -104,3 +102,4 @@ initializing the variable out of scope.
 simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
 - UNIVERSAL CONTEXT MENU - 6/18/2020
 - NESTED PLAYER MENU - 6/21/20
+- SWAPPED STORAGE NAMES BUG - 6/24/20

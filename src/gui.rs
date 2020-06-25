@@ -154,15 +154,23 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
                 RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));           
             ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Backpack");
-            
+           
+            let mut ent_chosen = false;
             for (ent, name, _in_pack) in (&entities, &names, &backpack).join()
                                      .filter(|tuple| tuple.2.owner == *player_entity) {
+                
                 ctx.print(x + 2, y, &name.name.to_string());
                 
-                if selection_tracker == state.selection { curr_ent = ent; }
-                selection_tracker += 1;
+                if !ent_chosen && selection_tracker == state.selection {
+                    curr_ent = ent;
+                    ent_chosen = true;
+                } else {
+                    selection_tracker += 1;
+                }
+                
                 num_options += 1;
                 y += 1;
+
             }
         }
         1 => {
@@ -175,19 +183,27 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
 
+            let mut ent_chosen = false;
             for (ent, name, _equipment) in (&entities, &names, &equipped).join()
                                   .filter(|tuple| tuple.2.owner == *player_entity) {
+                
                 ctx.print(x + 2, y, &name.name.to_string());
-                y += 1;
-                if selection_tracker == state.selection { curr_ent = ent; }
-                selection_tracker += 1;
+                
+                if !ent_chosen && selection_tracker == state.selection {
+                    curr_ent = ent;
+                    ent_chosen = true;
+                } else {
+                    selection_tracker += 1;
+                }
+                
                 num_options += 1;
+                y += 1;
             }
         }
         _ => {}
     }
  
-    ctx.print_color(x+1, box_top + box_bottom,
+    ctx.print_color(x+2, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
     ctx.print_color(x+18, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
@@ -219,7 +235,7 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
         match ctx.key {
             None => {}
             Some(key) => match key {
-                
+              
                 VirtualKeyCode::Escape |
                 VirtualKeyCode::C => { state.mr = MenuResult::Cancel; }
 
@@ -240,7 +256,7 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
                 VirtualKeyCode::E => {
                     let init_substate = SubState {
                                         e: curr_ent,
-                                        pos: (x, box_top + selection_tracker as i32 + 2),
+                                        pos: (x+2, box_top + selection_tracker as i32 + 3),
                                         sub_selection: 0,
                                         sub_mr: MenuResult::Continue,
                                         result: None };
@@ -277,11 +293,10 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
             let mut y = state.pos.1;
 
             ctx.draw_box(x, y, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-            ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Intent?");
 
             //Draw the menu options.
             for (_, s) in &menuable.options {
-                ctx.print_color(x + 2, y + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
+                ctx.print_color(x + 2, y + 1, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), s);
                 y += 1;
                 
             }

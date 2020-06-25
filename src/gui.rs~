@@ -55,20 +55,20 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                         VirtualKeyCode::C => { result = (MenuResult::Cancel, None, 0, 0) },
 
                         VirtualKeyCode::W |
-                        VirtualKeyCode::Up |
-                        VirtualKeyCode::Numpad8 |
+                        //VirtualKeyCode::Up |
+                        //VirtualKeyCode::Numpad8 |
                         VirtualKeyCode::K => { result = (MenuResult::Continue, None,
                                                          max(0, selection - 1), focus) }
 
                         VirtualKeyCode::S |
-                        VirtualKeyCode::Down |
-                        VirtualKeyCode::Numpad2 |
+                        //VirtualKeyCode::Down |
+                        //VirtualKeyCode::Numpad2 |
                         VirtualKeyCode::J => { result = (MenuResult::Continue, None,
                                                          min(num_options - 1, selection + 1), focus ) }                                   
                         VirtualKeyCode::Tab => { result = (MenuResult::Continue, None, 0, focus + 1) }
 
                         VirtualKeyCode::Return |
-                        VirtualKeyCode::NumpadEnter |
+                        //VirtualKeyCode::NumpadEnter |
                         VirtualKeyCode::E => {
                             result = ( MenuResult::Selected,
                                        Some( (menuable.options[selection as usize].0, ent) ),
@@ -96,44 +96,6 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
 
     return result;
 }
-
-/*#[derive(Debug, Clone, PartialEq)]
-pub struct PlayerMenuInput<'a> {
-    pub selection: i8,
-    pub focus: i8,
-    pub submenu_input: Option<&'a mut SubmenuInput<'a>>,
-}
-impl<'a> Default for PlayerMenuInput<'a> {
-    fn default() -> PlayerMenuInput<'a> {
-        PlayerMenuInput {
-            selection: 0,
-            focus: 0,
-            submenu_input: None
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PlayerMenuOutput<'a> {
-    pub mr: MenuResult,
-    pub next_input: &'a mut PlayerMenuInput<'a>,
-    pub result: Option<(MenuOption, Entity)>
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct SubmenuInput<'a> {
-    pub e: Entity,
-    pub pos: (i32, i32),
-    pub selection: i8,
-    pub last_output: Option<&'a mut SubmenuOutput<'a>>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct SubmenuOutput<'a> {
-    pub mr: MenuResult,
-    pub next_input: &'a mut SubmenuInput<'a>,
-    pub result: Option<(MenuOption, Entity)>
-}*/
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PlayerMenuState {
@@ -192,15 +154,23 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
                 RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));           
             ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Backpack");
-            
+           
+            let mut ent_chosen = false;
             for (ent, name, _in_pack) in (&entities, &names, &backpack).join()
                                      .filter(|tuple| tuple.2.owner == *player_entity) {
+                
                 ctx.print(x + 2, y, &name.name.to_string());
                 
-                if selection_tracker == state.selection { curr_ent = ent; }
-                selection_tracker += 1;
+                if !ent_chosen && selection_tracker == state.selection {
+                    curr_ent = ent;
+                    ent_chosen = true;
+                } else {
+                    selection_tracker += 1;
+                }
+                
                 num_options += 1;
                 y += 1;
+
             }
         }
         1 => {
@@ -213,19 +183,27 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             ctx.print_color(menu_width / 2, box_top,
                 RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
 
+            let mut ent_chosen = false;
             for (ent, name, _equipment) in (&entities, &names, &equipped).join()
                                   .filter(|tuple| tuple.2.owner == *player_entity) {
+                
                 ctx.print(x + 2, y, &name.name.to_string());
-                y += 1;
-                if selection_tracker == state.selection { curr_ent = ent; }
-                selection_tracker += 1;
+                
+                if !ent_chosen && selection_tracker == state.selection {
+                    curr_ent = ent;
+                    ent_chosen = true;
+                } else {
+                    selection_tracker += 1;
+                }
+                
                 num_options += 1;
+                y += 1;
             }
         }
         _ => {}
     }
  
-    ctx.print_color(x+1, box_top + box_bottom,
+    ctx.print_color(x+2, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
     ctx.print_color(x+18, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
@@ -257,28 +235,38 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
         match ctx.key {
             None => {}
             Some(key) => match key {
-                
+              
+    //----DEBUGGING_______________________________________________
+                VirtualKeyCode::H => {
+                    use super::Equippable;
+                    let eqpbl = ecs.read_storage::<Equippable>();
+                    eprintln!("gui: {:?}", curr_ent);
+                    if let Some(_e) = eqpbl.get(curr_ent) {
+                        eprintln!("is equippable. SOMETHING'S FUCKY");
+                    }
+                }
+//---------------------------------------------------------------
                 VirtualKeyCode::Escape |
                 VirtualKeyCode::C => { state.mr = MenuResult::Cancel; }
 
                 VirtualKeyCode::W |
-                VirtualKeyCode::Up |
-                VirtualKeyCode::Numpad8 |
+                //VirtualKeyCode::Up |
+                //VirtualKeyCode::Numpad8 |
                 VirtualKeyCode::K => { state.selection = max(0, state.selection - 1); }
 
                 VirtualKeyCode::S |
-                VirtualKeyCode::Down |
-                VirtualKeyCode::Numpad2 |
+                //VirtualKeyCode::Down |
+                //VirtualKeyCode::Numpad2 |
                 VirtualKeyCode::J => { state.selection = min(num_options - 1, state.selection + 1); }
 
                 VirtualKeyCode::Tab => { state.focus += 1; }
 
                 VirtualKeyCode::Return |
-                VirtualKeyCode::NumpadEnter |
+                //VirtualKeyCode::NumpadEnter |
                 VirtualKeyCode::E => {
                     let init_substate = SubState {
                                         e: curr_ent,
-                                        pos: (x, box_top + selection_tracker as i32 + 2),
+                                        pos: (x+2, box_top + selection_tracker as i32 + 3),
                                         sub_selection: 0,
                                         sub_mr: MenuResult::Continue,
                                         result: None };
@@ -315,11 +303,10 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
             let mut y = state.pos.1;
 
             ctx.draw_box(x, y, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-            ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Intent?");
 
             //Draw the menu options.
             for (_, s) in &menuable.options {
-                ctx.print_color(x + 2, y + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
+                ctx.print_color(x + 2, y + 1, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), s);
                 y += 1;
                 
             }
@@ -333,18 +320,21 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
                     VirtualKeyCode::C => { state.sub_mr = MenuResult::Cancel; },
 
                     VirtualKeyCode::W |
-                    VirtualKeyCode::Up |
-                    VirtualKeyCode::Numpad8 |
+                    //VirtualKeyCode::Up |
+                    //VirtualKeyCode::Numpad8 |
                     VirtualKeyCode::K => { state.sub_selection = max(0, state.sub_selection - 1); }
 
                     VirtualKeyCode::S |
-                    VirtualKeyCode::Down |
-                    VirtualKeyCode::Numpad2 |
+                    //VirtualKeyCode::Down |
+                    //VirtualKeyCode::Numpad2 |
                     VirtualKeyCode::J => { state.sub_selection = min(num_options - 1, state.sub_selection + 1); }                                   
                     VirtualKeyCode::Return |
-                    VirtualKeyCode::NumpadEnter |
+                    //VirtualKeyCode::NumpadEnter |
                     VirtualKeyCode::E => {
                         state.sub_mr = MenuResult::Selected;
+
+                        eprintln!("gui submenu: {:?}", menuable.options[state.sub_selection as usize].0);
+
                         state.result = Some( (menuable.options[state.sub_selection as usize].0, state.e) );
                     }
                     _ => {}

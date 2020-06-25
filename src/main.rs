@@ -27,6 +27,7 @@ mod spawner;
 mod inventory_system;
 use inventory_system::ItemCollectionSystem;
 use inventory_system::ItemUseSystem;
+use inventory_system::ItemDropSystem;
 mod equip_system;
 use equip_system::EquipSystem;
 pub mod saveload_system;
@@ -37,6 +38,7 @@ mod healing_system;
 use healing_system::HealingSystem;
 mod bleed_system;
 use bleed_system::BleedSystem;
+mod particle_system;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
@@ -60,10 +62,14 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut context_menu = ContextMenuSystem{};
+        context_menu.run_now(&self.ecs);
         let mut mob = HostileAI{};
         mob.run_now(&self.ecs);
         let mut items = ItemUseSystem{};
         items.run_now(&self.ecs);
+        let mut drop = ItemDropSystem{};
+        drop.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
@@ -80,8 +86,9 @@ impl State {
         pick_up.run_now(&self.ecs);
         let mut equips = EquipSystem{};
         equips.run_now(&self.ecs);
-        let mut context_menu = ContextMenuSystem{};
-        context_menu.run_now(&self.ecs);
+        let mut particles = particle_system::ParticleSpawnSystem{};
+        particles.run_now(&self.ecs);
+
         self.ecs.maintain();
     }
 
@@ -215,6 +222,8 @@ impl GameState for State {
         }
 
         ctx.cls(); //clearscreen
+
+        particle_system::cull_dead_particles(&mut self.ecs, ctx);
 
         match newrunstate {
             RunState::MainMenu{..} => {}
@@ -503,7 +512,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Creature>();
     gs.ecs.register::<Bleeding>();
     gs.ecs.register::<Healing>();
+    gs.ecs.register::<Heals>();
     gs.ecs.register::<Immunities>();
+    gs.ecs.register::<Particle>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 
@@ -519,6 +530,7 @@ fn main() -> rltk::BError {
     }
 
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(map);
     gs.ecs.insert(player_entity);
     gs.ecs.insert(Point::new(player_x, player_y));
