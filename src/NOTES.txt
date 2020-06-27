@@ -5,11 +5,7 @@ Add Useable component for Use MenuOption instead of using Item component
 directly.
 
 - Nested Player Menu:
-Need to impl dirty flags for Menuable options list,
-so that when an item is in player's menu it doesn't
-have the Pick Up option, etc.
 Need to keep PMenu open after submenu action is Selected.
-Need to move Submenu box origin to neater-looking position.
 
 - Resistances:
 Implement temp resistance boosts via barrier_scroll.

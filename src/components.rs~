@@ -117,7 +117,7 @@ pub struct Heals {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
-pub enum HungerState { Stuffed, Normal, Hungry, Famished, Starving }
+pub enum HungerState { Stuffed, Satiated, Hungry, Famished, Starving }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Hunger {

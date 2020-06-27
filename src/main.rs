@@ -45,16 +45,17 @@ use hunger_system::HungerSystem;
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
     AwaitingInput,
+    GameOver,
+    GameworldTurn,
+    MagicMapReveal { row: i32 },
+    MainMenu { menu_selection: gui::MainMenuSelection },
+    NextLevel,
     PreRun,
     PlayerTurn,
-    GameworldTurn,
     ShowPlayerMenu { menu_state: gui::PlayerMenuState },
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting { range: i32, item: Entity },
-    MainMenu { menu_selection: gui::MainMenuSelection },
     SaveGame,
-    NextLevel,
-    GameOver,
 }
 
 pub struct State {
@@ -274,7 +275,10 @@ impl GameState for State {
             RunState::PlayerTurn => {
                 self.run_systems();
                 self.ecs.maintain();
-                newrunstate = RunState::GameworldTurn;
+                match *self.ecs.fetch::<RunState>() {
+                    RunState::MagicMapReveal{..} => newrunstate = RunState::MagicMapReveal { row: 0 },
+                    _ => newrunstate = RunState::GameworldTurn
+                }
             }
             RunState::GameworldTurn => {
                 self.run_systems();
@@ -415,6 +419,18 @@ impl GameState for State {
                     }
                 }
             }
+            RunState::MagicMapReveal { row } => {
+                let mut map = self.ecs.fetch_mut::<Map>();
+                for x in 0..MAPWIDTH {
+                    let idx = map.xy_idx(x as i32, row);
+                    map.revealed_tiles[idx] = true;
+                }
+                if row as usize == MAPHEIGHT - 1 {
+                    newrunstate = RunState::GameworldTurn;
+                } else {
+                    newrunstate = RunState::MagicMapReveal{ row: row + 1 };
+                }
+            }
             RunState::NextLevel => {
                 self.goto_next_level();
                 newrunstate = RunState::PreRun;
@@ -520,6 +536,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Immunities>();
     gs.ecs.register::<Particle>();
     gs.ecs.register::<Hunger>();
+    gs.ecs.register::<MagicMapper>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

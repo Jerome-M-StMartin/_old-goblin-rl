@@ -1,7 +1,8 @@
 use specs::prelude::*;
-use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent,
+use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
-            Equippable, Equipped, EquipIntent, UnequipIntent, particle_system::ParticleBuilder};
+            Equippable, Equipped, EquipIntent, UnequipIntent, particle_system::ParticleBuilder,
+            MagicMapper, };
 //use rltk::{console};
 
 pub struct ItemCollectionSystem {}
@@ -42,6 +43,7 @@ pub struct ItemUseSystem {}
 impl<'a> System<'a> for ItemUseSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( ReadExpect<'a, Entity>,
+                        ReadExpect<'a, RunState>,
                         WriteExpect<'a, ParticleBuilder>,
                         WriteExpect<'a, GameLog>,
                         ReadExpect<'a, Map>,
@@ -59,12 +61,13 @@ impl<'a> System<'a> for ItemUseSystem {
                         WriteStorage<'a, EquipIntent>,
                         ReadStorage<'a, Equipped>,
                         WriteStorage<'a, UnequipIntent>,
+                        ReadStorage<'a, MagicMapper>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut particle_builder, mut gamelog, map, entities, mut use_item_intent, names,
-             consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
-             aoe, mut confusion, equippable, mut equip_intent, equipped, mut unequip_intent) = data;
+        let (player_entity, runstate, mut particle_builder, mut gamelog, map, entities, mut use_item_intent,
+             names, consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
+             aoe, mut confusion, equippable, mut equip_intent, equipped, mut unequip_intent, magic_mapper) = data;
 
         for (entity, use_intent) in (&entities, &use_item_intent).join() {
             let mut is_item_used = true;
@@ -95,7 +98,7 @@ impl<'a> System<'a> for ItemUseSystem {
                                 }
 
                                 //spawn particles
-                                particle_builder.request(tile_idx.x, tile_idx,
+                                particle_builder.request(tile_idx.x, tile_idx.y,
                                     rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK),
                                     rltk::to_cp437('░'), 200.0);
                             }
@@ -182,6 +185,17 @@ impl<'a> System<'a> for ItemUseSystem {
             }
             for mob in add_confusion.iter() {
                 confusion.insert(mob.0, Confusion {turns: mob.1}).expect("Unable to insert status.");
+            }
+
+            //Magic Mapper Logic
+            let mapper = magic_mapper.get(use_intent.item);
+            match mapper {
+                None => {}
+                Some(_) => {
+                    *runstate = RunState::MagicMapReveal{ row: 0 };
+                    is_item_used = true;
+                    gamelog.entries.push("The blessing of Gaze falls upon you".to_string());
+                }
             }
        
             //Delete used consumables

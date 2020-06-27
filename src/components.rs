@@ -109,6 +109,9 @@ pub struct Confusion {//effect component
 }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct MagicMapper {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Heals {
     //item component, not to be confused with "Healing"
     //This CAUSES Healing when this item is used.

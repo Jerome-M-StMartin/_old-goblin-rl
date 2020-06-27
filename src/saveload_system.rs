@@ -58,7 +58,8 @@ pub fn save_game(ecs : &mut World) {
         serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
-            DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper
+            DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
+            MagicMapper
         );
     }
 
@@ -91,7 +92,8 @@ pub fn load_game(ecs: &mut World) {
         deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Hostile, 
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
-            DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper
+            DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
+            MagicMapper
         );
     }
 

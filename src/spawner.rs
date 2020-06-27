@@ -6,7 +6,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature, Hunger, HungerState};
+             Creature, Hunger, HungerState, MagicMapper};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -82,6 +82,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
             "Leather Armor" => leather_armor(ecs, x, y),
             "Longsword" => longsword(ecs, x, y),
             "Round Shield" => round_shield(ecs, x, y),
+            "Magic Mapping Scroll" => magic_mapping_scroll(ecs, x, y),
             _ => {}
         }
     }
@@ -100,6 +101,7 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Leather Armor", 1 - map_depth)
         .add("Longsword", 1 + map_depth)
         .add("Round Shield", 1 - map_depth)
+        .add("Magic Mapping Scroll", 400)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -197,6 +199,24 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Confusion {turns: 4})
+        .with(Menuable::default())
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+}
+
+fn magic_mapping_scroll(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position{ x, y })
+        .with(Renderable{
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::GREEN),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name{ name : "Scroll of Magic Mapping".to_string() })
+        .with(Item{})
+        .with(MagicMapper{})
+        .with(Consumable{})
         .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();

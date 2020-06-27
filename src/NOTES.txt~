@@ -4,9 +4,6 @@ Aeyohm
 Add Useable component for Use MenuOption instead of using Item component
 directly.
 
-TEST:
-- Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
-
 - Nested Player Menu:
 Need to impl dirty flags for Menuable options list,
 so that when an item is in player's menu it doesn't
@@ -18,6 +15,9 @@ Need to move Submenu box origin to neater-looking position.
 Implement temp resistance boosts via barrier_scroll.
 
 - Weapon Attack Mode Switching
+
+TEST:
+- Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
 
 -------------------------------------------------------------------------------
 
