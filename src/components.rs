@@ -33,7 +33,15 @@ pub struct Player {}
 pub struct Consumable {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Item {}//--------------------------------------
+pub struct Item {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Useable {}
+
+//Yet Unused
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Interactable {}//--------------------------------------
+
 
 //---------Status Components------------------------------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]

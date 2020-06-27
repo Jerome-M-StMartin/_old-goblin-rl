@@ -537,6 +537,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Particle>();
     gs.ecs.register::<Hunger>();
     gs.ecs.register::<MagicMapper>();
+    gs.ecs.register::<Useable>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

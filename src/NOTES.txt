@@ -1,16 +1,18 @@
 Aeyohm
 
-- Use Items:
-Add Useable component for Use MenuOption instead of using Item component
-directly.
-
-- Nested Player Menu:
-Need to keep PMenu open after submenu action is Selected.
-
-- Resistances:
-Implement temp resistance boosts via barrier_scroll.
-
+Do Next:
+- Reduce Vision Range & Add a Torch object that must be held in a hand to be
+  used while carried, but it stays lit when dropped after being lit. It'll
+  need a submenu for the Equip MenuOption to choose which hand, and a
+  Flammable component in order to be lit by positive thermal damage. After,
+  implement a Shard of Flint itemm which requires a metal object to Use.
+- Get to new Turn System in Tutorial to use as foundation.
+- New AP-based Turn System
+- Temp Resistances
 - Weapon Attack Mode Switching
+- AI
+- ProcGen Improvement
+- Control Hierarchy is a little messy
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
@@ -24,14 +26,15 @@ the beginning of the journey. "It's dangerous to go alone, take this:" ...
 Mother can carry it."
 
 DESIGN PILLARS:
+- Behaviour Tree AI
 - Puzzles! Physical path unlocks and boss-battle behavior patterns.
 - Spawned Bosses & Story Bosses!
-- Typed Damage/Resistances/Immunities
-- Multiple Attack Modes per Weapon(i.e. Knife can be used to Stab, Cut, or
-  Pommel-bludgeon).
-- Universal Context-Menu!
+- Typed Damage/Resistances/Immunities - Done!
+- Multiple Attack Modes per Weapon
+- Universal Context-Menu! - Working
 - Language-based user-customizable spellcasting!
-- Party-Based Singleplayer stretch_goal(& Multiplayer)!
+- WASM: Core, do not work on any below pillar without completing this.
+- Party-Based Singleplayer stretch_goal(& Multiplayer?)!
 
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
@@ -49,12 +52,12 @@ PLAN:
 				    Town & Boss Battle Music
 				    Tiny Creatures that you must attack
 					from within inventory w/ c_menu!
+				    Pillar: WASM!
 - Feature Creep:  Morality System
 		  Player as Villian
 		  Machine Learning/Neural Networks
 		  Verticality/Z-axis beyond pitfalls/stairs.
 		  Multiplayer
-		  Party-Based
 		  SFX
 		  Music beyond Town & Boss Battle Music
 

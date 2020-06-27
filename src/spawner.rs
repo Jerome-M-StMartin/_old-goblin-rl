@@ -6,7 +6,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature, Hunger, HungerState, MagicMapper};
+             Creature, Hunger, HungerState, MagicMapper, Useable};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -90,18 +90,18 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
 
 fn room_table(map_depth: i32) -> RandomTable {
     RandomTable::new()
-        .add("Goblin", 11)
-        .add("Orc", 1 + map_depth)
-        .add("Health Potion", 1)
-        .add("Fireball Scroll", 0 + map_depth)
-        .add("Confusion Scroll", 0 + map_depth)
-        .add("Magic Missile Scroll", 7)
-        .add("Scroll of Chitin", 0 + map_depth)
-        .add("Knife", 5 - map_depth * 2)
-        .add("Leather Armor", 1 - map_depth)
-        .add("Longsword", 1 + map_depth)
-        .add("Round Shield", 1 - map_depth)
-        .add("Magic Mapping Scroll", 400)
+        .add("Goblin", 10)
+        .add("Orc", map_depth)
+        .add("Health Potion", 2)
+        .add("Fireball Scroll", map_depth)
+        .add("Confusion Scroll", 0)
+        .add("Magic Missile Scroll", 3)
+        .add("Scroll of Chitin", 0)
+        .add("Knife", 4 - map_depth)
+        .add("Leather Armor", map_depth)
+        .add("Longsword", map_depth)
+        .add("Round Shield", map_depth)
+        .add("Magic Mapping Scroll", map_depth)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -143,6 +143,7 @@ fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Item {})
+        .with(Useable {})
         .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Thermal(20)]})
         .with(AoE {radius: 3})
         .with(Menuable::default())
@@ -159,6 +160,7 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
             bg: RGB::named(rltk::BLACK),
             render_order: 2})
         .with(Name {name: "Health Potion".to_string() })
+        .with(Useable {})
         .with(Consumable {})
         .with(Heals { duration: 1, amount: 8 })
         .with(Item {})
@@ -177,6 +179,7 @@ pub fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
             render_order: 2})
         .with(Name {name: "Scroll of Magic Missile".to_string() })
         .with(Consumable {})
+        .with(Useable {})
         .with(Ranged {range: 6})
         .with(Item {})
         .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Bludgeon(8)]})
@@ -196,6 +199,7 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{name: "Scroll of Confusion".to_string() })
         .with(Item {})
+        .with(Useable {})
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Confusion {turns: 4})
@@ -215,6 +219,7 @@ fn magic_mapping_scroll(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{ name : "Scroll of Magic Mapping".to_string() })
         .with(Item{})
+        .with(Useable {})
         .with(MagicMapper{})
         .with(Consumable{})
         .with(Menuable::default())
@@ -234,6 +239,7 @@ fn barrier_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Name{name: "Scroll of Chitinflesh".to_string() })
         .with(Item {})
         .with(Consumable {})
+        .with(Useable {})
         .with(Resistances {
             bludgeon: DamageAtom::Bludgeon(1),
             pierce: DamageAtom::Pierce(1),
@@ -256,6 +262,9 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{name: "Knife".to_string() })
         .with(Item {})
+        .with(Useable {})
+        .with(Ranged {range: 4})
+        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Pierce(4)]})
         .with(Equippable {slot: EquipmentSlot::LeftHand})
         .with(Weapon {primary: Some(DamageAtom::Slash(2)),
                       secondary: Some(DamageAtom::Pierce(1)),

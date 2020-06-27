@@ -2,8 +2,8 @@ use rltk::{VirtualKeyCode, Rltk, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui,
-            gui::PlayerMenuState};
+            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
+            HungerState, gui::PlayerMenuState};
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;

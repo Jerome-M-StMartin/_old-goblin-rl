@@ -8,7 +8,7 @@ use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Curso
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
 
-    gui::enable_cursor_control(ecs, ctx); 
+    gui::enable_cursor_control(ecs, ctx);
 
     new_runstate = match ctx.key {
         None => return RunState::AwaitingInput,

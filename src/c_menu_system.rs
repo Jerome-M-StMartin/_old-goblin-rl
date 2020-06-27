@@ -1,11 +1,12 @@
 use specs::prelude::*;
-use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile};
+use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable};
 pub struct ContextMenuSystem {}
 
 impl<'a> System<'a> for ContextMenuSystem {
     type SystemData = ( Entities<'a>,
                         WriteStorage<'a, Menuable>,
                         ReadStorage<'a, Item>,
+                        ReadStorage<'a, Useable>,
                         ReadStorage<'a, Position>,
                         ReadStorage<'a, Equippable>,
                         ReadStorage<'a, InBackpack>,
@@ -13,8 +14,8 @@ impl<'a> System<'a> for ContextMenuSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut menuable,
-            items, positions, equippable, in_backpack, hostile) = data;
+        let (entities, mut menuable, items, useables, positions, equippable, in_backpack,
+             hostile) = data;
 
         //Populate Menuable components.
         for (ent, menu) in (&entities, &mut menuable).join() {
@@ -22,7 +23,10 @@ impl<'a> System<'a> for ContextMenuSystem {
             menu.options.clear();
 
             if let Some(_) = items.get(ent) {
-                menu.options.push( (MenuOption::Use, "Use".to_string()) );
+                
+                if let Some(_) = useables.get(ent) {
+                    menu.options.push( (MenuOption::Use, "Use".to_string()) );
+                }
                 
                 if let Some(_) = positions.get(ent) {
                     menu.options.push( (MenuOption::PickUp, "Pick Up".to_string()) );

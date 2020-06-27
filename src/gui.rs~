@@ -236,16 +236,6 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             None => {}
             Some(key) => match key {
               
-    //----DEBUGGING_______________________________________________
-                VirtualKeyCode::H => {
-                    use super::Equippable;
-                    let eqpbl = ecs.read_storage::<Equippable>();
-                    eprintln!("gui: {:?}", curr_ent);
-                    if let Some(_e) = eqpbl.get(curr_ent) {
-                        eprintln!("is equippable. SOMETHING'S FUCKY");
-                    }
-                }
-//---------------------------------------------------------------
                 VirtualKeyCode::Escape |
                 VirtualKeyCode::C => { state.mr = MenuResult::Cancel; }
 
@@ -332,9 +322,6 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
                     //VirtualKeyCode::NumpadEnter |
                     VirtualKeyCode::E => {
                         state.sub_mr = MenuResult::Selected;
-
-                        eprintln!("gui submenu: {:?}", menuable.options[state.sub_selection as usize].0);
-
                         state.result = Some( (menuable.options[state.sub_selection as usize].0, state.e) );
                     }
                     _ => {}
