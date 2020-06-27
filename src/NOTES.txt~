@@ -1,6 +1,7 @@
 Aeyohm
 
 Do Next:
+- Get Knife throwing working properly
 - Reduce Vision Range & Add a Torch object that must be held in a hand to be
   used while carried, but it stays lit when dropped after being lit. It'll
   need a submenu for the Equip MenuOption to choose which hand, and a
@@ -12,6 +13,7 @@ Do Next:
 - Weapon Attack Mode Switching
 - AI
 - ProcGen Improvement
+- Control Hierarchy is a little messy
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.

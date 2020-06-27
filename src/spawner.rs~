@@ -6,7 +6,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature, Hunger, HungerState, MagicMapper};
+             Creature, Hunger, HungerState, MagicMapper, Useable};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -264,7 +264,7 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
         .with(Item {})
         .with(Useable {})
         .with(Ranged {range: 4})
-        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Piercing(4)]})
+        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Pierce(4)]})
         .with(Equippable {slot: EquipmentSlot::LeftHand})
         .with(Weapon {primary: Some(DamageAtom::Slash(2)),
                       secondary: Some(DamageAtom::Pierce(1)),

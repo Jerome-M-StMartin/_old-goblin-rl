@@ -1,6 +1,8 @@
 Aeyohm
 
 Do Next:
+- Get Knife throwing working properly, maybe have Useable contain a custom
+  String for each item type's "Use" MenuOption name. Like "Throw" for knife.
 - Reduce Vision Range & Add a Torch object that must be held in a hand to be
   used while carried, but it stays lit when dropped after being lit. It'll
   need a submenu for the Equip MenuOption to choose which hand, and a

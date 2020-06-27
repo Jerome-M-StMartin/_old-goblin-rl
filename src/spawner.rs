@@ -97,7 +97,7 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Confusion Scroll", 0)
         .add("Magic Missile Scroll", 3)
         .add("Scroll of Chitin", 0)
-        .add("Knife", 4 - map_depth)
+        .add("Knife", 400 - map_depth)
         .add("Leather Armor", map_depth)
         .add("Longsword", map_depth)
         .add("Round Shield", map_depth)
