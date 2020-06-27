@@ -1,21 +1,22 @@
 use specs::prelude::*;
-use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable};
+use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable};
 pub struct ContextMenuSystem {}
 
 impl<'a> System<'a> for ContextMenuSystem {
     type SystemData = ( Entities<'a>,
                         WriteStorage<'a, Menuable>,
                         ReadStorage<'a, Item>,
-                        ReadStorage<'a, Position>,
                         ReadStorage<'a, Useable>,
+                        ReadStorage<'a, Position>,
                         ReadStorage<'a, Equippable>,
                         ReadStorage<'a, InBackpack>,
                         ReadStorage<'a, Hostile>,
+                        ReadStorage<'a, Throwable>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, mut menuable, items, useables, positions, equippable, in_backpack,
-             hostile) = data;
+             hostile, throwables) = data;
 
         //Populate Menuable components.
         for (ent, menu) in (&entities, &mut menuable).join() {
@@ -24,8 +25,12 @@ impl<'a> System<'a> for ContextMenuSystem {
 
             if let Some(_) = items.get(ent) {
                 
-                if let Some(_) = useables.get(ent) {
-                    menu.options.push( (MenuOption::Use, "Use".to_string()) );
+                if let Some(useable) = useables.get(ent) {
+                    menu.options.push( (MenuOption::Use, (&*useable.menu_name).to_string()) );
+                }
+                
+                if let Some(throwable) = throwables.get(ent) {
+                    menu.options.push( (MenuOption::Throw, "Throw".to_string()) );
                 }
                 
                 if let Some(_) = positions.get(ent) {

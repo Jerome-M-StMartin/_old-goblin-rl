@@ -6,7 +6,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature, Hunger, HungerState, MagicMapper, Useable};
+             Creature, Hunger, HungerState, MagicMapper, Useable, Throwable};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -143,7 +143,7 @@ fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Item {})
-        .with(Useable {})
+        .with(Useable { menu_name: "Read".to_string() })
         .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Thermal(20)]})
         .with(AoE {radius: 3})
         .with(Menuable::default())
@@ -160,7 +160,7 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
             bg: RGB::named(rltk::BLACK),
             render_order: 2})
         .with(Name {name: "Health Potion".to_string() })
-        .with(Useable {})
+        .with(Useable { menu_name: "Drink".to_string() })
         .with(Consumable {})
         .with(Heals { duration: 1, amount: 8 })
         .with(Item {})
@@ -179,7 +179,7 @@ pub fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
             render_order: 2})
         .with(Name {name: "Scroll of Magic Missile".to_string() })
         .with(Consumable {})
-        .with(Useable {})
+        .with(Useable { menu_name: "Read".to_string() })
         .with(Ranged {range: 6})
         .with(Item {})
         .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Bludgeon(8)]})
@@ -199,7 +199,7 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{name: "Scroll of Confusion".to_string() })
         .with(Item {})
-        .with(Useable {})
+        .with(Useable { menu_name: "Read".to_string() })
         .with(Consumable {})
         .with(Ranged {range: 6})
         .with(Confusion {turns: 4})
@@ -219,7 +219,7 @@ fn magic_mapping_scroll(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{ name : "Scroll of Magic Mapping".to_string() })
         .with(Item{})
-        .with(Useable {})
+        .with(Useable { menu_name: "Read".to_string() })
         .with(MagicMapper{})
         .with(Consumable{})
         .with(Menuable::default())
@@ -239,7 +239,7 @@ fn barrier_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Name{name: "Scroll of Chitinflesh".to_string() })
         .with(Item {})
         .with(Consumable {})
-        .with(Useable {})
+        .with(Useable { menu_name: "Read".to_string() })
         .with(Resistances {
             bludgeon: DamageAtom::Bludgeon(1),
             pierce: DamageAtom::Pierce(1),
@@ -262,9 +262,8 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name{name: "Knife".to_string() })
         .with(Item {})
-        .with(Useable {})
+        .with(Throwable { dmg: DamageAtom::Pierce(4) })
         .with(Ranged {range: 4})
-        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Pierce(4)]})
         .with(Equippable {slot: EquipmentSlot::LeftHand})
         .with(Weapon {primary: Some(DamageAtom::Slash(2)),
                       secondary: Some(DamageAtom::Pierce(1)),

@@ -41,6 +41,8 @@ use bleed_system::BleedSystem;
 mod particle_system;
 mod hunger_system;
 use hunger_system::HungerSystem;
+mod throw_system;
+use throw_system::ThrowSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
@@ -85,6 +87,8 @@ impl State {
         bleed.run_now(&self.ecs);
         let mut hunger = HungerSystem{};
         hunger.run_now(&self.ecs);
+        let mut throw = ThrowSystem{};
+        throw.run_now(&self.ecs);
         let mut damage = DamageSystem{};
         damage.run_now(&self.ecs);
         let mut pick_up = ItemCollectionSystem{};
@@ -341,6 +345,12 @@ impl GameState for State {
                                         .expect("Unable to insert MeleeIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
+                                (MenuOption::Throw, _) => {
+                                    if let Some(r) = ranged_item {
+                                        newrunstate =
+                                            RunState::ShowTargeting { range: r.range, item: chosen_ent };
+                                    }
+                                }
                             }
                         }
                     }
@@ -401,6 +411,12 @@ impl GameState for State {
                                         .expect("Unable to insert MeleeIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
+                                (MenuOption::Throw, _) => {
+                                    if let Some(r) = ranged_item {
+                                        newrunstate =
+                                            RunState::ShowTargeting { range: r.range, item: chosen_ent };
+                                    }
+                                }
                             }
                         }
                     }
@@ -408,14 +424,27 @@ impl GameState for State {
             }
             RunState::ShowTargeting {range, item} => {
                 let result = gui::target_selection_mode(&mut self.ecs, ctx, range);
+                let useable_storage = self.ecs.read_storage::<Useable>();
+                let throwable_storage = self.ecs.read_storage::<Throwable>();
                 match result.0 {
                     gui::MenuResult::Continue => {}
                     gui::MenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     gui::MenuResult::Selected => {
-                        let mut intent = self.ecs.write_storage::<UseItemIntent>();
-                        intent.insert(*self.ecs.fetch::<Entity>(), UseItemIntent {item, target: result.1})
-                            .expect("Unable to insert UseItemIntent.");
-                        newrunstate = RunState::PlayerTurn;
+                        if let Some(_) = useable_storage.get(item) {
+                            let mut intent = self.ecs.write_storage::<UseItemIntent>();
+                            intent.insert(*self.ecs.fetch::<Entity>(), UseItemIntent {item, target: result.1})
+                                .expect("Unable to insert UseItemIntent.");
+                            newrunstate = RunState::PlayerTurn;
+                        } else if let Some(_) = throwable_storage.get(item) {
+                            let mut intent = self.ecs.write_storage::<ThrowIntent>();
+                            intent.insert(*self.ecs.fetch::<Entity>(), ThrowIntent {item, target: result.1})
+                                .expect("Unable to insert UseItemIntent.");
+
+                            eprintln!("Throw Intent inserted.");
+
+                            newrunstate = RunState::PlayerTurn;
+
+                        }
                     }
                 }
             }
@@ -537,6 +566,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Particle>();
     gs.ecs.register::<Hunger>();
     gs.ecs.register::<MagicMapper>();
+    gs.ecs.register::<Useable>();
+    gs.ecs.register::<ThrowIntent>();
+    gs.ecs.register::<Throwable>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

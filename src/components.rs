@@ -36,23 +36,27 @@ pub struct Consumable {}
 pub struct Item {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Useable {}
+pub struct Bleeding {}
 
 //Yet Unused
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Interactable {}//--------------------------------------
 
-
-//---------Status Components------------------------------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Bleeding {}
+pub struct Useable {
+    pub menu_name: String,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Throwable {
+    pub dmg: DamageAtom,
+}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Healing {
     pub duration: i32,
     pub amount: i32,
 }
-//--------------------------------------------------------
 
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Position {
@@ -347,6 +351,12 @@ pub struct UseItemIntent {
 }
 
 #[derive(Component, Debug, ConvertSaveload)]
+pub struct ThrowIntent {
+    pub item: Entity,
+    pub target: Option<rltk::Point>,
+}
+
+#[derive(Component, Debug, ConvertSaveload)]
 pub struct DropItemIntent {
     pub item: Entity
 }
@@ -368,6 +378,7 @@ pub enum MenuOption {
     Use,
     Equip,
     Attack,
+    Throw,
     //Examine
 }
 
