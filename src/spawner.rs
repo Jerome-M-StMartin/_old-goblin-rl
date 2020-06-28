@@ -6,7 +6,8 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
-             Creature, Hunger, HungerState, MagicMapper, Useable, Throwable};
+             Creature, Hunger, HungerState, MagicMapper, Useable, Throwable, Flammable,
+             };
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -83,6 +84,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
             "Longsword" => longsword(ecs, x, y),
             "Round Shield" => round_shield(ecs, x, y),
             "Magic Mapping Scroll" => magic_mapping_scroll(ecs, x, y),
+            "Torch" => torch(ecs, x, y),
             _ => {}
         }
     }
@@ -97,11 +99,12 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Confusion Scroll", 0)
         .add("Magic Missile Scroll", 3)
         .add("Scroll of Chitin", 0)
-        .add("Knife", 400 - map_depth)
+        .add("Knife", 4 - map_depth)
         .add("Leather Armor", map_depth)
         .add("Longsword", map_depth)
         .add("Round Shield", map_depth)
         .add("Magic Mapping Scroll", map_depth)
+        .add("Torch", 400)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -319,7 +322,6 @@ fn round_shield(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            //glyph: rltk::to_cp437('Θ'),
             glyph: 10,
             fg: RGB::named(rltk::BROWN1),
             bg: RGB::named(rltk::BLACK),
@@ -329,6 +331,27 @@ fn round_shield(ecs: &mut World, x: i32, y: i32) {
         .with(Item {})
         .with(Equippable { slot: EquipmentSlot::RightHand })
         .with(BlocksAttacks { chance: 0.5, coverage: 2 })
+        .with(Menuable::default())
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+}
+
+fn torch(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position {x, y})
+        .with(Renderable {
+            glyph: rltk::to_cp437(';'),
+            fg: RGB::named(rltk::ORANGE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name { name: "Torch".to_string() })
+        .with(Item {})
+        .with(Flammable { is_aflame: false })
+        .with(Equippable { slot: EquipmentSlot::RightHand })
+        .with(Weapon { primary: Some(DamageAtom::Bludgeon(2)),
+                       secondary: Some(DamageAtom::Thermal(0)),
+                       tertiary: None, })
         .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();

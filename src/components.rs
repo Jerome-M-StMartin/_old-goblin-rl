@@ -43,6 +43,16 @@ pub struct Bleeding {}
 pub struct Interactable {}//--------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Lightsource {
+    pub radius: i32,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Flammable {
+    pub is_aflame: bool,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Useable {
     pub menu_name: String,
 }
@@ -58,7 +68,7 @@ pub struct Healing {
     pub amount: i32,
 }
 
-#[derive(Component, ConvertSaveload, Clone)]
+#[derive(Component, ConvertSaveload, Clone, Copy)]
 pub struct Position {
     pub x: i32,
     pub y: i32

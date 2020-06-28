@@ -1,12 +1,20 @@
 Aeyohm
 
+LightSystem:
+for (ent, lightsource)
+	populate map.lit_tiles
+
+in VisibilitySystem,
+for tile in map.lit {
+	if any lit tile is in line-of-sight
+		make tile visible regardless of range
+
 Do Next:
-- Get Knife throwing working properly
 - Reduce Vision Range & Add a Torch object that must be held in a hand to be
   used while carried, but it stays lit when dropped after being lit. It'll
   need a submenu for the Equip MenuOption to choose which hand, and a
   Flammable component in order to be lit by positive thermal damage. After,
-  implement a Shard of Flint itemm which requires a metal object to Use.
+  implement a Shard of Flint item which requires a metal object to Use.
 - Get to new Turn System in Tutorial to use as foundation.
 - New AP-based Turn System
 - Temp Resistances

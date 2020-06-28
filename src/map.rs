@@ -18,15 +18,16 @@ pub enum TileType {
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
-    pub tiles : Vec<TileType>,
-    pub rooms : Vec<Rect>,
-    pub width : i32,
-    pub height : i32,
-    pub revealed_tiles : Vec<bool>,
-    pub visible_tiles : Vec<bool>,
-    pub blocked : Vec<bool>,
+    pub tiles: Vec<TileType>,
+    pub rooms: Vec<Rect>,
+    pub width: i32,
+    pub height: i32,
+    pub revealed_tiles: Vec<bool>,
+    pub visible_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
     pub depth: i32,
     pub bloodstains: HashSet<usize>,
+    pub illuminated_tiles: HashSet<usize>,
 
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
@@ -95,6 +96,7 @@ impl Map {
             blocked: vec![false; MAPCOUNT],
             depth: new_depth,
             bloodstains: HashSet::new(),
+            illuminated_tiles: HashSet::new(),
             tile_content: vec![Vec::new(); MAPCOUNT]
         };
 

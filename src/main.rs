@@ -43,6 +43,8 @@ mod hunger_system;
 use hunger_system::HungerSystem;
 mod throw_system;
 use throw_system::ThrowSystem;
+mod light_system;
+use light_system::LightSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
@@ -77,6 +79,8 @@ impl State {
         drop.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
+        let mut light = LightSystem{};
+        light.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
         vis.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};
@@ -566,6 +570,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Useable>();
     gs.ecs.register::<ThrowIntent>();
     gs.ecs.register::<Throwable>();
+    gs.ecs.register::<Flammable>();
+    gs.ecs.register::<Lightsource>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

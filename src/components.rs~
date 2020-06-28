@@ -43,8 +43,23 @@ pub struct Bleeding {}
 pub struct Interactable {}//--------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Lightsource {
+    pub radius: i32,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Flammable {
+    pub is_aflame: bool,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Useable {
     pub menu_name: String,
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Throwable {
+    pub dmg: DamageAtom,
 }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]

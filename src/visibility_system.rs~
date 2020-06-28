@@ -9,12 +9,11 @@ impl<'a> System<'a> for VisibilitySystem {
                         Entities<'a>,
                         WriteStorage<'a, Viewshed>,
                         ReadStorage<'a, Position>,
-                        ReadStorage<'a, Player> );
+                        ReadStorage<'a, Player>,
+                      );
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, entities, mut viewshed, pos, player) = data;
-
-    eprintln!("Vis sys");
 
         for (ent, viewshed, pos) in (&entities, &mut viewshed, &pos).join() {
             if viewshed.dirty {
@@ -24,9 +23,23 @@ impl<'a> System<'a> for VisibilitySystem {
                 viewshed.visible_tiles.retain(|p| p.x >= 0 && p.x < map.width - 1 &&
                                                   p.y >= 0 && p.y < map.height - 1 );
                 
+                //Light-detecting Viewshed 
+                let far_viewshed = field_of_view(Point::new(pos.x, pos.y),
+                                                 viewshed.range * 3, &*map);
+                far_viewshed.retain(|p| p.x >= 0 && p.x < map.width - 1 &&
+                                        p.y >= 0 && p.y < map.height - 1 );
+
+                //join of tiles in illuminated_tiles and tiles in far_viewshed
+                for i in far_viewshed {
+                    let idx = map.xy_idx(i.x, i.y);
+                    if map.illuminated_tiles.contains(&idx){ 
+                        viewshed.visible_tiles.push(i);
+                    }
+                }
+
                 // If this is the player, reveal what they can see.
-                let _p: Option<&Player> = player.get(ent);
-                if let Some(_) = _p {
+                let p: Option<&Player> = player.get(ent);
+                if let Some(_) = p {
                     for t in map.visible_tiles.iter_mut() { *t = false };
                     for vis in viewshed.visible_tiles.iter() {
                         let idx = map.xy_idx(vis.x, vis.y);

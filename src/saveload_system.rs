@@ -59,7 +59,7 @@ pub fn save_game(ecs : &mut World) {
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
-            MagicMapper, Useable, ThrowIntent, Throwable 
+            MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource
         );
     }
 
@@ -93,7 +93,7 @@ pub fn load_game(ecs: &mut World) {
             Name, BlocksTile, Stats, MeleeIntent, Item, Consumable, Ranged, DamageOnUse, 
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
-            MagicMapper, Useable, ThrowIntent, Throwable
+            MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource
         );
     }
 
