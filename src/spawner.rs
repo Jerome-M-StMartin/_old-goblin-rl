@@ -347,7 +347,7 @@ fn torch(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name { name: "Torch".to_string() })
         .with(Item {})
-        .with(Flammable { is_aflame: false })
+        .with(Flammable {})
         .with(Equippable { slot: EquipmentSlot::RightHand })
         .with(Weapon { primary: Some(DamageAtom::Bludgeon(2)),
                        secondary: Some(DamageAtom::Thermal(0)),
@@ -355,4 +355,23 @@ fn torch(ecs: &mut World, x: i32, y: i32) {
         .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
+}
+
+fn flint(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position {x, y})
+        .with(Renderable {
+            glyph: rltk::to_cp437(';'),
+            fg: RGB::named(rltk::ORANGE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name { name: "Torch".to_string() })
+        .with(Item {})
+        .with(Useable { menu_name: "Spark".to_string() })
+        .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Thermal(0)]})
+        .with(Menuable::default())
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+
 }

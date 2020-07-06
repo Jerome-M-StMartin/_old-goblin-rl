@@ -1,13 +1,8 @@
 Aeyohm
 
 LightSystem:
-for (ent, lightsource)
-	populate map.lit_tiles
-
-in VisibilitySystem,
-for tile in map.lit {
-	if any lit tile is in line-of-sight
-		make tile visible regardless of range
+- Flint has DamageOnUse::DamageAtom::Thermal(0)
+- Flammable objects ignite when they take 0+ Thermal DMG.
 
 Do Next:
 - Reduce Vision Range & Add a Torch object that must be held in a hand to be
@@ -29,10 +24,7 @@ TEST:
 -------------------------------------------------------------------------------
 
 FLUFF NOTES:
-- Backpack as a uber-bag-of-holding, a godly gift bequeathed upon the hero at
-the beginning of the journey. "It's dangerous to go alone, take this:" ...
-"A... bag?" The bag is a named artifact: All Mother. "If you can lift it, All
-Mother can carry it."
+- Backpack as Ahlmothr 
 
 DESIGN PILLARS:
 - Behaviour Tree AI

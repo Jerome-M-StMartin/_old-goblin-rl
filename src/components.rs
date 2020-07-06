@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use specs_derive::*;
-use rltk::{RGB};
+use rltk::RGB;
 use serde::{Serialize, Deserialize};
 use specs::saveload::{Marker, ConvertSaveload};
 use specs::error::NoError;
@@ -38,6 +38,12 @@ pub struct Item {}
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Bleeding {}
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Flammable {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Aflame {}
+
 //Yet Unused
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Interactable {}//--------------------------------------
@@ -45,11 +51,6 @@ pub struct Interactable {}//--------------------------------------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Lightsource {
     pub radius: i32,
-}
-
-#[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Flammable {
-    pub is_aflame: bool,
 }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]

@@ -1,8 +1,10 @@
 Aeyohm
 
+Implement ignite-on-thermal(0)
+
 LightSystem:
-- Make way to light the torches in order to test them.
-- Maybe: Flint + Some Goblins spawn with lit torches.
+- Flint has DamageOnUse::DamageAtom::Thermal(0)
+- Flammable objects ignite when they take 0+ Thermal DMG.
 
 Do Next:
 - Reduce Vision Range & Add a Torch object that must be held in a hand to be
@@ -24,10 +26,7 @@ TEST:
 -------------------------------------------------------------------------------
 
 FLUFF NOTES:
-- Backpack as a uber-bag-of-holding, a godly gift bequeathed upon the hero at
-the beginning of the journey. "It's dangerous to go alone, take this:" ...
-"A... bag?" The bag is a named artifact: All Mother. "If you can lift it, All
-Mother can carry it."
+- Backpack as Ahlmothr 
 
 DESIGN PILLARS:
 - Behaviour Tree AI
