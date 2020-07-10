@@ -79,6 +79,8 @@ impl State {
         drop.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
+        let mut light = LightSystem{};
+        light.run_now(&self.ecs);
         let mut vis = VisibilitySystem{};
         vis.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};

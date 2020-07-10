@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use std::cmp::max;
-use rltk::{RandomNumberGenerator};
+use rltk::RandomNumberGenerator;
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
             Resistances, RunState, Bleeding, particle_system::ParticleBuilder, Position};
 

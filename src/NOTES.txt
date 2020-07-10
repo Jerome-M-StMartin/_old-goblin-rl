@@ -1,17 +1,10 @@
 Aeyohm
 
-Implement ignite-on-thermal(0)
-
-LightSystem:
-- Flint has DamageOnUse::DamageAtom::Thermal(0)
-- Flammable objects ignite when they take 0+ Thermal DMG.
+Lightsource:
+- BUG: Point/Position of lightsource stays the same after picking up a lit
+  torch or dropping one. Need to impl some fix for this in equip_system maybe?
 
 Do Next:
-- Reduce Vision Range & Add a Torch object that must be held in a hand to be
-  used while carried, but it stays lit when dropped after being lit. It'll
-  need a submenu for the Equip MenuOption to choose which hand, and a
-  Flammable component in order to be lit by positive thermal damage. After,
-  implement a Shard of Flint item which requires a metal object to Use.
 - Get to new Turn System in Tutorial to use as foundation.
 - New AP-based Turn System
 - Temp Resistances

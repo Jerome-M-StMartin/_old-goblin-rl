@@ -145,7 +145,6 @@ impl Map {
 
 impl BaseMap for Map {
     fn is_opaque(&self, idx:usize) -> bool {
-        let idx_u = idx as usize;
         self.tiles[idx] == TileType::Wall
     }
 
@@ -210,6 +209,11 @@ pub fn draw_map(ecs: &World, ctx : &mut Rltk) {
 
             if map.bloodstains.contains(&idx) { bg = RGB::from_f32(0.75, 0., 0.); }
             if !map.visible_tiles[idx] { fg = fg.to_greyscale() }
+            
+            //this line for bugtesting lightsources
+            else { bg = RGB::from_f32(0.0, 0.3, 0.0); }
+            
+
             ctx.set(x, y, fg, bg, glyph);
         }
 

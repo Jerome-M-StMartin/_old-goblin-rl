@@ -23,7 +23,7 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
         })
         .with(Creature {})
         .with(Player {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
+        .with(Viewshed { visible_tiles: Vec::new(), range: 5, dirty: true })
         .with(Name { name: "Player".to_string() })
         .with(Stats {max_hp: 8,
                      hp: 8,
@@ -85,6 +85,7 @@ pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
             "Round Shield" => round_shield(ecs, x, y),
             "Magic Mapping Scroll" => magic_mapping_scroll(ecs, x, y),
             "Torch" => torch(ecs, x, y),
+            "Flint" => flint(ecs, x, y),
             _ => {}
         }
     }
@@ -104,7 +105,8 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Longsword", map_depth)
         .add("Round Shield", map_depth)
         .add("Magic Mapping Scroll", map_depth)
-        .add("Torch", 400)
+        .add("Torch", 200)
+        .add("Flint", 200)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -121,7 +123,7 @@ fn hostile<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharTy
         })
         .with(Creature {})
         .with(Hostile {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
+        .with(Viewshed { visible_tiles: Vec::new(), range: 5, dirty: true })
         .with(Name { name: name.to_string() })
         .with(Stats {max_hp: 4, hp: 4,
                      max_fp: 8, fp: 8,
@@ -361,13 +363,14 @@ fn flint(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(';'),
-            fg: RGB::named(rltk::ORANGE),
+            glyph: 96,
+            fg: RGB::named(rltk::GREY),
             bg: RGB::named(rltk::BLACK),
             render_order: 2
         })
-        .with(Name { name: "Torch".to_string() })
+        .with(Name { name: "Flint".to_string() })
         .with(Item {})
+        .with(Ranged { range: 1 })
         .with(Useable { menu_name: "Spark".to_string() })
         .with(DamageOnUse {dmg_atoms: vec![DamageAtom::Thermal(0)]})
         .with(Menuable::default())

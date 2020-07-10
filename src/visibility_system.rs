@@ -25,7 +25,7 @@ impl<'a> System<'a> for VisibilitySystem {
                 
                 //Light-detecting Viewshed 
                 let mut far_viewshed = field_of_view(Point::new(pos.x, pos.y),
-                                                 viewshed.range * 3, &*map);
+                                                 viewshed.range * 10, &*map);
                 far_viewshed.retain(|p| p.x >= 0 && p.x < map.width - 1 &&
                                         p.y >= 0 && p.y < map.height - 1 );
 

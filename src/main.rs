@@ -571,6 +571,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<ThrowIntent>();
     gs.ecs.register::<Throwable>();
     gs.ecs.register::<Flammable>();
+    gs.ecs.register::<Aflame>();
     gs.ecs.register::<Lightsource>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();

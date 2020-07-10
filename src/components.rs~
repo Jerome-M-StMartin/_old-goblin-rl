@@ -50,7 +50,17 @@ pub struct Interactable {}//--------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Lightsource {
+    pub is_lit: bool,
     pub radius: i32,
+}
+
+impl Default for Lightsource {
+    fn default() -> Self {
+        Lightsource {
+            is_lit: false,
+            radius: 3,
+        }
+    }
 }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
