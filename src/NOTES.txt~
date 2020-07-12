@@ -1,7 +1,7 @@
-Aeyohm
+Fix Bug:
+- No "Drop" option on equipped Torches (& probably all equippables).
 
 Do Next:
-- Reduce Vision Range
 - Get to new Turn System in Tutorial to use as foundation.
 - New AP-based Turn System
 - Temp Resistances
@@ -19,6 +19,7 @@ FLUFF NOTES:
 - Backpack as Ahlmothr 
 
 DESIGN PILLARS:
+- Card Based Actions in Combat Mode (Need Commant Pattern in Rust!)
 - Behaviour Tree AI
 - Puzzles! Physical path unlocks and boss-battle behavior patterns.
 - Spawned Bosses & Story Bosses!
@@ -53,6 +54,16 @@ PLAN:
 		  Multiplayer
 		  SFX
 		  Music beyond Town & Boss Battle Music
+
+Marketing & Image:
+- Develop _basic_ webside to host the following three things and these things
+  only.
+	1.) A rust-wasm rolling-release in-browser playable version 1.0 of
+	    WotOT.
+	2.) A short-form textual dev b/log.
+	3.) A Beautifully Simple Landing Page
+
+
 
 KNOWN-UKNOWN BUGS:
 
@@ -94,4 +105,5 @@ initializing the variable out of scope.
 simple8x8 text resource not 1:1 with cp_437 standards. Was confusing.
 - UNIVERSAL CONTEXT MENU - 6/18/2020
 - NESTED PLAYER MENU - 6/21/20
+- Started Summer Courses @ WWU - 6/23/20
 - SWAPPED STORAGE NAMES BUG - 6/24/20

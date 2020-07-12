@@ -9,15 +9,15 @@ impl<'a> System<'a> for LightSystem {
                         WriteExpect<'a, Map>,
                         WriteStorage<'a, Lightsource>,
                         WriteStorage<'a, Aflame>,
+                        ReadStorage<'a, DamageQueue>,
                         ReadStorage<'a, Flammable>,
                         ReadStorage<'a, Position>,
                         ReadStorage<'a, Equipped>,
-                        ReadStorage<'a, DamageQueue>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, mut map, mut lightsources, mut aflame,
-             flammables, positions, equipped, damage_queues) = data;
+            damage_queues, flammables, positions, equipped) = data;
         
         //ignite flammables
         for (ent, _, d_q) in (&entities, &flammables, &damage_queues).join() {
@@ -44,6 +44,7 @@ impl<'a> System<'a> for LightSystem {
         }
 
         //add light to map
+        map.illuminated_tiles.clear();
         for (ent, lightsource) in (&entities, &mut lightsources).join() {
            
             if !lightsource.is_lit { continue; }

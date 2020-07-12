@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
-            particle_system::ParticleBuilder, MagicMapper, };
+            particle_system::ParticleBuilder, MagicMapper, Aflame};
 //use rltk::{console};
 
 pub struct ItemCollectionSystem {}
@@ -12,20 +12,26 @@ impl<'a> System<'a> for ItemCollectionSystem {
                         WriteExpect<'a, GameLog>,
                         WriteStorage<'a, PickUpIntent>,
                         WriteStorage<'a, Position>,
+                        WriteStorage<'a, InBackpack>,
+                        WriteStorage<'a, Aflame>,
                         ReadStorage<'a, Name>,
-                        WriteStorage<'a, InBackpack>
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, mut pickup_intents, mut positions,
-             names, mut in_backpack) = data;
+        let (player_entity, mut gamelog, mut pickup_intents, mut positions, mut in_backpack,
+             mut aflame_storage, names) = data;
 
         for intent in pickup_intents.join() {
             //If item is not already picked-up...(Is Some if item has position, else None).
             if let Some(_) = positions.remove(intent.item) {
                 in_backpack.insert(intent.item, InBackpack { owner: intent.desired_by })
                     .expect("Unable to insert item into backpack.");
-            
+               
+                //snuf aflame items as it enters backpack
+                if let Some(_) = aflame_storage.get(intent.item) {
+                    aflame_storage.remove(intent.item);
+                }
+
                 if intent.desired_by == *player_entity {
                     gamelog.entries.push(format!("{} placed into inventory.", 
                             names.get(intent.item).unwrap().name));
@@ -129,8 +135,8 @@ impl<'a> System<'a> for ItemUseSystem {
                         if entity == *player_entity {
                             let mob_name = names.get(*mob).unwrap();
                             let item_name = names.get(use_intent.item).unwrap();
-                            gamelog.entries.push(format!("Hit {} with {}.",
-                                    mob_name.name, item_name.name));
+                            gamelog.entries.push(format!("Used {} on {}.",
+                                    item_name.name, mob_name.name));
                         }
 
                         is_item_used = true;

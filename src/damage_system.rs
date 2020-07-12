@@ -41,7 +41,8 @@ impl<'a> System<'a> for DamageSystem {
                         DamageAtom::Slash(val) => {
                             d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value()); },
                         DamageAtom::Thermal(val) => {
-                            d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value()); }
+                            d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value());
+                        }
                         _ => {}
                     }
                 }
@@ -60,8 +61,8 @@ impl<'a> System<'a> for DamageSystem {
                 match dmg {
                     DamageAtom::Bludgeon(n) |
                     DamageAtom::Pierce(n) |
-                    DamageAtom::Slash(n) |
-                    DamageAtom::Thermal(n) => { hp_dmg += n; },
+                    DamageAtom::Slash(n) | 
+                    DamageAtom::Thermal(n) => { hp_dmg += n; }
                     _ => { 
                         if (stats.fp - fp_dmg) > 0 {
                             fp_dmg += dmg.value();
@@ -94,6 +95,7 @@ impl<'a> System<'a> for DamageSystem {
         for e in to_bleed.iter() {
             bleeding_storage.insert(*e, Bleeding{}).expect("Unable to insert Bleeding component.");
         }
+
         damage_queues.clear()
     }
 }
