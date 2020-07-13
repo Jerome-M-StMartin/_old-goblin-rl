@@ -1,6 +1,6 @@
 use specs::prelude::*;
-use super::{Viewshed, Hostile, Map, Position, MeleeIntent, RunState, Confusion};
-use rltk::{Point};
+use super::{Viewshed, Hostile, Map, Position, MeleeIntent, RunState, Confusion, JustMoved};
+use rltk::Point;
 
 pub struct HostileAI {}
 
@@ -15,13 +15,15 @@ impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
                         ReadStorage<'a, Hostile>,
                         WriteStorage<'a, Position>,
                         WriteStorage<'a, MeleeIntent>,
-                        WriteStorage<'a, Confusion> );
+                        WriteStorage<'a, Confusion>,
+                        WriteStorage<'a, JustMoved>,
+                      );
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, player_pos, player_entity, runstate, entities,
-             mut viewshed, hostile, mut position, mut melee_intent, mut confusion) = data;
+             mut viewshed, hostile, mut position, mut melee_intent, mut confusion, mut moved_storage) = data;
        
-        //if *runstate != RunState::GameworldTurn { return; }
+        if *runstate != RunState::GameworldTurn { return; }
 
         for (entity, mut viewshed, _hostile, mut pos) in (&entities, &mut viewshed, &hostile, &mut position).join() { 
             let mut can_act = true;
@@ -55,6 +57,8 @@ impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
                         idx = map.xy_idx(pos.x, pos.y);
                         map.blocked[idx] = true;
                         viewshed.dirty = true;
+                        moved_storage.insert(entity, JustMoved{})
+                            .expect("Unable to insert JustMoved component.");)
                     }
                 }
             }

@@ -1,3 +1,6 @@
+Traps:
+- Next: "Traps that hurt", slightly over midway down chapter_22.
+
 Fix Bug:
 - No "Drop" option on equipped Torches (& probably all equippables).
 

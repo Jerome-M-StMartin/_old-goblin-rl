@@ -1,3 +1,6 @@
+Traps:
+- Next Step: Add JustMoved components to NPCs that just moved.
+
 Fix Bug:
 - No "Drop" option on equipped Torches (& probably all equippables).
 

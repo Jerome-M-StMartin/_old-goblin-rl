@@ -3,7 +3,7 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, gui::PlayerMenuState};
+            HungerState, gui::PlayerMenuState, JustMoved};
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
@@ -69,15 +69,17 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
+    let player_storage = ecs.read_storage::<Player>();
     let stats = ecs.read_storage::<Stats>();
     let entities = ecs.entities();
     let mut melee_intent = ecs.write_storage::<MeleeIntent>();
     let map = ecs.fetch::<Map>();
+    let player = ecs.fetch::<Entity>();
+    let mut just_moved_storage = ecs.write_storage::<JustMoved>();
 
-    for (entity, _player, pos, viewshed) in
-        (&entities, &mut players, &mut positions, &mut viewsheds).join() {
+    for (entity, _, pos, viewshed) in
+        (&entities, &player_storage, &mut positions, &mut viewsheds).join() {
         
         if pos.x + delta_x < 1 || pos.x + delta_x > map.width-1 ||
         pos.y + delta_y < 1 || pos.y + delta_y > map.height-1 { return RunState::AwaitingInput; }
@@ -104,6 +106,9 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
             p_pos.x = pos.x;
             p_pos.y = pos.y;
             
+            just_moved_storage.insert(*player, JustMoved{})
+                .expect("Unable to insert JustMoved component.");
+
             //Move Cursor with player
             let mut cursor = ecs.fetch_mut::<Cursor>();
             if cursor.x + delta_x < 1 || cursor.x + delta_x > map.width-1 ||
@@ -113,7 +118,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
             return RunState::PlayerTurn;
         }
     }
-
+    
     return RunState::AwaitingInput;
 }
 
@@ -150,7 +155,7 @@ fn get_item(ecs: &mut World) -> RunState {
         None => gamelog.entries.push("There is nothing here to pick up.".to_string()),
         Some(item) => {
             let mut pickup = ecs.write_storage::<PickUpIntent>();
-            pickup.insert(*player_entity, PickUpIntent {item: item, desired_by: *player_entity})
+            pickup.insert(*player_entity, PickUpIntent {item, desired_by: *player_entity})
                 .expect("Unable to insert WantToPickUp.");
         }
     }

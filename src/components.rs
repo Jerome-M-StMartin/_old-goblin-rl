@@ -44,6 +44,15 @@ pub struct Flammable {}
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Aflame {}
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Hidden {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct EntryTrigger {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct JustMoved {}
+
 //Yet Unused
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Interactable {}//--------------------------------------

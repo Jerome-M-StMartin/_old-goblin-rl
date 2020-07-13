@@ -2,7 +2,7 @@ use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
-             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor};
+             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden};
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }
@@ -513,6 +513,7 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
     let cursor = ecs.fetch::<Cursor>();
     let names = ecs.read_storage::<Name>();
     let positions = ecs.read_storage::<Position>();
+    let hidden_storage = ecs.read_storage::<Hidden>();
     let mut to_tooltip: Vec<(i32, i32, String)> = Vec::new();
     
     if global {
@@ -520,7 +521,7 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
         match *runstate {
             RunState::ShowPlayerMenu { menu_state: _ } => show_player_menu_controls(ctx),
             _ => {
-                for (name, pos) in (&names, &positions).join() {
+                for (name, pos, _) in (&names, &positions, !&hidden_storage).join() {
                     let idx = map.xy_idx(pos.x, pos.y);
                     if map.visible_tiles[idx] {
                         to_tooltip.push(( pos.x, pos.y, name.name.to_string()) );
@@ -532,7 +533,7 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
     } else if cursor.active == true {
         if cursor.x >= map.width || cursor.y >= map.height { return; }
 
-        for (name, pos) in (&names, &positions).join() {
+        for (name, pos, _) in (&names, &positions, !&hidden_storage).join() {
             let idx = map.xy_idx(pos.x, pos.y);
             if pos.x == cursor.x && pos.y == cursor.y && map.visible_tiles[idx] {
                 to_tooltip.push( (pos.x, pos.y, name.name.to_string()) );

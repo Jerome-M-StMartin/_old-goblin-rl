@@ -45,6 +45,8 @@ mod throw_system;
 use throw_system::ThrowSystem;
 mod light_system;
 use light_system::LightSystem;
+mod trigger_system;
+use trigger_system::TriggerSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
@@ -73,6 +75,8 @@ impl State {
         context_menu.run_now(&self.ecs);
         let mut mob = HostileAI{};
         mob.run_now(&self.ecs);
+        let mut triggers = TriggerSystem{};
+        triggers.run_now(&self.ecs);
         let mut items = ItemUseSystem{};
         items.run_now(&self.ecs);
         let mut drop = ItemDropSystem{};
@@ -247,12 +251,14 @@ impl GameState for State {
                 {
                     let positions = self.ecs.read_storage::<Position>();
                     let renderables = self.ecs.read_storage::<Renderable>();
+                    let hidden_storage = self.ecs.read_storage::<Hidden>();
                     let map = self.ecs.fetch::<Map>();
                
                     //gather & sort render data before rendering so gui layering is proper
-                    let mut render_data = (&positions, &renderables).join().collect::<Vec<_>>();
+                    let mut render_data = (&positions, &renderables, !&hidden_storage).join()
+                                                                                      .collect::<Vec<_>>();
                     render_data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
-                    for (pos, render) in render_data.iter() {
+                    for (pos, render, _) in render_data.iter() {
                         let idx = map.xy_idx(pos.x, pos.y);
                         if map.visible_tiles[idx] {ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
                     }
@@ -573,6 +579,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Flammable>();
     gs.ecs.register::<Aflame>();
     gs.ecs.register::<Lightsource>();
+    gs.ecs.register::<Hidden>();
+    gs.ecs.register::<EntryTrigger>();
+    gs.ecs.register::<JustMoved>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 
