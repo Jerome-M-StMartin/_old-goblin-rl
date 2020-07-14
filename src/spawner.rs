@@ -392,7 +392,11 @@ fn bear_trap(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name { name : "Bear Trap".to_string() })
         .with(Hidden {})
-        .with(EntryTrigger {})
+        .with(EntryTrigger { repeatable: false, })
+        .with(DamageOnUse { 
+            dmg_atoms: vec![DamageAtom::Pierce(1), 
+                            DamageAtom::Bludgeon(1)],
+        })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }

@@ -1,5 +1,6 @@
 use specs::prelude::*;
-use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable};
+use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable,
+            EntryTrigger, };
 pub struct ContextMenuSystem {}
 
 impl<'a> System<'a> for ContextMenuSystem {
@@ -12,6 +13,7 @@ impl<'a> System<'a> for ContextMenuSystem {
                         ReadStorage<'a, InBackpack>,
                         ReadStorage<'a, Hostile>,
                         ReadStorage<'a, Throwable>,
+                        ReadStorage<'a, EntryTrigger>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -29,7 +31,7 @@ impl<'a> System<'a> for ContextMenuSystem {
                     menu.options.push( (MenuOption::Use, (&*useable.menu_name).to_string()) );
                 }
                 
-                if let Some(throwable) = throwables.get(ent) {
+                if let Some(_) = throwables.get(ent) {
                     menu.options.push( (MenuOption::Throw, "Throw".to_string()) );
                 }
                 
@@ -46,8 +48,13 @@ impl<'a> System<'a> for ContextMenuSystem {
                 }
             }
 
-            if let Some(_) = hostile.get(ent) { menu.options
-                .push( (MenuOption::Attack, "Attack".to_string()) ); }
+            if let Some(_) = hostile.get(ent) {
+                menu.options.push( (MenuOption::Attack, "Attack".to_string()) );
+            }
+
+            if let Some(_) = triggerables.get(ent) {
+                menu.options.push( (MenuOption::Use, "Reset Trigger".to_string()) );
+            }
 
         }
     }

@@ -7,7 +7,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
              Creature, Hunger, HungerState, MagicMapper, Useable, Throwable, Flammable,
-             Hidden, };
+             Hidden, EntryTrigger};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -392,7 +392,11 @@ fn bear_trap(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name { name : "Bear Trap".to_string() })
         .with(Hidden {})
-        .with(EntryTrigger {})
+        .with(EntryTrigger { repeatable: true, })
+        .with(DamageOnUse { 
+            dmg_atoms: vec![DamageAtom::Pierce(1), 
+                            DamageAtom::Bludgeon(1)],
+        })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }

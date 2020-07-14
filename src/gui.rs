@@ -357,16 +357,27 @@ pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
 }
 
 fn try_move_cursor(delta: (i32, i32), ecs: &mut World) {
-    let map = ecs.fetch::<Map>();
-    let mut cursor = ecs.fetch_mut::<Cursor>();
+    let mut move_cursor_to_player = false;
+    
+    {
+        let map = ecs.fetch::<Map>();
+        let mut cursor = ecs.fetch_mut::<Cursor>();
 
-    cursor.active = true; //Is set to false when leaving RunState::AwaitingInput.
+        if !cursor.active {//Is set to false in main.rs
+            cursor.active = true;
+            move_cursor_to_player = true;
+        }
 
-    if cursor.x + delta.0 < 1 || cursor.x + delta.0 > map.width-1 ||
-    cursor.y + delta.1 < 1 || cursor.y + delta.1 > map.height-1 {return;}
+        if cursor.x + delta.0 < 1 || cursor.x + delta.0 > map.width-1 ||
+        cursor.y + delta.1 < 1 || cursor.y + delta.1 > map.height-1 {return;}
 
-    cursor.x += delta.0;
-    cursor.y += delta.1;
+        cursor.x += delta.0;
+        cursor.y += delta.1;
+    }
+    
+    if move_cursor_to_player {
+        cursor_to_player(ecs);
+    }
 }
 
 fn cursor_to_player(ecs: &mut World) {

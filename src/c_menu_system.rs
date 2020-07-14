@@ -1,5 +1,6 @@
 use specs::prelude::*;
-use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable};
+use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable,
+            EntryTrigger, };
 pub struct ContextMenuSystem {}
 
 impl<'a> System<'a> for ContextMenuSystem {
@@ -12,11 +13,12 @@ impl<'a> System<'a> for ContextMenuSystem {
                         ReadStorage<'a, InBackpack>,
                         ReadStorage<'a, Hostile>,
                         ReadStorage<'a, Throwable>,
+                        ReadStorage<'a, EntryTrigger>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (entities, mut menuable, items, useables, positions, equippable, in_backpack,
-             hostile, throwables) = data;
+             hostile, throwables, triggerables) = data;
 
         //Populate Menuable components.
         for (ent, menu) in (&entities, &mut menuable).join() {
@@ -46,8 +48,13 @@ impl<'a> System<'a> for ContextMenuSystem {
                 }
             }
 
-            if let Some(_) = hostile.get(ent) { menu.options
-                .push( (MenuOption::Attack, "Attack".to_string()) ); }
+            if let Some(_) = hostile.get(ent) {
+                menu.options.push( (MenuOption::Attack, "Attack".to_string()) );
+            }
+
+            if let Some(_) = triggerables.get(ent) {
+                menu.options.push( (MenuOption::Use, "Reset Trigger".to_string()) );
+            }
 
         }
     }

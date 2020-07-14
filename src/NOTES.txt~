@@ -1,5 +1,6 @@
 Traps:
-- Next Step: Add JustMoved components to NPCs that just moved.
+- Make Traps Menuable, !Useable (& removed Ranged comp.), and "Reset
+  Trap"-able.
 
 Fix Bug:
 - No "Drop" option on equipped Torches (& probably all equippables).
@@ -22,7 +23,9 @@ FLUFF NOTES:
 - Backpack as Ahlmothr 
 
 DESIGN PILLARS:
-- Card Based Actions in Combat Mode (Need Commant Pattern in Rust!)
+- Damage Cards: Hover [Damage] keyword to see last-turn's damage breakdown
+  "card".
+- Card Based Actions/Events in Combat Mode (Need Command Pattern in SPECS/Rust!)
 - Behaviour Tree AI
 - Puzzles! Physical path unlocks and boss-battle behavior patterns.
 - Spawned Bosses & Story Bosses!
