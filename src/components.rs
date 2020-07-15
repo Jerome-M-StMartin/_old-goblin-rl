@@ -409,6 +409,7 @@ pub enum MenuOption {
     DropIt,
     Use,
     Equip,
+    Unequip,
     Attack,
     Throw,
     //Examine

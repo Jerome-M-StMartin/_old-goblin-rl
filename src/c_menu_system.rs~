@@ -10,6 +10,7 @@ impl<'a> System<'a> for ContextMenuSystem {
                         ReadStorage<'a, Useable>,
                         ReadStorage<'a, Position>,
                         ReadStorage<'a, Equippable>,
+                        ReadStorage<'a, Equipped>,
                         ReadStorage<'a, InBackpack>,
                         ReadStorage<'a, Hostile>,
                         ReadStorage<'a, Throwable>,
@@ -17,8 +18,8 @@ impl<'a> System<'a> for ContextMenuSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut menuable, items, useables, positions, equippable, in_backpack,
-             hostile, throwables) = data;
+        let (entities, mut menuable, items, useables, positions, equippable, equipped,
+            in_backpack, hostile, throwables, triggerables) = data;
 
         //Populate Menuable components.
         for (ent, menu) in (&entities, &mut menuable).join() {
@@ -44,7 +45,12 @@ impl<'a> System<'a> for ContextMenuSystem {
                 }
                 
                 if let Some(_) = equippable.get(ent) {
-                    menu.options.push( (MenuOption::Equip, "Equip".to_string()) );
+                    if let Some(_) = equipped.get(ent) {
+                        menu.options.push( (MenuOption::Unequip, "Unequip".to_string()) );
+                        menu.options.push( (MenuOption::DropIt, "Unequip & Drop".to_string()) );
+                    } else {
+                        menu.options.push( (MenuOption::Equip, "Equip".to_string()) );
+                    }
                 }
             }
 

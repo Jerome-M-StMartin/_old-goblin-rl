@@ -92,8 +92,16 @@ impl<'a> System<'a> for EquipSystem {
                 
                 //Unequip it
                 equipped.remove(ent);
-                in_backpack.insert(ent, InBackpack {owner})
-                    .expect("Unable to insert InBackpack component.");
+                
+                if let Some(_) = positions.get(ent) {
+                    //do nothing in here!
+                    //this unequip intent propogated from DropItemSystem, so the item is now on the
+                    //floor, so don't put in into backpack.
+                } else {
+                    in_backpack.insert(ent, InBackpack {owner})
+                        .expect("Unable to insert InBackpack component.");
+                }
+                
                 log.entries.push(format!("{} unequipped {}.",
                         names.get(owner).unwrap().name, names.get(ent).unwrap().name));
 

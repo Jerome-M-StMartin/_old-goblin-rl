@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
-            particle_system::ParticleBuilder, MagicMapper, Aflame};
+            particle_system::ParticleBuilder, MagicMapper, Aflame, Equipped, UnequipIntent};
 //use rltk::{console};
 
 pub struct ItemCollectionSystem {}
@@ -219,28 +219,36 @@ pub struct ItemDropSystem {}
 
 impl<'a> System<'a> for ItemDropSystem {
     #[allow(clippy::type_complexity)]
-    type SystemData = ( ReadExpect<'a, Entity>,
+    type SystemData = ( Entities<'a>,
+                        ReadExpect<'a, Entity>,
                         WriteExpect<'a, GameLog>,
-                        Entities<'a>,
                         WriteStorage<'a, DropItemIntent>,
-                        ReadStorage<'a, Name>,
                         WriteStorage<'a, Position>,
-                        WriteStorage<'a, InBackpack>
+                        WriteStorage<'a, InBackpack>,
+                        WriteStorage<'a, UnequipIntent>,
+                        ReadStorage<'a, Equipped>,
+                        ReadStorage<'a, Name>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, entities, mut drop_intent, names, mut positions, mut backpack) = data;
+        let (entities, player_entity, mut gamelog, mut drop_intent, mut positions, mut backpack,
+             mut unequip_intents, equipped_storage, names) = data;
         
         for (entity, drop_intent) in (&entities, &drop_intent).join() {
-            let mut dropper_pos: Position = Position {x: 0, y: 0};
+            let mut pos_to_drop: Position = Position {x: 0, y: 0};
             {
-                let dropped_pos = positions.get(entity).unwrap();
-                dropper_pos.x = dropped_pos.x;
-                dropper_pos.y = dropped_pos.y;
+                let dropper_pos = positions.get(entity).unwrap();
+                pos_to_drop.x = dropper_pos.x;
+                pos_to_drop.y = dropper_pos.y;
             }
-            positions.insert(drop_intent.item, Position {x: dropper_pos.x, y: dropper_pos.y})
-                .expect("Unable to insert dropped item position.");
+            positions.insert(drop_intent.item, Position {x: pos_to_drop.x, y: pos_to_drop.y})
+                .expect("Unable to insert Position component.");
             backpack.remove(drop_intent.item);
+
+            if let Some(_) = equipped_storage.get(entity) {
+               unequip_intents.insert(entity, UnequipIntent { item: drop_intent.item })
+                   .expect("Unable to insert UnequipIntent component.");
+            }
 
             if entity == *player_entity {
                 gamelog.entries.push(format!("{} dropped.", names.get(drop_intent.item).unwrap().name));

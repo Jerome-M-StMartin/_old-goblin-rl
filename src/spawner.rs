@@ -108,7 +108,7 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Magic Mapping Scroll", map_depth)
         .add("Torch", 4)
         .add("Flint", 4)
-        .add("Bear Trap", 400)
+        .add("Bear Trap", 4)
 }
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
@@ -356,6 +356,8 @@ fn torch(ecs: &mut World, x: i32, y: i32) {
         .with(Weapon { primary: Some(DamageAtom::Bludgeon(2)),
                        secondary: Some(DamageAtom::Thermal(0)),
                        tertiary: None, })
+        .with(Throwable { dmg: DamageAtom::Bludgeon(2)  })
+        .with(Ranged { range: 3 })
         .with(Menuable::default())
         .marked::<SimpleMarker<SerializeMe>>()
         .build();

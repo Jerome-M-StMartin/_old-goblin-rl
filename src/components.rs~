@@ -48,14 +48,16 @@ pub struct Aflame {}
 pub struct Hidden {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct EntryTrigger {}
-
-#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct JustMoved {}
 
 //Yet Unused
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Interactable {}//--------------------------------------
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct EntryTrigger {
+    pub repeatable: bool,
+}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Lightsource {
@@ -407,6 +409,7 @@ pub enum MenuOption {
     DropIt,
     Use,
     Equip,
+    Unequip,
     Attack,
     Throw,
     //Examine

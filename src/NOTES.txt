@@ -1,10 +1,3 @@
-Traps:
-- Implement Interactable component on Bear Trap.
-- Every type of interactable needs specific Interact Logic. Trait?
-
-Fix Bug:
-- No "Drop" option on equipped Torches (& probably all equippables).
-
 Do Next:
 - Get to new Turn System in Tutorial to use as foundation.
 - New AP-based Turn System
@@ -12,7 +5,7 @@ Do Next:
 - Weapon Attack Mode Switching
 - AI
 - ProcGen Improvement
-- Control Hierarchy is a little messy
+- Make way for torches to do Thermal dmg if lit.
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
@@ -23,18 +16,16 @@ FLUFF NOTES:
 - Backpack as Ahlmothr 
 
 DESIGN PILLARS:
-- Damage Cards: Hover [Damage] keyword to see last-turn's damage breakdown
-  "card".
-- Card Based Actions/Events in Combat Mode (Need Command Pattern in SPECS/Rust!)
 - Behaviour Tree AI
 - Puzzles! Physical path unlocks and boss-battle behavior patterns.
 - Spawned Bosses & Story Bosses!
-- Typed Damage/Resistances/Immunities - Done!
 - Multiple Attack Modes per Weapon
-- Universal Context-Menu! - Working
 - Language-based user-customizable spellcasting!
 - WASM: Core, do not work on any below pillar without completing this.
 - Party-Based Singleplayer stretch_goal(& Multiplayer?)!
+Done:
+- Universal Context-Menu
+- Typed Damage/Resistances/Immunities
 
 PLAN:
 - Refactor & implement features as they interest me, look back to RLTK
@@ -56,7 +47,6 @@ PLAN:
 - Feature Creep:  Morality System
 		  Player as Villian
 		  Machine Learning/Neural Networks
-		  Verticality/Z-axis beyond pitfalls/stairs.
 		  Multiplayer
 		  SFX
 		  Music beyond Town & Boss Battle Music

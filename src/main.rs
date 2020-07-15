@@ -48,6 +48,8 @@ use light_system::LightSystem;
 mod trigger_system;
 use trigger_system::TriggerSystem;
 
+pub mod map_builders;
+
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
     AwaitingInput,
@@ -131,22 +133,25 @@ impl State {
         }
 
         // Build a new map and place the player
+        let mut builder; 
         let worldmap;
         let curr_depth;
+        let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
             curr_depth = worldmap_resource.depth;
-            *worldmap_resource = Map::new_map_rooms_and_corridors(curr_depth + 1);
+            builder = map_builders::random_builder(curr_depth + 1);
+            builder.build_map();
+            *worldmap_resource = builder.get_map();
+            player_start = builder.get_starting_position();
             worldmap = worldmap_resource.clone();
         }
 
-        // Spawn bad guys
-        for room in worldmap.rooms.iter().skip(1) {
-            spawner::spawn_room(&mut self.ecs, room, curr_depth + 1);
-        }
+        // Spawn NPC's, Items, Etc.
+        builder.spawn_entities(&mut self.ecs);
 
         // Place the player and update resources
-        let (player_x, player_y) = worldmap.rooms[0].center();
+        let (player_x, player_y) = (player_start.x, player_start.y);
         let mut player_position = self.ecs.write_resource::<Point>();
         *player_position = Point::new(player_x, player_y);
         let mut position_components = self.ecs.write_storage::<Position>();
@@ -184,21 +189,26 @@ impl State {
             self.ecs.delete_entity(*del).expect("Deletion failed");
         }
 
-        // Build a new map and place the player
+        // Build a new map
+        let mut builder;
         let worldmap;
+        let curr_depth: i32;
+        let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            *worldmap_resource = Map::new_map_rooms_and_corridors(1);
+            let curr_depth = worldmap_resource.depth;
+            builder = map_builders::random_builder(curr_depth + 1);
+            builder.build_map();
+            *worldmap_resource = builder.get_map();
+            player_start = builder.get_starting_position();
             worldmap = worldmap_resource.clone();
         }
 
         // Spawn bad guys
-        for room in worldmap.rooms.iter().skip(1) {
-            spawner::spawn_room(&mut self.ecs, room, 1);
-        }
+        builder.spawn_entities(&mut self.ecs);
 
         // Place the player and update resources
-        let (player_x, player_y) = worldmap.rooms[0].center();
+        let (player_x, player_y) = (player_start.x, player_start.y);
         let player_entity = spawner::player(&mut self.ecs, player_x, player_y);
         let mut player_position = self.ecs.write_resource::<Point>();
         *player_position = Point::new(player_x, player_y);
@@ -348,6 +358,13 @@ impl GameState for State {
                                         .expect("Unable to insert EquipIntent.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
+                                (MenuOption::Unequip, _) => {
+                                    let mut storage = self.ecs.write_storage::<UnequipIntent>();
+                                    storage.insert(*player,
+                                        UnequipIntent { item: chosen_ent })
+                                        .expect("Unable to insert UnequipIntent component.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
                                 (MenuOption::Attack, _) => {
                                     let mut storage = self.ecs.write_storage::<MeleeIntent>();
                                     storage.insert(*player,
@@ -412,6 +429,13 @@ impl GameState for State {
                                     storage.insert(*player,
                                         EquipIntent { item: chosen_ent })
                                         .expect("Unable to insert EquipIntent.");
+                                    newrunstate = RunState::PlayerTurn;
+                                }
+                                (MenuOption::Unequip, _) => {
+                                    let mut storage = self.ecs.write_storage::<UnequipIntent>();
+                                    storage.insert(*player,
+                                        UnequipIntent { item: chosen_ent })
+                                        .expect("Unable to insert UnequipIntent component.");
                                     newrunstate = RunState::PlayerTurn;
                                 }
                                 (MenuOption::Attack, _) => {
@@ -588,13 +612,14 @@ fn main() -> rltk::BError {
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
-    let map : Map = Map::new_map_rooms_and_corridors(1);
-    let (player_x, player_y) = map.rooms[0].center(); 
+    let mut builder = map_builders::random_builder(1);
+    builder.build_map();
+    let map = builder.get_map();
+    let player_start = builder.get_starting_position();
+    let (player_x, player_y) = (player_start.x, player_start.y); 
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
 
-    for room in map.rooms.iter().skip(1) {
-        spawner::spawn_room(&mut gs.ecs, room, 1);
-    }
+    builder.spawn_entities(&mut gs.ecs);
 
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(particle_system::ParticleBuilder::new());
@@ -609,5 +634,3 @@ fn main() -> rltk::BError {
 
     rltk::main_loop(context, gs)
 }
-
-
