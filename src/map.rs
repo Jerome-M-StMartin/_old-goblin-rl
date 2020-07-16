@@ -1,5 +1,4 @@
 use rltk::{RGB, Rltk, BaseMap, Algorithm2D, Point};
-use super::Rect;
 use std::collections::HashSet;
 use specs::prelude::*;
 use serde::{Serialize, Deserialize};
@@ -112,9 +111,7 @@ impl Algorithm2D for Map {
     }
 }
 
-pub fn draw_map(ecs: &World, ctx : &mut Rltk) {
-    let map = ecs.fetch::<Map>();
-
+pub fn draw_map(map: &Map, ctx : &mut Rltk) {
     let mut y = 0;
     let mut x = 0;
     for (idx, tile) in map.tiles.iter().enumerate() {

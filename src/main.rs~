@@ -50,6 +50,8 @@ use trigger_system::TriggerSystem;
 
 pub mod map_builders;
 
+const SHOW_MAPGEN_VISUALIZER: bool = true;
+
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 
     AwaitingInput,
@@ -57,6 +59,7 @@ pub enum RunState {
     GameworldTurn,
     MagicMapReveal { row: i32 },
     MainMenu { menu_selection: gui::MainMenuSelection },
+    MapGeneration,
     NextLevel,
     PreRun,
     PlayerTurn,
@@ -69,6 +72,11 @@ pub enum RunState {
 pub struct State {
     pub ecs: World,
     pub tooltips_on: bool,
+
+    mapgen_next_state: Option<RunState>,
+    mapgen_history: Vec<Map>,
+    mapgen_index: usize,
+    mapgen_timer: f32,
 }
 
 impl State {
@@ -112,8 +120,15 @@ impl State {
     }
 
     fn generate_world_map(&mut self, new_depth : i32) {
+        
+        eprintln!("map generated");
+
+        self.mapgen_index = 0;
+        self.mapgen_timer = 0.0;
+        self.mapgen_history.clear();
         let mut builder = map_builders::random_builder(new_depth);
         builder.build_map();
+        self.mapgen_history = builder.get_snapshot_history();
         let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
@@ -224,15 +239,15 @@ impl GameState for State {
         }
 
         ctx.cls(); //clearscreen
-
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
 
         match newrunstate {
             RunState::MainMenu{..} => {}
             RunState::GameOver => {}
+            //RunState::MapGeneration => {}
             _ => {
-                draw_map(&self.ecs, ctx);
                 
+                draw_map(&self.ecs.fetch::<Map>(), ctx);
                 {
                     let positions = self.ecs.read_storage::<Position>();
                     let renderables = self.ecs.read_storage::<Renderable>();
@@ -263,6 +278,22 @@ impl GameState for State {
         }
 
         match newrunstate {
+            RunState::MapGeneration => {
+                if !SHOW_MAPGEN_VISUALIZER {
+                    newrunstate = self.mapgen_next_state.unwrap();
+                }
+                ctx.cls();                
+                draw_map(&self.mapgen_history[self.mapgen_index], ctx);
+
+                self.mapgen_timer += ctx.frame_time_ms;
+                if self.mapgen_timer > 300.0 {
+                    self.mapgen_timer = 0.0;
+                    self.mapgen_index += 1;
+                    if self.mapgen_index >= self.mapgen_history.len() {
+                        newrunstate = self.mapgen_next_state.unwrap();
+                    }
+                }
+            }
             RunState::PreRun => {
                 self.run_systems();
                 self.ecs.maintain();
@@ -523,15 +554,20 @@ struct Cursor {
 
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
-    let mut context = RltkBuilder::simple80x50()
+    let context = RltkBuilder::simple80x50()
         .with_title("Wizard of the Old Tongue")
         .build()?;
 
-    context.with_post_scanlines(true);
+    //context.with_post_scanlines(true);
 
     let mut gs = State {
         ecs: World::new(),
         tooltips_on: false,
+
+        mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }),
+        mapgen_index : 0,
+        mapgen_history: Vec::new(),
+        mapgen_timer: 0.0
     };
 
     gs.ecs.register::<Position>();
@@ -586,25 +622,17 @@ fn main() -> rltk::BError {
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
-/*  let mut builder = map_builders::random_builder(1);
-    builder.build_map();
-    let map = builder.get_map();
-    let player_start = builder.get_starting_position();
-    let (player_x, player_y) = (player_start.x, player_start.y); 
-    builder.spawn_entities(&mut gs.ecs);
-*/
-
     gs.ecs.insert(Map::new(1));
     gs.ecs.insert(Point::new(0, 0));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
-    gs.ecs.insert(RunState::MapGeneration {});
+    gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(gamelog::GameLog {
         entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
-    gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
+    gs.ecs.insert(Cursor { x: 0, y: 0, active: false }); //probably needs attention
 
     gs.generate_world_map(1);
 
