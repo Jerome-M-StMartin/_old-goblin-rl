@@ -111,6 +111,39 @@ impl State {
         self.ecs.maintain();
     }
 
+    fn generate_world_map(&mut self, new_depth : i32) {
+        let mut builder = map_builders::random_builder(new_depth);
+        builder.build_map();
+        let player_start;
+        {
+            let mut worldmap_resource = self.ecs.write_resource::<Map>();
+            *worldmap_resource = builder.get_map();
+            player_start = builder.get_starting_position();
+        }
+
+        // Spawn bad guys
+        builder.spawn_entities(&mut self.ecs);
+
+        // Place the player and update resources
+        let (player_x, player_y) = (player_start.x, player_start.y);
+        let mut player_position = self.ecs.write_resource::<Point>();
+        *player_position = Point::new(player_x, player_y);
+        let mut position_components = self.ecs.write_storage::<Position>();
+        let player_entity = self.ecs.fetch::<Entity>();
+        let player_pos_comp = position_components.get_mut(*player_entity);
+        if let Some(player_pos_comp) = player_pos_comp {
+            player_pos_comp.x = player_x;
+            player_pos_comp.y = player_y;
+        }
+
+        // Mark the player's visibility as dirty
+        let mut viewshed_components = self.ecs.write_storage::<Viewshed>();
+        let vs = viewshed_components.get_mut(*player_entity);
+        if let Some(vs) = vs {
+            vs.dirty = true;
+        } 
+    }
+
     fn entities_to_remove_on_level_change(&mut self) -> Vec<Entity> {
         let entities = self.ecs.entities();
         let player = self.ecs.read_storage::<Player>();
@@ -133,43 +166,15 @@ impl State {
         }
 
         // Build a new map and place the player
-        let mut builder; 
-        let worldmap;
         let curr_depth;
-        let player_start;
         {
-            let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            curr_depth = worldmap_resource.depth;
-            builder = map_builders::random_builder(curr_depth + 1);
-            builder.build_map();
-            *worldmap_resource = builder.get_map();
-            player_start = builder.get_starting_position();
-            worldmap = worldmap_resource.clone();
+           let worldmap_resource = self.ecs.fetch::<Map>();
+           curr_depth = worldmap_resource.depth;
         }
-
-        // Spawn NPC's, Items, Etc.
-        builder.spawn_entities(&mut self.ecs);
-
-        // Place the player and update resources
-        let (player_x, player_y) = (player_start.x, player_start.y);
-        let mut player_position = self.ecs.write_resource::<Point>();
-        *player_position = Point::new(player_x, player_y);
-        let mut position_components = self.ecs.write_storage::<Position>();
-        let player_entity = self.ecs.fetch::<Entity>();
-        let player_pos_comp = position_components.get_mut(*player_entity);
-        if let Some(player_pos_comp) = player_pos_comp {
-            player_pos_comp.x = player_x;
-            player_pos_comp.y = player_y;
-        }
-
-        // Mark the player's visibility as dirty
-        let mut viewshed_components = self.ecs.write_storage::<Viewshed>();
-        let vs = viewshed_components.get_mut(*player_entity);
-        if let Some(vs) = vs {
-            vs.dirty = true;
-        }        
+        self.generate_world_map(curr_depth + 1);
 
         // Notify the player and give them some health
+        let player_entity = self.ecs.fetch::<Entity>();
         let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
         gamelog.entries.push("You descend to the next level and take a moment to rest.".to_string());
         let mut stats_storage = self.ecs.write_storage::<Stats>();
@@ -179,6 +184,7 @@ impl State {
             stats.hp = new_hp;
         }
     }
+
     fn game_over_cleanup(&mut self) {
         //Delete All Entities
         let mut to_delete = Vec::new();
@@ -189,44 +195,13 @@ impl State {
             self.ecs.delete_entity(*del).expect("Deletion failed");
         }
 
-        // Build a new map
-        let mut builder;
-        let worldmap;
-        let curr_depth: i32;
-        let player_start;
         {
-            let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            let curr_depth = worldmap_resource.depth;
-            builder = map_builders::random_builder(curr_depth + 1);
-            builder.build_map();
-            *worldmap_resource = builder.get_map();
-            player_start = builder.get_starting_position();
-            worldmap = worldmap_resource.clone();
+            let player_entity = spawner::player(&mut self.ecs, 0, 0);
+            let mut player_entity_writer = self.ecs.write_resource::<Entity>();
+            *player_entity_writer = player_entity;
         }
 
-        // Spawn bad guys
-        builder.spawn_entities(&mut self.ecs);
-
-        // Place the player and update resources
-        let (player_x, player_y) = (player_start.x, player_start.y);
-        let player_entity = spawner::player(&mut self.ecs, player_x, player_y);
-        let mut player_position = self.ecs.write_resource::<Point>();
-        *player_position = Point::new(player_x, player_y);
-        let mut position_components = self.ecs.write_storage::<Position>();
-        let mut player_entity_writer = self.ecs.write_resource::<Entity>();
-        *player_entity_writer = player_entity;
-        let player_pos_comp = position_components.get_mut(player_entity);
-        if let Some(player_pos_comp) = player_pos_comp {
-            player_pos_comp.x = player_x;
-            player_pos_comp.y = player_y;
-        }
-
-        // Mark the player's visibility as dirty
-        let mut viewshed_components = self.ecs.write_storage::<Viewshed>();
-        let vs = viewshed_components.get_mut(player_entity);
-        if let Some(vs) = vs {
-            vs.dirty = true;
-        }                                               
+        self.generate_world_map(1);
     }
 }
 
@@ -610,27 +585,28 @@ fn main() -> rltk::BError {
     gs.ecs.register::<SerializationHelper>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
-    gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
-    let mut builder = map_builders::random_builder(1);
+/*  let mut builder = map_builders::random_builder(1);
     builder.build_map();
     let map = builder.get_map();
     let player_start = builder.get_starting_position();
     let (player_x, player_y) = (player_start.x, player_start.y); 
-    let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
-
     builder.spawn_entities(&mut gs.ecs);
+*/
 
-    gs.ecs.insert(RunState::PreRun);
-    gs.ecs.insert(particle_system::ParticleBuilder::new());
-    gs.ecs.insert(map);
+    gs.ecs.insert(Map::new(1));
+    gs.ecs.insert(Point::new(0, 0));
+    gs.ecs.insert(rltk::RandomNumberGenerator::new());
+    let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
-    gs.ecs.insert(Point::new(player_x, player_y));
+    gs.ecs.insert(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame });
     gs.ecs.insert(gamelog::GameLog {
         entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
-    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+    gs.ecs.insert(particle_system::ParticleBuilder::new());
  
-    gs.ecs.insert(Cursor { x: player_x, y: player_y, active: false });
+    gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
+
+    gs.generate_world_map(1);
 
     rltk::main_loop(context, gs)
 }
