@@ -279,9 +279,10 @@ impl GameState for State {
                 if !SHOW_MAPGEN_VISUALIZER {
                     newrunstate = self.mapgen_next_state.unwrap();
                 }
-                ctx.cls();                
-                draw_map(&self.mapgen_history[self.mapgen_index], ctx);
-
+                ctx.cls();
+                if !&self.mapgen_history.is_empty() {
+                    draw_map(&self.mapgen_history[self.mapgen_index], ctx);
+                }
                 self.mapgen_timer += ctx.frame_time_ms;
                 if self.mapgen_timer > 300.0 {
                     self.mapgen_timer = 0.0;
