@@ -97,6 +97,7 @@ impl<'a> System<'a> for EquipSystem {
                     //do nothing in here!
                     //this unequip intent propogated from DropItemSystem, so the item is now on the
                     //floor, so don't put in into backpack.
+                    eprintln!("unequipped! after dropped");
                 } else {
                     in_backpack.insert(ent, InBackpack {owner})
                         .expect("Unable to insert InBackpack component.");

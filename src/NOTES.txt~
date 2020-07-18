@@ -1,8 +1,30 @@
-Time: 19:31
-Hours: 1.12 
+Time: 13:17
+Hours: 2:00 
+
+(!) Breakthrough Inventory Management Concept: (!)
+- Store all Inventory data in a Binary Tree.
+- Each layer corresponds to a subdivision of inventory which would typically
+  be separate structres like "backpack", "hands", "bandolier", "pockets",
+  "equipment", etc.
+- Non-modal; exactly one layer is ALWAYS selected throughout the game.
+- Root Layer: When this layer is selected, inventory GUI is an in-hud "loading
+  bar" styled 1D-Array representation showing used and unused proportions of
+  inventory space by weight. MAX_WEIGHT is a static int stored in the root
+  struct.
+- Layer 1: (2 Nodes) LeftHand, RightHand
+- Layer 2: (4 Nodes) Quickbar/Scabbard/Bandolier/Quiver/etc.
+- Layer 3: (8 Nodes) Equipped Equipment
+- Layer 4: (16 Nodes) Backpack
+- Item's depth in the tree determines the AP cost of accessing the item.
+- AP Cost = (Layer# - 1) (no items are stored in root/zero layer, this is hud
+  gui data and behaviour only)
+
+Hell, use this same tree idea for the Spellbook!
+
+
 
 Curr:
-Chapter 25 - Beginning
+Chapter 26 - Beginning
 
 Do Next:
 - Get to new Turn System in Tutorial to use as foundation.
@@ -17,9 +39,6 @@ TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.
 
 -------------------------------------------------------------------------------
-
-FLUFF NOTES:
-- Backpack as Ahlmothr 
 
 DESIGN PILLARS:
 - Behaviour Tree AI

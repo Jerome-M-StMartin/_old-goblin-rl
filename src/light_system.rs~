@@ -34,12 +34,19 @@ impl<'a> System<'a> for LightSystem {
         }
 
         //add light to on-fire things
-        for (ent, _, _) in (&entities, &aflame, &flammables).join() {
-            if let Some(lightsource) = lightsources.get_mut(ent) {
-                lightsource.is_lit = true;
+        for (ent, _, flame) in (&entities, &flammables, (&aflame).maybe()).join() {
+            
+            if let Some(flame) = flame {
+                if let Some(lightsource) = lightsources.get_mut(ent) {
+                    lightsource.is_lit = true;
+                } else {
+                    lightsources.insert(ent, Lightsource::default())
+                        .expect("Unable to insert Lightsource component.");
+                }
             } else {
-                lightsources.insert(ent, Lightsource::default())
-                    .expect("Unable to insert Lightsource component.");
+                if let Some(lightsource) = lightsources.get_mut(ent) {
+                    lightsource.is_lit = false;
+                }
             }
         }
 
