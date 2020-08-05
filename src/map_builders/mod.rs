@@ -1,3 +1,4 @@
+use specs::prelude::*;
 use super::{Map, Rect, TileType, Position, spawner, SHOW_MAPGEN_VISUALIZER};
 mod simple_map;
 use simple_map::SimpleMapBuilder;
@@ -15,9 +16,11 @@ mod dla;
 use dla::DLABuilder;
 mod voronoi;
 use voronoi::VoronoiCellBuilder;
+mod prefab_builder;
+use prefab_builder::PrefabBuilder;
 mod common;
 use common::*;
-use specs::prelude::*;
+
 
 pub trait MapBuilder {
     fn build_map(&mut self);
@@ -29,7 +32,7 @@ pub trait MapBuilder {
 }
 
 pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
-    let mut rng = rltk::RandomNumberGenerator::new();
+    /*let mut rng = rltk::RandomNumberGenerator::new();
     let builder = rng.roll_dice(1, 17);
     match builder {
         1 => Box::new(SimpleMapBuilder::new(new_depth)),
@@ -48,5 +51,6 @@ pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
         14 => Box::new(VoronoiCellBuilder::pythagoras(new_depth)),
         15 => Box::new(VoronoiCellBuilder::manhattan(new_depth)),
         _ => Box::new(DrunkardsWalkBuilder::fearful_symmetry(new_depth)),
-    }
+    }*/
+    Box::new(PrefabBuilder::new(new_depth))
 }

@@ -1,30 +1,9 @@
-Time: 13:57
+Time: 22:43
 Hours: 2:18 
 
-(!) Breakthrough Inventory Management Concept: (!)
-- Store all Inventory data in a Binary Tree.
-- Each layer corresponds to a subdivision of inventory which would typically
-  be separate structres like "backpack", "hands", "bandolier", "pockets",
-  "equipment", etc.
-- Non-modal; exactly one layer is ALWAYS selected throughout the game.
-- Root Layer: When this layer is selected, inventory GUI is an in-hud "loading
-  bar" styled 1D-Array representation showing used and unused proportions of
-  inventory space by weight. MAX_WEIGHT is a static int stored in the root
-  struct.
-- Layer 1: (2 Nodes) LeftHand, RightHand
-- Layer 2: (4 Nodes) Quickbar/Scabbard/Bandolier/Quiver/etc.
-- Layer 3: (8 Nodes) Equipped Equipment
-- Layer 4: (16 Nodes) Backpack
-- Item's depth in the tree determines the AP cost of accessing the item.
-- AP Cost = (Layer# - 1) (no items are stored in root/zero layer, this is hud
-  gui data and behaviour only)
-
-Hell, use this same tree idea for the Spellbook!
-
-
-
-Curr:
-Chapter 26 - Beginning
+Decided to skip the Waveform Collapse chapter - the results it gives as-is are
+ugly as fuck but it takes a ton of work and the tutorial is full of fucking
+bugs so fuck it.
 
 Do Next:
 - Get to new Turn System in Tutorial to use as foundation.
@@ -34,6 +13,33 @@ Do Next:
 - AI
 - ProcGen Improvement
 - Make way for torches to do Thermal dmg if lit.
+- Intro Area + Write the Walkthrough for it
+- RNG Equipment/Weapons: I think this needs to be a priority. Even if there
+  was only one enemy type, having a plethora of unique weapons to choose from,
+  even if -- no -- especically because 99% of those items will be trash. It's
+  the search for and eventual discovery of the 1% that creates emergent story for
+- (!) Breakthrough Inventory Management Concept: (!)
+  Store all Inventory data in a Binary Tree.
+  Each layer corresponds to a subdivision of inventory which would typically
+  be separate structres like "backpack", "hands", "bandolier", "pockets",
+  "equipment", etc.
+  Non-modal; exactly one layer is ALWAYS selected throughout the game.
+  Root Layer: When this layer is selected, inventory GUI is an in-hud "loading
+  bar" styled 1D-Array representation showing used and unused proportions of
+  inventory space by weight. MAX_WEIGHT is a static int stored in the root
+  struct.
+  Layer 1: (2 Nodes) LeftHand, RightHand
+  Layer 2: (4 Nodes) Quickbar/Scabbard/Bandolier/Quiver/etc.
+  Layer 3: (8 Nodes) Equipped Equipment
+  Layer 4: (16 Nodes) Backpack
+  Item's depth in the tree determines the AP cost of accessing the item.
+  AP Cost = (Layer# - 1) (no items are stored in root/zero layer, this is hud
+  gui data and behaviour only)
+
+Hell, use this same tree idea for the Spellbook!
+ the player.
+
+
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.

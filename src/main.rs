@@ -30,15 +30,12 @@ use inventory_system::ItemUseSystem;
 use inventory_system::ItemDropSystem;
 mod equip_system;
 use equip_system::EquipSystem;
-pub mod saveload_system;
-mod random_table;
 mod c_menu_system;
 use c_menu_system::ContextMenuSystem;
 mod healing_system;
 use healing_system::HealingSystem;
 mod bleed_system;
 use bleed_system::BleedSystem;
-mod particle_system;
 mod hunger_system;
 use hunger_system::HungerSystem;
 mod throw_system;
@@ -48,7 +45,11 @@ use light_system::LightSystem;
 mod trigger_system;
 use trigger_system::TriggerSystem;
 
+pub mod particle_system;
+pub mod random_table;
+pub mod saveload_system;
 pub mod map_builders;
+pub mod rex_assets;
 
 const SHOW_MAPGEN_VISUALIZER: bool = true;
 
@@ -620,6 +621,7 @@ fn main() -> rltk::BError {
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
+    gs.ecs.insert(rex_assets::RexAssets::new());
     gs.ecs.insert(Map::new(1));
     gs.ecs.insert(Point::new(0, 0));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
