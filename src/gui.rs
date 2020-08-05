@@ -2,8 +2,7 @@ use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
-             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden,
-             rex_assets::RexAssets, };
+             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, };
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }
@@ -600,9 +599,6 @@ fn show_player_menu_controls(ctx: &mut Rltk) {
 pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
     let save_exists = super::saveload_system::does_save_exist();
     let runstate = gs.ecs.fetch::<RunState>();
-
-    let assets = gs.ecs.fetch::<RexAssets>();
-    ctx.render_xp_sprite(&assets.menu, 0, 0);
 
     ctx.print_color_centered(15, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Wizard of the Old Tongue");
 

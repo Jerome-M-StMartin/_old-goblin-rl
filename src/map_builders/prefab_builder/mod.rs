@@ -1,5 +1,5 @@
 use super::{MapBuilder, Map, TileType, Position, spawner, SHOW_MAPGEN_VISUALIZER,
-    remove_unreachable_areas_returning_most_distant};
+    remove_unreachables_return_most_distant};
 use rltk::RandomNumberGenerator;
 use specs::prelude::*;
 
