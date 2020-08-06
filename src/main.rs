@@ -49,7 +49,6 @@ pub mod particle_system;
 pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
-pub mod rex_assets;
 
 const SHOW_MAPGEN_VISUALIZER: bool = true;
 

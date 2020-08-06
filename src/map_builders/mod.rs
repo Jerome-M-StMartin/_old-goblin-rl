@@ -24,11 +24,17 @@ use common::*;
 
 pub trait MapBuilder {
     fn build_map(&mut self);
-    fn spawn_entities(&mut self, ecs: &mut World);
     fn get_map(&self) -> Map;
     fn get_starting_position(&self) -> Position;
     fn get_snapshot_history(&self) -> Vec<Map>;
     fn take_snapshot(&mut self);
+    
+    fn get_spawn_list(&self) -> &Vec<(usize, String)>;
+    fn spawn_entities(&mut self, ecs: &mut World) {
+        for ent in self.get_spawn_list().iter() {
+            spawner::spawn_entity(ecs, &(&ent.0, &ent.1));
+        }
+    }
 }
 
 pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
@@ -52,5 +58,10 @@ pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
         15 => Box::new(VoronoiCellBuilder::manhattan(new_depth)),
         _ => Box::new(DrunkardsWalkBuilder::fearful_symmetry(new_depth)),
     }*/
-    Box::new(PrefabBuilder::new(new_depth))
+    Box::new(
+        PrefabBuilder::new(
+            new_depth,
+            Some(Box::new(CellularAutomataBuilder::new(new_depth)))
+        )
+    )
 }

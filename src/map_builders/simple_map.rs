@@ -2,7 +2,6 @@ use super::{MapBuilder, TileType, Rect, apply_room_to_map, apply_horizontal_tunn
             Position, spawner, SHOW_MAPGEN_VISUALIZER};
 use rltk::RandomNumberGenerator;
 use super::Map;
-use specs::prelude::*;
 
 pub struct SimpleMapBuilder {
     map: Map,
@@ -10,17 +9,12 @@ pub struct SimpleMapBuilder {
     depth: i32,
     rooms: Vec<Rect>,
     snapshot_history: Vec<Map>,
+    spawn_list: Vec<(usize, String)>,
 }
 
 impl MapBuilder for SimpleMapBuilder {
     fn build_map(&mut self) {
         SimpleMapBuilder::rooms_and_cooridors(self);
-    }
-
-    fn spawn_entities(&mut self, ecs: &mut World) {
-        for room in self.rooms.iter().skip(1) {
-            spawner::spawn_room(ecs, room, self.depth);
-        }
     }
 
     fn get_map(&self) -> Map {
@@ -44,6 +38,10 @@ impl MapBuilder for SimpleMapBuilder {
             self.snapshot_history.push(snapshot);
         }
     }
+
+    fn get_spawn_list(&self) -> &Vec<(usize, String)> {
+        &self.spawn_list
+    }
 }
 
 impl SimpleMapBuilder {
@@ -54,6 +52,7 @@ impl SimpleMapBuilder {
             depth: new_depth,
             rooms: Vec::new(),
             snapshot_history: Vec::new(),
+            spawn_list: Vec::new(),
         }
     }
 
@@ -101,7 +100,10 @@ impl SimpleMapBuilder {
         
         let start_pos = self.rooms[0].center();
         self.starting_pos = Position { x: start_pos.0, y: start_pos.1 };
+
+        //spawn entities
+        for room in self.rooms.iter().skip(1) {
+            spawner::spawn_room(&self.map, &mut rng, room, self.depth, &mut self.spawn_list);
+        }
     }
 }
-
-

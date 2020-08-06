@@ -1,9 +1,5 @@
-Time: 22:43
-Hours: 2:18 
+Current: Chapter_35 Room Vaults
 
-Decided to skip the Waveform Collapse chapter - the results it gives as-is are
-ugly as fuck but it takes a ton of work and the tutorial is full of fucking
-bugs so fuck it.
 
 Do Next:
 - Get to new Turn System in Tutorial to use as foundation.

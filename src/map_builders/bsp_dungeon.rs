@@ -1,7 +1,6 @@
 use super::{MapBuilder, TileType, Rect, apply_room_to_map, Position, spawner, SHOW_MAPGEN_VISUALIZER};
 use rltk::RandomNumberGenerator;
 use super::Map;
-use specs::prelude::*;
 
 pub struct BspDungeonBuilder {
     map: Map,
@@ -10,6 +9,39 @@ pub struct BspDungeonBuilder {
     rooms: Vec<Rect>,
     snapshot_history: Vec<Map>,
     rects: Vec<Rect>,
+    spawn_list: Vec<(usize, String)>,
+}
+
+impl MapBuilder for BspDungeonBuilder {
+    fn get_map(&self) -> Map {
+        self.map.clone()
+    }
+
+    fn get_starting_position(&self) -> Position {
+        self.starting_position.clone()
+    }
+
+    fn get_snapshot_history(&self) -> Vec<Map> {
+        self.snapshot_history.clone()
+    }
+
+    fn build_map(&mut self)  {
+        self.build();
+    }
+
+    fn take_snapshot(&mut self) {
+        if SHOW_MAPGEN_VISUALIZER {
+            let mut snapshot = self.map.clone();
+            for v in snapshot.revealed_tiles.iter_mut() {
+                *v = true;
+            }
+            self.snapshot_history.push(snapshot);
+        }
+    }
+
+    fn get_spawn_list(&self) -> &Vec<(usize, String)> {
+        &self.spawn_list
+    }
 }
 
 impl BspDungeonBuilder {
@@ -20,7 +52,8 @@ impl BspDungeonBuilder {
             depth : new_depth,
             rooms: Vec::new(),
             snapshot_history: Vec::new(),
-            rects: Vec::new()
+            rects: Vec::new(),
+            spawn_list: Vec::new(),
         }
     }
 
@@ -73,6 +106,11 @@ impl BspDungeonBuilder {
         // Set player start
         let start = self.rooms[0].center();
         self.starting_position = Position{ x: start.0, y: start.1 };
+
+        // Spawn Stuff
+        for room in self.rooms.iter().skip(1) {
+            spawner::spawn_room(&self.map, &mut rng, room, self.depth, &mut self.spawn_list);
+        }
     }
 
     fn add_subrects(&mut self, rect : Rect) {
@@ -157,36 +195,4 @@ impl BspDungeonBuilder {
     }
 }
 
-impl MapBuilder for BspDungeonBuilder {
-    fn get_map(&self) -> Map {
-        self.map.clone()
-    }
 
-    fn get_starting_position(&self) -> Position {
-        self.starting_position.clone()
-    }
-
-    fn get_snapshot_history(&self) -> Vec<Map> {
-        self.snapshot_history.clone()
-    }
-
-    fn build_map(&mut self)  {
-        self.build();
-    }
-
-    fn spawn_entities(&mut self, ecs : &mut World) {
-        for room in self.rooms.iter().skip(1) {
-            spawner::spawn_room(ecs, room, self.depth);
-        }
-    }
-
-    fn take_snapshot(&mut self) {
-        if SHOW_MAPGEN_VISUALIZER {
-            let mut snapshot = self.map.clone();
-            for v in snapshot.revealed_tiles.iter_mut() {
-                *v = true;
-            }
-            self.snapshot_history.push(snapshot);
-        }
-    }
-}
