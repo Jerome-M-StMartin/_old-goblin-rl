@@ -59,9 +59,13 @@ pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
         _ => Box::new(DrunkardsWalkBuilder::fearful_symmetry(new_depth)),
     }*/
     Box::new(
-        PrefabBuilder::new(
+        PrefabBuilder::vaults(
             new_depth,
-            Some(Box::new(CellularAutomataBuilder::new(new_depth)))
+            Box::new(PrefabBuilder::sectional(
+                    new_depth,
+                    prefab_builder::prefab_sections::UNDERGROUND_FORT,
+                    Box::new(CellularAutomataBuilder::new(new_depth))
+            ))
         )
     )
 }
