@@ -1,10 +1,32 @@
-use super::{MapBuilder, Map,  
-    TileType, Position, SHOW_MAPGEN_VISUALIZER,
-    remove_unreachables_return_most_distant, generate_voronoi_spawn_regions};
+use super::{Map,  InitialMapBuilder, BuilderMap, TileType};
 use rltk::RandomNumberGenerator;
-use std::collections::HashMap;
 
-const TOP: usize = 0;
+pub struct MazeBuilder {}
+
+impl InitialMapBuilder for MazeBuilder {
+    #[allow(dead_code)]
+    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap) {
+        self.build(rng, build_data);
+    }
+}
+
+impl MazeBuilder {
+    #[allow(dead_code)]
+    pub fn new() -> Box<MazeBuilder> {
+        Box::new(MazeBuilder{})
+    }
+
+    #[allow(clippy::map_entry)]
+    fn build(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {
+        // Maze gen
+        let mut maze = Grid::new((build_data.map.width / 2)-2, (build_data.map.height / 2)-2, rng);
+        maze.generate_maze(build_data);
+    }
+}
+
+/* Maze code taken under MIT from https://github.com/cyucelen/mazeGenerator/ */
+
+const TOP : usize = 0;
 const RIGHT : usize = 1;
 const BOTTOM : usize = 2;
 const LEFT : usize = 3;
@@ -23,7 +45,7 @@ impl Cell {
             row,
             column,
             walls: [true, true, true, true],
-            visited: false,
+            visited: false
         }
     }
 
@@ -121,7 +143,7 @@ impl<'a> Grid<'a> {
         None
     }
 
-    fn generate_maze(&mut self, generator : &mut MazeBuilder) {
+    fn generate_maze(&mut self, build_data : &mut BuilderMap) {
         let mut i = 0;
         loop {
             self.cells[self.current].visited = true;
@@ -148,12 +170,12 @@ impl<'a> Grid<'a> {
                     } else {
                         break;
                     }
-                } 
+                }
             }
-            
+
             if i % 50 == 0 {
-                self.copy_to_map(&mut generator.map);
-                generator.take_snapshot();    
+                self.copy_to_map(&mut build_data.map);
+                build_data.take_snapshot();    
             }
             i += 1;
         }
@@ -174,83 +196,5 @@ impl<'a> Grid<'a> {
             if !cell.walls[BOTTOM] { map.tiles[idx + map.width as usize] = TileType::Floor }
             if !cell.walls[LEFT] { map.tiles[idx - 1] = TileType::Floor }
         }
-    }
-
-}
-pub struct MazeBuilder {
-    map : Map,
-    starting_position : Position,
-    depth: i32,
-    history: Vec<Map>,
-    noise_areas : HashMap<i32, Vec<usize>>,
-    spawn_list: Vec<(usize, String)>,
-}
-
-impl MapBuilder for MazeBuilder {
-    fn get_map(&self) -> Map {
-        self.map.clone()
-    }
-
-    fn get_starting_position(&self) -> Position {
-        self.starting_position.clone()
-    }
-
-    fn get_snapshot_history(&self) -> Vec<Map> {
-        self.history.clone()
-    }
-
-    fn build_map(&mut self)  {
-        self.build();
-    }
-
-    fn get_spawn_list(&self) -> &Vec<(usize, String)> {
-        &self.spawn_list
-    }
-
-    fn take_snapshot(&mut self) {
-        if SHOW_MAPGEN_VISUALIZER {
-            let mut snapshot = self.map.clone();
-            for v in snapshot.revealed_tiles.iter_mut() {
-                *v = true;
-            }
-            self.history.push(snapshot);
-        }
-    }
-}
-
-impl MazeBuilder {
-    pub fn new(new_depth : i32) -> MazeBuilder {
-        MazeBuilder{
-            map : Map::new(new_depth),
-            starting_position : Position{ x: 0, y : 0 },
-            depth : new_depth,
-            history: Vec::new(),
-            noise_areas : HashMap::new(),
-            spawn_list: Vec::new(),
-        }
-    }
-
-    #[allow(clippy::map_entry)]
-    fn build(&mut self) {
-        let mut rng = RandomNumberGenerator::new();        
-
-        let mut maze = Grid::new((self.map.width / 2)-2, (self.map.height / 2)-2, &mut rng);
-        maze.generate_maze(self);
-
-        // Find a starting point; start at the middle and walk left until we find an open tile
-        self.starting_position = Position{ x: 2, y: 2 };
-        let start_idx = self.map.xy_idx(self.starting_position.x, self.starting_position.y);
-        self.take_snapshot();
-
-        // Find all tiles we can reach from the starting point
-        let exit_tile = remove_unreachables_return_most_distant(&mut self.map, start_idx);
-        self.take_snapshot();
-
-        // Place the stairs
-        self.map.tiles[exit_tile] = TileType::StairsDown;
-        self.take_snapshot();
-
-        // Now we build a noise map for use in spawning entities later
-        self.noise_areas = generate_voronoi_spawn_regions(&self.map, &mut rng);
     }
 }
