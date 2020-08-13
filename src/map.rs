@@ -1,11 +1,7 @@
-use rltk::{RGB, Rltk, BaseMap, Algorithm2D, Point};
+use rltk::{BaseMap, Algorithm2D, Point};
 use std::collections::HashSet;
 use specs::prelude::*;
 use serde::{Serialize, Deserialize};
-
-pub const MAPWIDTH: usize = 80;
-pub const MAPHEIGHT: usize = 43;
-pub const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
 #[derive(PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum TileType {
@@ -25,6 +21,7 @@ pub struct Map {
     pub depth: i32,
     pub bloodstains: HashSet<usize>,
     pub illuminated_tiles: HashSet<usize>,
+    pub view_blocked: HashSet<usize>,
 
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
@@ -33,18 +30,20 @@ pub struct Map {
 
 impl Map {
 
-    pub fn new(new_depth: i32) -> Map {
+    pub fn new(new_depth: i32, width: i32, height: i32) -> Map {
+        let map_tile_count = (width * height) as usize;
         Map {
-            tiles : vec![TileType::Wall; MAPCOUNT],
-            width : MAPWIDTH as i32,
-            height: MAPHEIGHT as i32,
-            revealed_tiles : vec![false; MAPCOUNT],
-            visible_tiles : vec![false; MAPCOUNT],
-            blocked : vec![false; MAPCOUNT],
-            tile_content : vec![Vec::new(); MAPCOUNT],
+            tiles : vec![TileType::Wall; map_tile_count],
+            width,
+            height,
+            revealed_tiles : vec![false; map_tile_count],
+            visible_tiles : vec![false; map_tile_count],
+            blocked : vec![false; map_tile_count],
+            tile_content : vec![Vec::new(); map_tile_count],
             depth: new_depth,
             bloodstains: HashSet::new(),
             illuminated_tiles: HashSet::new(),
+            view_blocked: HashSet::new(),
         }
     }
 
@@ -52,7 +51,7 @@ impl Map {
         (y as usize * self.width as usize) + x as usize
     }
 
-    //absolutely shit fn name; a valid "exit" is a walkable tile, not a zone transition.
+    //a valid "exit" is a walkable tile, not a zone transition.
     fn is_exit_valid(&self, x:i32, y:i32) -> bool {
         if x < 1 || x > self.width-1 || y < 1 || y > self.height-1 {return false;}
         let idx = self.xy_idx(x, y);
@@ -74,7 +73,8 @@ impl Map {
 
 impl BaseMap for Map {
     fn is_opaque(&self, idx:usize) -> bool {
-        self.tiles[idx] == TileType::Wall
+        let idx_u = idx as usize;
+        self.tiles[idx_u] == TileType::Wall || self.view_blocked.contains(&idx_u)
     }
 
     fn get_pathing_distance(&self, idx1:usize, idx2:usize) -> f32 {
@@ -84,7 +84,7 @@ impl BaseMap for Map {
         rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
     }
 
-    //absolutely shit fn name; a valid exit is a walkable tile, not a zone transition.
+    //an exit is an adjacent walkable tile, not a zone transition.
     fn get_available_exits(&self, idx:usize) -> rltk::SmallVec<[(usize, f32); 10]> {
         let mut exits = rltk::SmallVec::new();
         let x = idx as i32 % self.width;
@@ -111,7 +111,7 @@ impl Algorithm2D for Map {
     }
 }
 
-pub fn draw_map(map: &Map, ctx : &mut Rltk) {
+/*pub fn draw_map(map: &Map, ctx : &mut Rltk) {
     let mut y = 0;
     let mut x = 0;
     for (idx, tile) in map.tiles.iter().enumerate() {
@@ -140,7 +140,7 @@ pub fn draw_map(map: &Map, ctx : &mut Rltk) {
         }
 
         x += 1;
-        if x > 79 {
+        if x > map.width as i32 - 1 {
             x = 0;
             y += 1;
         }
@@ -158,7 +158,7 @@ fn wall_glyph(map: &Map, x: i32, y: i32) -> rltk::FontCharType {
     if is_revealed_wall(map, x + 1, y) { mask +=8; }
 
     match mask {
-        0 => { 63 } // no adj. walls
+        0 => { 35 } // no adj. walls
         1 => { 186 } // Wall only to the north
         2 => { 186 } // Wall only to the south
         3 => { 186 } // Wall to the north and south
@@ -181,4 +181,4 @@ fn wall_glyph(map: &Map, x: i32, y: i32) -> rltk::FontCharType {
 fn is_revealed_wall(map: &Map, x: i32, y: i32) -> bool {
     let idx = map.xy_idx(x, y);
     map.tiles[idx] == TileType::Wall && map.revealed_tiles[idx]
-}
+}*/

@@ -3,7 +3,7 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, gui::PlayerMenuState, JustMoved};
+            HungerState, gui::PlayerMenuState, JustMoved, };
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
@@ -98,8 +98,8 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
         }
 
         if !map.blocked[destination_idx] {
-            pos.x = min(79, max(0, pos.x + delta_x));
-            pos.y = min(49, max(0, pos.y + delta_y));
+            pos.x = min(map.width - 1, max(0, pos.x + delta_x));
+            pos.y = min(map.height - 1, max(0, pos.y + delta_y));
 
             viewshed.dirty = true;
             let mut p_pos = ecs.write_resource::<Point>();

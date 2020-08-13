@@ -1,4 +1,0 @@
-SYSTEMS & INTENT COMPONENTS:
-Intent components may be inserted from anywhere, from within systems or
-without, but handling any Intent component should be done within a single
-system designed to handle that specific component type.

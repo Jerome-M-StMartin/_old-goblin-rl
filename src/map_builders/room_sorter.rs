@@ -24,7 +24,7 @@ impl RoomSorter {
         match self.sort_by {
             RoomSort::LEFTMOST => build_data.rooms.as_mut().unwrap().sort_by(|a,b| a.x1.cmp(&b.x1)),
             RoomSort::RIGHTMOST => build_data.rooms.as_mut().unwrap().sort_by(|a,b| b.x2.cmp(&a.x2)),
-            RoomSort::TOPMOST => build_data.rooms.as_mut().unwrap().sort_by(|a,b| b.y1.cmp(&b.y1)),
+            RoomSort::TOPMOST => build_data.rooms.as_mut().unwrap().sort_by(|a,b| a.y1.cmp(&b.y1)),
             RoomSort::BOTTOMMOST => build_data.rooms.as_mut().unwrap().sort_by(|a,b| b.y2.cmp(&a.y2)),
             RoomSort::CENTRAL => {
                 let map_center = rltk::Point::new(build_data.map.width/2, build_data.map.height/2);

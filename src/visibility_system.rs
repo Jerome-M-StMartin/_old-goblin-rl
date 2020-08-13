@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Viewshed, Position, Map, Player, Name, Hidden, gamelog::GameLog};
+use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gamelog::GameLog};
 use rltk::{field_of_view, Point};
 
 pub struct VisibilitySystem {}
@@ -14,11 +14,18 @@ impl<'a> System<'a> for VisibilitySystem {
                         ReadStorage<'a, Position>,
                         ReadStorage<'a, Player>,
                         ReadStorage<'a, Name>,
+                        ReadStorage<'a, BlocksVisibility>,
                       );
 
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, mut rng, mut log, entities, mut viewshed, mut hidden_storage,
-             pos, player, names) = data;
+             pos, player, names, blocks_vis) = data;
+
+        map.view_blocked.clear();
+        for (pos, _) in (&pos, &blocks_vis).join() {
+            let idx = map.xy_idx(pos.x, pos.y);
+            map.view_blocked.insert(idx);
+        }
 
         for (ent, viewshed, pos) in (&entities, &mut viewshed, &pos).join() {
             if viewshed.dirty {
@@ -51,7 +58,7 @@ impl<'a> System<'a> for VisibilitySystem {
                         map.revealed_tiles[idx] = true;
                         map.visible_tiles[idx] = true;
 
-                        // % to reveal hidden entities
+                        //chance to reveal hidden entities
                         for e in map.tile_content[idx].iter() {
                             let hidden = hidden_storage.get(*e);
                             if let Some(_) = hidden {

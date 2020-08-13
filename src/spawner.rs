@@ -3,7 +3,7 @@ use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, MarkedBuilder};
 use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, BlocksTile, Rect,
-             map::MAPWIDTH, Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
+             Item, Heals, Consumable, DamageOnUse, DamageAtom, Ranged,
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
              Creature, Hunger, HungerState, MagicMapper, Useable, Throwable, Flammable,
@@ -39,38 +39,6 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
         .build()
 }
 
-/*#[allow(clippy::map_entry)]
-pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
-    let spawn_table = room_table(map_depth);
-    let mut spawn_points : HashMap<usize, String> = HashMap::new();
-
-    // Scope for borrow
-    {
-        let mut rng = ecs.write_resource::<RandomNumberGenerator>();
-        let num_spawns = rng.roll_dice(1, MAX_MONSTERS + 3) + (map_depth - 1) - 3;
-
-        for _i in 0 .. num_spawns {
-            let mut added = false;
-            let mut tries = 0;
-            while !added && tries < 80 {
-                let x = (room.x1 + rng.roll_dice(1, i32::abs(room.x2 - room.x1))) as usize;
-                let y = (room.y1 + rng.roll_dice(1, i32::abs(room.y2 - room.y1))) as usize;
-                let idx = (y * MAPWIDTH) + x;
-                if !spawn_points.contains_key(&idx) {
-                    spawn_points.insert(idx, spawn_table.roll(&mut rng));
-                    added = true;
-                } else {
-                    tries += 1;
-                }
-            }
-        }
-    }
-    
-    for spawn in spawn_points.iter() {
-       spawn_entity(ecs, &spawn);
-    }
-}*/
-
 pub fn spawn_room(map: &Map, rng: &mut RandomNumberGenerator, room: &Rect,
                     map_depth: i32, spawn_list: &mut Vec<(usize, String)>) {
 
@@ -89,7 +57,7 @@ pub fn spawn_room(map: &Map, rng: &mut RandomNumberGenerator, room: &Rect,
     spawn_region(map, rng, &possible_targets, map_depth, spawn_list);
 }
 
-pub fn spawn_region(map: &Map, rng: &mut RandomNumberGenerator, area : &[usize],
+pub fn spawn_region(_map: &Map, rng: &mut RandomNumberGenerator, area : &[usize],
                         map_depth: i32, spawn_list : &mut Vec<(usize, String)>) {
     
     let spawn_table = room_table(map_depth);
@@ -115,40 +83,16 @@ pub fn spawn_region(map: &Map, rng: &mut RandomNumberGenerator, area : &[usize],
         spawn_list.push((*spawn.0, spawn.1.to_string()));
     }
 }
-/*pub fn spawn_region(ecs: &mut World, area : &[usize], map_depth: i32) {
-    let spawn_table = room_table(map_depth);
-    let mut spawn_points : HashMap<usize, String> = HashMap::new();
-    let mut areas : Vec<usize> = Vec::from(area);
-
-    // Scope to keep the borrow checker happy
-    {
-        let mut rng = ecs.write_resource::<RandomNumberGenerator>();
-        let num_spawns = i32::min(areas.len() as i32, 
-                         rng.roll_dice(1, MAX_MONSTERS + 3) + (map_depth - 1) - 3);
-        
-        if num_spawns == 0 { return; }
-
-        for _i in 0 .. num_spawns {
-            let array_index = if areas.len() == 1 { 0usize }
-            else { (rng.roll_dice(1, areas.len() as i32)-1) as usize };
-            
-            let map_idx = areas[array_index];
-            spawn_points.insert(map_idx, spawn_table.roll(&mut rng));
-            areas.remove(array_index);
-        }
-    }
-
-    // Actually spawn the monsters
-    for spawn in spawn_points.iter() {
-        spawn_entity(ecs, &spawn);
-    }
-}*/
 
 pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
-    let x = (*spawn.0 % MAPWIDTH) as i32;
-    let y = (*spawn.0 / MAPWIDTH) as i32;
+    let map = ecs.fetch::<Map>();
+    let width = map.width as usize;
+    let x = (*spawn.0 % width) as i32;
+    let y = (*spawn.0 / width) as i32;
+    std::mem::drop(map);
 
     match spawn.1.as_ref() {
+        "Door" => door(ecs, x, y),
         "Goblin" => goblin(ecs, x, y),
         "Orc" => orc(ecs, x, y),
         "Health Potion" => health_potion(ecs, x, y),
@@ -189,6 +133,20 @@ fn room_table(map_depth: i32) -> RandomTable {
 
 fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
 fn goblin(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('g'), "Goblin"); }
+
+fn door(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position {x, y})
+        .with(Renderable {
+        glyph: rltk::to_cp437('+'),
+        fg: RGB::named(rltk::CHOCOLATE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name{ name : "Door".to_string() })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+}
 
 fn hostile<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharType, name: S) {
     ecs.create_entity()

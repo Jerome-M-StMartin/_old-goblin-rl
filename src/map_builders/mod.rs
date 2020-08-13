@@ -9,16 +9,26 @@ mod area_starting_points;
 mod cull_unreachable;
 mod distant_exit;
 mod voronoi_spawning;
-mod dogleg_corridors;
+mod room_corridors_dogleg;
 mod bsp_corridors;
 mod room_corner_rounding;
 mod room_exploder;
 mod room_sorter;
+mod room_draw;
+mod room_corridors_nearest;
+mod room_corridors_lines;
+mod room_corridor_spawner;
+mod door_placement;
+use door_placement::DoorPlacement;
+use room_corridor_spawner::CorridorSpawner;
+use room_corridors_lines::StraightLineCorridors;
+use room_corridors_nearest::NearestCorridors;
+use room_draw::RoomDrawer;
 use room_sorter::{RoomSorter, RoomSort};
 use room_exploder::RoomExploder;
 use room_corner_rounding::RoomCornerRounder;
 use bsp_corridors::BspCorridors;
-use dogleg_corridors::DoglegCorridors;
+use room_corridors_dogleg::DoglegCorridors;
 use voronoi_spawning::VoronoiSpawning;
 use distant_exit::DistantExit;
 use cull_unreachable::CullUnreachable;
@@ -58,7 +68,10 @@ pub struct BuilderMap {
     pub map: Map,
     pub starting_position: Option<Position>,
     pub rooms: Option<Vec<Rect>>,
+    pub corridors: Option<Vec<Vec<usize>>>,
     pub snapshot_history: Vec<Map>,
+    pub width: i32,
+    pub height: i32,
 }
 
 impl BuilderMap {
@@ -80,16 +93,19 @@ pub struct BuilderChain {
 }
 
 impl BuilderChain {
-    pub fn new(new_depth: i32) -> BuilderChain {
+    pub fn new(new_depth: i32, width: i32, height: i32) -> BuilderChain {
         BuilderChain {
             starter: None,
             builders: Vec::new(),
             build_data: BuilderMap {
                 spawn_list: Vec::new(),
-                map: Map::new(new_depth),
+                map: Map::new(new_depth, width, height),
                 starting_position: None,
                 rooms: None,
+                corridors: None,
                 snapshot_history: Vec::new(),
+                width,
+                height,
             }
         }
     }
@@ -125,6 +141,25 @@ impl BuilderChain {
     }
 }
 
+pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator,
+                                    width: i32, height: i32) -> BuilderChain {
+    let mut builder = BuilderChain::new(new_depth, width, height);
+    let type_roll = rng.roll_dice(1, 2);
+    match type_roll {
+        1 => random_room_builder(rng, &mut builder),
+        _ => random_shape_builder(rng, &mut builder)
+    }
+
+    if rng.roll_dice(1, 20)==1 {
+        builder.with(PrefabBuilder::sectional(prefab_builder::prefab_sections::UNDERGROUND_FORT));
+    }
+
+    builder.with(DoorPlacement::new());
+    builder.with(PrefabBuilder::vaults());
+
+    return builder;
+}
+
 fn random_start_position(rng: &mut rltk::RandomNumberGenerator) -> (XStart, YStart) {
     let x;
     let xroll = rng.roll_dice(1, 3);
@@ -146,11 +181,11 @@ fn random_start_position(rng: &mut rltk::RandomNumberGenerator) -> (XStart, YSta
 }
 
 fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut BuilderChain) {
-    let build_roll = rng.roll_dice(1, 5);
+    let build_roll = rng.roll_dice(1, 4);
     match build_roll {
         1..=2 => builder.start_with(SimpleMapBuilder::new()),
         3..=4 => builder.start_with(BspDungeonBuilder::new()),
-        _ => builder.start_with(BspInteriorBuilder::new())
+        _ => builder.start_with(BspInteriorBuilder::new()) //<--currently unreachable
     }
 
     // BSP Interior still makes holes in the walls
@@ -165,10 +200,19 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut Bui
             _ => builder.with(RoomSorter::new(RoomSort::CENTRAL)),
         }
 
-        let corridor_roll = rng.roll_dice(1, 2);
+        builder.with(RoomDrawer::new());
+
+        let corridor_roll = rng.roll_dice(1, 4);
         match corridor_roll {
             1 => builder.with(DoglegCorridors::new()),
+            2 => builder.with(NearestCorridors::new()),
+            3 => builder.with(StraightLineCorridors::new()),
             _ => builder.with(BspCorridors::new())
+        }
+
+        let cspawn_roll = rng.roll_dice(1, 2);
+        if cspawn_roll == 1 {
+            builder.with(CorridorSpawner::new());
         }
 
         let modifier_roll = rng.roll_dice(1, 6);
@@ -231,21 +275,4 @@ fn random_shape_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut Bu
     // Setup an exit and spawn mobs
     builder.with(VoronoiSpawning::new());
     builder.with(DistantExit::new());
-}
-
-pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> BuilderChain {
-    let mut builder = BuilderChain::new(new_depth);
-    let type_roll = rng.roll_dice(1, 2);
-    match type_roll {
-        1 => random_room_builder(rng, &mut builder),
-        _ => random_shape_builder(rng, &mut builder)
-    }
-
-    if rng.roll_dice(1, 20)==1 {
-        builder.with(PrefabBuilder::sectional(prefab_builder::prefab_sections::UNDERGROUND_FORT));
-    }
-
-    builder.with(PrefabBuilder::vaults());
-
-    builder
 }

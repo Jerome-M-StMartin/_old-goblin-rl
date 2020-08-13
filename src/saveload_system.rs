@@ -1,5 +1,6 @@
 use specs::prelude::*;
-use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents, DeserializeComponents, MarkedBuilder};
+use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents,
+                      DeserializeComponents, MarkedBuilder};
 use specs::error::NoError;
 use super::components::*;
 use std::fs::File;
@@ -60,7 +61,7 @@ pub fn save_game(ecs : &mut World) {
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
             MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource, Aflame, Hidden,
-            EntryTrigger, JustMoved
+            EntryTrigger, JustMoved, Door, BlocksVisibility
         );
     }
 
@@ -95,7 +96,7 @@ pub fn load_game(ecs: &mut World) {
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
             MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource, Aflame, Hidden,
-            EntryTrigger, JustMoved
+            EntryTrigger, JustMoved, Door, BlocksVisibility
         );
     }
 
@@ -108,7 +109,7 @@ pub fn load_game(ecs: &mut World) {
         for (e,h) in (&entities, &helper).join() {
             let mut worldmap = ecs.write_resource::<super::map::Map>();
             *worldmap = h.map.clone();
-            worldmap.tile_content = vec![Vec::new(); super::map::MAPCOUNT];
+            worldmap.tile_content = vec![Vec::new(); (worldmap.width * worldmap.height) as usize];
             deleteme = Some(e);
         }
         for (e,_p,pos) in (&entities, &player, &position).join() {

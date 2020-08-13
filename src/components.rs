@@ -26,6 +26,9 @@ pub struct Creature {}
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct BlocksTile {}
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct BlocksVisibility {}
+
 #[derive(Component, Serialize, Deserialize, Clone)]
 pub struct Player {}
 
@@ -53,6 +56,11 @@ pub struct JustMoved {}
 //Yet Unused
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Interactable {}//--------------------------------------
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Door { 
+    pub open: bool 
+}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct EntryTrigger {

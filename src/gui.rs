@@ -2,7 +2,7 @@ use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
-             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, };
+             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, camera};
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }
@@ -393,6 +393,7 @@ pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (Me
     
     enable_cursor_control(ecs, ctx); 
 
+    let (min_x, max_x, min_y, max_y) = camera::get_screen_bounds(ecs, ctx);
     let player_ent = ecs.fetch::<Entity>();
     let player_pos = ecs.fetch::<Point>();
     let cursor = ecs.fetch::<Cursor>();
@@ -400,14 +401,19 @@ pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (Me
 
     //Highlight targetable cells
     let mut targetable_cells = Vec::new();
-    let visible = viewsheds.get(*player_ent); 
-    if let Some(visible) = visible {
-        //viewshed exists
-        for idx in visible.visible_tiles.iter() {
+    let vs = viewsheds.get(*player_ent); 
+    if let Some(viewshed) = vs {
+        for idx in viewshed.visible_tiles.iter() {
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(*player_pos, *idx);
             if distance <= range as f32 {
-                ctx.set_bg(idx.x, idx.y, RGB::named(rltk::CYAN));
-                targetable_cells.push(idx);
+                let screen_x = idx.x - min_x;
+                let screen_y = idx.y - min_y;
+                if screen_x > 1 && screen_x < (max_x - min_x) - 1 &&
+                                screen_y > 1 && screen_y < (max_y - min_y) -1 {
+                    
+                    ctx.set_bg(screen_x, screen_y, RGB::named(rltk::TEAL));
+                    targetable_cells.push(idx);
+                }
             }
         }
     } else {
@@ -422,9 +428,9 @@ pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (Me
     }
 
     if valid_target {
-        ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::MAGENTA));
+        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::LIME_GREEN));
     } else {
-        ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::RED));
+        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::RED));
     }
 
     match ctx.key {
@@ -515,7 +521,8 @@ fn draw_log(ecs: &World, ctx: &mut Rltk, ctx_h: i32) {
 
 fn draw_cursor(ecs: &World, ctx: &mut Rltk) {
     let cursor = ecs.fetch::<Cursor>();
-    if cursor.active { ctx.set_bg(cursor.x, cursor.y, RGB::named(rltk::MAGENTA3)); }
+    let (min_x, _, min_y, _) = camera::get_screen_bounds(ecs, ctx);
+    if cursor.active { ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::MAGENTA)); }
 }
 
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
@@ -525,6 +532,7 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
     let names = ecs.read_storage::<Name>();
     let positions = ecs.read_storage::<Position>();
     let hidden_storage = ecs.read_storage::<Hidden>();
+    let (min_x, _, min_y, _) = camera::get_screen_bounds(ecs, ctx);
     let mut to_tooltip: Vec<(i32, i32, String)> = Vec::new();
     
     if global {
@@ -535,19 +543,20 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
                 for (name, pos, _) in (&names, &positions, !&hidden_storage).join() {
                     let idx = map.xy_idx(pos.x, pos.y);
                     if map.visible_tiles[idx] {
-                        to_tooltip.push(( pos.x, pos.y, name.name.to_string()) );
+                        to_tooltip.push( (pos.x - min_x, pos.y - min_y, name.name.to_string()) );
                     }
                 }
             }
         }
 
     } else if cursor.active == true {
-        if cursor.x >= map.width || cursor.y >= map.height { return; }
+        if cursor.x >= map.width || cursor.y >= map.height ||
+                                    cursor.x < 1 || cursor.y < 1 { return; }
 
         for (name, pos, _) in (&names, &positions, !&hidden_storage).join() {
             let idx = map.xy_idx(pos.x, pos.y);
             if pos.x == cursor.x && pos.y == cursor.y && map.visible_tiles[idx] {
-                to_tooltip.push( (pos.x, pos.y, name.name.to_string()) );
+                to_tooltip.push( (pos.x - min_x, pos.y - min_y, name.name.to_string()) );
             }
         }       
     }

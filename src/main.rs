@@ -1,54 +1,57 @@
 extern crate serde;
 
-use rltk::{GameState, Rltk, Point, VirtualKeyCode};
-use specs::prelude::*;
-use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 mod components;
-pub use components::*;
 mod map;
-pub use map::*;
 mod player;
-use player::*;
 mod rect;
-pub use rect::Rect;
 mod visibility_system;
-use visibility_system::VisibilitySystem;
 mod hostile_ai_system;
-use hostile_ai_system::HostileAI;
 mod map_indexing_system;
-use map_indexing_system::MapIndexingSystem;
 mod melee_combat_system;
-use melee_combat_system::MeleeCombatSystem;
 mod damage_system;
-use damage_system::DamageSystem;
 mod gui;
 mod gamelog;
 mod spawner;
 mod inventory_system;
-use inventory_system::ItemCollectionSystem;
-use inventory_system::ItemUseSystem;
-use inventory_system::ItemDropSystem;
 mod equip_system;
-use equip_system::EquipSystem;
 mod c_menu_system;
-use c_menu_system::ContextMenuSystem;
 mod healing_system;
-use healing_system::HealingSystem;
 mod bleed_system;
-use bleed_system::BleedSystem;
 mod hunger_system;
-use hunger_system::HungerSystem;
 mod throw_system;
-use throw_system::ThrowSystem;
 mod light_system;
-use light_system::LightSystem;
 mod trigger_system;
-use trigger_system::TriggerSystem;
 
 pub mod particle_system;
 pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
+pub mod camera;
+
+use rltk::{GameState, Rltk, Point, VirtualKeyCode};
+use specs::prelude::*;
+use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
+use player::*;
+use visibility_system::VisibilitySystem;
+use hostile_ai_system::HostileAI;
+use map_indexing_system::MapIndexingSystem;
+use melee_combat_system::MeleeCombatSystem;
+use damage_system::DamageSystem;
+use inventory_system::ItemCollectionSystem;
+use inventory_system::ItemUseSystem;
+use inventory_system::ItemDropSystem;
+use equip_system::EquipSystem;
+use c_menu_system::ContextMenuSystem;
+use healing_system::HealingSystem;
+use bleed_system::BleedSystem;
+use hunger_system::HungerSystem;
+use throw_system::ThrowSystem;
+use light_system::LightSystem;
+use trigger_system::TriggerSystem;
+
+pub use components::*;
+pub use map::*;
+pub use rect::Rect;
 
 const SHOW_MAPGEN_VISUALIZER: bool = true;
 
@@ -123,14 +126,16 @@ impl State {
         self.mapgen_index = 0;
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
-        let mut builder = map_builders::random_builder(new_depth);
-        builder.build_map();
-        self.mapgen_history = builder.get_snapshot_history();
+        let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
+        let mut builder = map_builders::random_builder(new_depth, &mut rng, 64, 64);
+        builder.build_map(&mut rng);
+        std::mem::drop(rng); //drops the borrow on rng & self
+        self.mapgen_history = builder.build_data.snapshot_history.clone();
         let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            *worldmap_resource = builder.get_map();
-            player_start = builder.get_starting_position();
+            *worldmap_resource = builder.build_data.map.clone();
+            player_start = builder.build_data.starting_position.as_mut().unwrap().clone();
         }
 
         // Spawn bad guys
@@ -244,33 +249,18 @@ impl GameState for State {
             //RunState::MapGeneration => {}
             _ => {
                 
-                draw_map(&self.ecs.fetch::<Map>(), ctx);
-                {
-                    let positions = self.ecs.read_storage::<Position>();
-                    let renderables = self.ecs.read_storage::<Renderable>();
-                    let hidden_storage = self.ecs.read_storage::<Hidden>();
-                    let map = self.ecs.fetch::<Map>();
-               
-                    //gather & sort render data before rendering so gui layering is proper
-                    let mut render_data = (&positions, &renderables, !&hidden_storage).join()
-                                                                                      .collect::<Vec<_>>();
-                    render_data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
-                    for (pos, render, _) in render_data.iter() {
-                        let idx = map.xy_idx(pos.x, pos.y);
-                        if map.visible_tiles[idx] {ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
+                //draw_map(&self.ecs.fetch::<Map>(), ctx);
+                match ctx.key {
+                    None => {}
+                    Some(key) => match key {
+                        VirtualKeyCode::T =>
+                            self.tooltips_on = !self.tooltips_on,
+                        _ => {}
                     }
-                    
-                    match ctx.key {
-                        None => {}
-                        Some(key) => match key {
-                            VirtualKeyCode::T =>
-                                self.tooltips_on = !self.tooltips_on,
-                            _ => {}
-                        }
-                    }
-
-                    gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
                 }
+
+                camera::render_camera(&self.ecs, ctx);
+                gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
             }
         }
 
@@ -278,17 +268,18 @@ impl GameState for State {
             RunState::MapGeneration => {
                 if !SHOW_MAPGEN_VISUALIZER {
                     newrunstate = self.mapgen_next_state.unwrap();
-                }
-                ctx.cls();
-                if !&self.mapgen_history.is_empty() {
-                    draw_map(&self.mapgen_history[self.mapgen_index], ctx);
-                }
-                self.mapgen_timer += ctx.frame_time_ms;
-                if self.mapgen_timer > 300.0 {
-                    self.mapgen_timer = 0.0;
-                    self.mapgen_index += 1;
-                    if self.mapgen_index >= self.mapgen_history.len() {
-                        newrunstate = self.mapgen_next_state.unwrap();
+                } else {
+                    ctx.cls();
+                    if self.mapgen_index < self.mapgen_history.len() {
+                        camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx);
+                    }
+                    self.mapgen_timer += ctx.frame_time_ms;
+                    if self.mapgen_timer > 300.0 {
+                        self.mapgen_timer = 0.0;
+                        self.mapgen_index += 1;
+                        if self.mapgen_index >= self.mapgen_history.len() {
+                            newrunstate = self.mapgen_next_state.unwrap();
+                        }
                     }
                 }
             }
@@ -485,11 +476,11 @@ impl GameState for State {
             }
             RunState::MagicMapReveal { row } => {
                 let mut map = self.ecs.fetch_mut::<Map>();
-                for x in 0..MAPWIDTH {
+                for x in 0..map.width {
                     let idx = map.xy_idx(x as i32, row);
                     map.revealed_tiles[idx] = true;
                 }
-                if row as usize == MAPHEIGHT - 1 {
+                if row == map.height - 1 {
                     newrunstate = RunState::GameworldTurn;
                 } else {
                     newrunstate = RunState::MagicMapReveal{ row: row + 1 };
@@ -615,12 +606,14 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Hidden>();
     gs.ecs.register::<EntryTrigger>();
     gs.ecs.register::<JustMoved>();
+    gs.ecs.register::<Door>();
+    gs.ecs.register::<BlocksVisibility>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
-    gs.ecs.insert(Map::new(1));
+    gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
