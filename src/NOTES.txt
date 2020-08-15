@@ -1,7 +1,9 @@
-Current: Chapter_41 "DECOUPLING MAP SIZE FROM TERM SIZE!!!!!"
-
 Do Next:
-- Move Door interaction stuff out of player.rs into its own System.
+- Get UI working with new decoupling of map from screen.
+- - I think the problem is the "ctx.width_pixels" useage. This is fixed
+  regardless of resolution. It's not screen pixels it's 8ths of a tile.	
+
+- Door interaction system (stuff already moved from player.rs)
 - Get to new Turn System in Tutorial to use as foundation.
 - New AP-based Turn System
 - Temp Resistances

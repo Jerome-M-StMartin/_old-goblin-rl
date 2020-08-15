@@ -53,7 +53,7 @@ pub use components::*;
 pub use map::*;
 pub use rect::Rect;
 
-const SHOW_MAPGEN_VISUALIZER: bool = true;
+const SHOW_MAPGEN_VISUALIZER: bool = false;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState { 

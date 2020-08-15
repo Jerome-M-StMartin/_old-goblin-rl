@@ -35,13 +35,13 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                 let num_options = menuable.options.len() as i8;
                 let height = num_options + 1; 
 
-                ctx.draw_box(0, 0, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-                ctx.print_color(1, 0, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
+                ctx.draw_box(1, 1, 14, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+                ctx.print_color(2, 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
 
                 //Draw the menu options.
                 let mut y = 1;
                 for (_, s) in &menuable.options {
-                    ctx.print_color(2, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
+                    ctx.print_color(3, y + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
                     y += 1;
                     
                 }
@@ -81,11 +81,12 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
 
                 //Disallow menu use if target is too far from player for interaction.
                 if !is_adjacent_to_player(ecs, cursor.x, cursor.y) {
-                    ctx.print_color(1, height, RGB::named(rltk::RED), RGB::named(rltk::BLACK), "TOO FAR AWAY");
+                    ctx.print_color(3, height + 1, RGB::named(rltk::RED),
+                                                   RGB::named(rltk::BLACK), "TOO FAR AWAY");
                     if result.0 != MenuResult::Cancel { result = (MenuResult::Continue, None, selection, focus); }
                 } else {
                     //Draw the curr-selction arrow.
-                    ctx.print_color(0, selection + 1, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+                    ctx.print_color(1, selection + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
                 }
             } else { result = (MenuResult::Cancel, None, 0, 0); }
         } else { result = (MenuResult::Cancel, None, 0, 0); }
@@ -131,8 +132,10 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
 
 
     let x = 5;
-    let menu_width = (ctx.width_pixels / 8) as i32 / 2 - (x * 2);
-    let max_menu_height = (ctx.height_pixels / 8) as i32 - (x * 2);
+    let scale = ctx.get_scale(); //(f32, i32, i32) == (scale, center_x, center_y)
+    let menu_width = (scale.1) - (x * 2);
+    let max_menu_height = (scale.2 * 2) - (x * 2);
+    
     let mut box_top = 0;
     let mut box_bottom = 0;
     let mut y: i32;
@@ -206,7 +209,7 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
     ctx.print_color(x+2, box_top + box_bottom,
         RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
     ctx.print_color(x+18, box_top + box_bottom,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Exit Menu");
+        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Close");
     
     if num_options > 0 {
         ctx.print_color(x, box_top + state.selection as i32 + 2,
@@ -342,7 +345,7 @@ pub fn enable_cursor_control(ecs: &mut World, ctx: &mut Rltk) {
     let input = INPUT.lock();
     let mut movement = 1;
     if input.is_key_pressed(VirtualKeyCode::LShift) { movement = 3 };
-        
+
     match ctx.key {
         None => {}
         Some(key) => match key {
@@ -460,30 +463,35 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {
     let map = ecs.fetch::<Map>();
 
     let depth = format!("Depth: {}", map.depth);
-    let ctx_w = ctx.width_pixels as i32 / 8;
-    let ctx_h = ctx.height_pixels as i32 / 8;
+    let (min_x, max_x, min_y, max_y) = camera::get_screen_bounds(ecs, ctx);
+    let screen_w = max_x - min_x;
+    let screen_h = max_y - min_y;
 
-    ctx.draw_box(0, ctx_h - 7, ctx_w - 1, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(2, ctx_h - 7, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
+    ctx.draw_box(0, screen_h - 7, screen_w - 1, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+    ctx.print_color(2, screen_h - 7, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
 
     draw_cursor(ecs, ctx);
-    draw_stats(ecs, ctx, ctx_h, depth.len() as i32);
+    draw_stats(ecs, ctx, screen_h, depth.len() as i32);
     draw_tooltips(ecs, ctx, tooltips);
-    draw_log(ecs, ctx, ctx_h);
+    draw_log(ecs, ctx, screen_h);
 }
 
-fn draw_stats(ecs: &World, ctx: &mut Rltk, ctx_h: i32, depth: i32) {
+fn draw_stats(ecs: &World, ctx: &mut Rltk, screen_h: i32, depth_len: i32) {
     let stats = ecs.read_storage::<Stats>();
     let players = ecs.read_storage::<Player>();
 
     for (_player, stats) in (&players, &stats).join() {
         let mut hp_bar = "".to_string();
-        let mut fp_bar = "".to_string();
-        let mut mp_bar = "".to_string();
 
         for _ in 0..stats.hp { hp_bar.push_str("♥"); }
         for _ in stats.hp..stats.max_hp { hp_bar.push_str("."); }
         let health = format!("[{}]", &hp_bar);
+
+        ctx.print_color(depth_len + 3, screen_h - 7,
+                        RGB::named(rltk::RED), RGB::named(rltk::BLACK), &health);
+        /*
+        let mut fp_bar = "".to_string();
+        let mut mp_bar = "".to_string();
 
         for _ in 0..stats.fp { fp_bar.push_str(">"); }
         for _ in stats.fp..stats.max_fp { fp_bar.push_str("."); }
@@ -493,19 +501,17 @@ fn draw_stats(ecs: &World, ctx: &mut Rltk, ctx_h: i32, depth: i32) {
         for _ in stats.mp..stats.max_mp { mp_bar.push_str("."); }
         let mana = format!("[{}]", &mp_bar);
 
-        ctx.print_color(depth + 3, ctx_h - 7,
-                        RGB::named(rltk::RED), RGB::named(rltk::BLACK), &health);
-        ctx.print_color(depth + 6 + stats.max_hp, ctx_h - 7,
+        ctx.print_color(depth_len + 6 + stats.max_hp, screen_h - 7,
                         RGB::named(rltk::GREEN), RGB::named(rltk::BLACK), &fatigue);
-        ctx.print_color(depth + 9 + stats.max_hp + stats.max_fp, ctx_h - 7,
-                        RGB::named(rltk::BLUE), RGB::named(rltk::BLACK), &mana);
+        ctx.print_color(depth_len + 9 + stats.max_hp + stats.max_fp, screen_h - 7,
+                        RGB::named(rltk::BLUE), RGB::named(rltk::BLACK), &mana);*/
     }
 }
 
-fn draw_log(ecs: &World, ctx: &mut Rltk, ctx_h: i32) {
+fn draw_log(ecs: &World, ctx: &mut Rltk, screen_h: i32) {
     let log = ecs.fetch::<GameLog>();
 
-    let mut y = ctx_h - 2;
+    let mut y = screen_h - 2;
     let mut i = 0;
     
     for s in log.entries.iter().rev() {
@@ -675,22 +681,23 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
 
 pub fn game_over(ctx: &mut Rltk) -> MenuResult {
     ctx.cls();
-    ctx.print_color_centered(15, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(12, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "Your journey has come to its close.");
-    ctx.print_color_centered(17, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(16, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "Though history yields not the forgotten, ");
     ctx.print_color_centered(18, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "it is born of their actions none-the-less.");
-    ctx.print_color_centered(20, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(22, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "A new journey awaits.");
-    ctx.print_color_centered(29, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(28, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "Will you tread once more upon The Foot of The Mountain?");
 
-    let center = (ctx.width_pixels / 8) / 2;
+    let scale = ctx.get_scale(); //(f32, i32, i32) == (scale, center_x, center_y)
+    let center_x = scale.1;
 
-    ctx.print_color(center - 5, 33, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color(center_x - 5, 32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
         "Be Reborn");
-    ctx.print_color(center - 7, 33, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK),
+    ctx.print_color(center_x - 7, 32, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK),
         "->");
 
     match ctx.key {
