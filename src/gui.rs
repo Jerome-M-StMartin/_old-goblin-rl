@@ -2,7 +2,8 @@ use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
-             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, camera};
+             Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, camera,
+             infocard, };
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }
@@ -15,6 +16,12 @@ pub enum MainMenuResult {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum MenuResult { Continue, Cancel, Selected }
+
+
+pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
+    infocard::show_infocard(ecs, ctx, ent);
+}
+
 
 pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) ->
                                 (MenuResult, Option<(MenuOption, Entity)>, i8, i8) {
@@ -55,20 +62,20 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                         VirtualKeyCode::C => { result = (MenuResult::Cancel, None, 0, 0) },
 
                         VirtualKeyCode::W |
-                        //VirtualKeyCode::Up |
-                        //VirtualKeyCode::Numpad8 |
+                        VirtualKeyCode::Up |
+                        VirtualKeyCode::Numpad8 |
                         VirtualKeyCode::K => { result = (MenuResult::Continue, None,
                                                          max(0, selection - 1), focus) }
 
                         VirtualKeyCode::S |
-                        //VirtualKeyCode::Down |
-                        //VirtualKeyCode::Numpad2 |
+                        VirtualKeyCode::Down |
+                        VirtualKeyCode::Numpad2 |
                         VirtualKeyCode::J => { result = (MenuResult::Continue, None,
                                                          min(num_options - 1, selection + 1), focus ) }                                   
                         VirtualKeyCode::Tab => { result = (MenuResult::Continue, None, 0, focus + 1) }
 
                         VirtualKeyCode::Return |
-                        //VirtualKeyCode::NumpadEnter |
+                        VirtualKeyCode::NumpadEnter |
                         VirtualKeyCode::E => {
                             result = ( MenuResult::Selected,
                                        Some( (menuable.options[selection as usize].0, ent) ),

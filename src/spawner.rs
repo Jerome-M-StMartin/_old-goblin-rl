@@ -7,7 +7,7 @@ use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, Block
              AoE, Confusion, SerializeMe, random_table::RandomTable, Equippable,
              EquipmentSlot, Weapon, BasicAttack, Resistances, BlocksAttacks, Menuable,
              Creature, Hunger, HungerState, MagicMapper, Useable, Throwable, Flammable,
-             Hidden, EntryTrigger, TileType, Map};
+             Hidden, EntryTrigger, TileType, Map, Info};
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -35,6 +35,7 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
         .with(BasicAttack::default())
         .with(Resistances::default())
         .with(Hunger { state: HungerState::Satiated, clock: 300 })
+        .with(Info::test_new())
         .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }

@@ -27,6 +27,7 @@ pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
 pub mod camera;
+pub mod infocard;
 
 use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
@@ -305,6 +306,10 @@ impl GameState for State {
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::ShowContextMenu { selection, focus } => {
+                let player = self.ecs.fetch::<Entity>();
+                gui::show_infocard(&self.ecs, ctx, *player);
+            }
+            /*RunState::ShowContextMenu { selection, focus } => {
                 let result = gui::open_context_menu(&self.ecs, ctx, selection, focus);
 
                 match result.0 {
@@ -377,7 +382,7 @@ impl GameState for State {
                         }
                     }
                 }
-            }
+            }*/
             RunState::ShowPlayerMenu { menu_state } => {
                 let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
 
@@ -608,6 +613,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<JustMoved>();
     gs.ecs.register::<Door>();
     gs.ecs.register::<BlocksVisibility>();
+    gs.ecs.register::<Info>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
 

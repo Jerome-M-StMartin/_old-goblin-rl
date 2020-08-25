@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use rltk::{RGB};
+use rltk::RGB;
 use super::{ Rltk, Particle, Position, Renderable, };
 
 pub struct ParticleSpawnSystem {}

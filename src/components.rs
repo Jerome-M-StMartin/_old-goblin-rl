@@ -52,10 +52,7 @@ pub struct Hidden {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct JustMoved {}
-
-//Yet Unused
-#[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Interactable {}//--------------------------------------
+//--------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Door { 
@@ -410,6 +407,40 @@ pub struct EquipIntent {
 pub struct UnequipIntent {
     pub item: Entity
 }//----------------------------------------------
+
+#[derive(Component, Debug, ConvertSaveload)]
+pub struct Info {
+    pub name: String,
+    //pub stats: ?,
+    //pub actions: Vec<(Action, String)>, //refactor of MenuOption & Menuable
+    pub actions: Vec<(MenuOption, String)>, //refactor of MenuOption & Menuable
+    pub desc: String,
+    pub lore: Vec<String>,
+}
+
+impl Info {
+    pub fn test_new() -> Info {
+        Info {
+            name: "[Name Goes Here]".to_string(),
+            actions: vec![(MenuOption::Attack, "Action A".to_string()),
+                          (MenuOption::PickUp, "Action B".to_string()),
+                          (MenuOption::Equip, "Action C".to_string())],
+            desc: "Watch - as I combine all the juice from the mind, heel up, wheel up, bring it back come rewind...".to_string(),
+            lore: Vec::new(),
+        }
+    }
+}
+
+/*#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
+enum Action {
+    PickUp,
+    DropIt,
+    Use,
+    Equip,
+    Unequip,
+    Attack,
+    Throw,
+}*/
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum MenuOption {

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Map,TileType,Position,Renderable,Hidden};
+use super::{Map, TileType, Position, Renderable, Hidden};
 use rltk::{Point, Rltk, RGB};
 
 const SHOW_BOUNDARIES : bool = true;

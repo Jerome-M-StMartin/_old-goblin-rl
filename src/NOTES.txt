@@ -1,21 +1,6 @@
 Do Next:
-- Get UI working with new decoupling of map from screen.
-- - I think the problem is the "ctx.width_pixels" useage. This is fixed
-  regardless of resolution. It's not screen pixels it's 8ths of a tile.	
-
-- Door interaction system (stuff already moved from player.rs)
-- Get to new Turn System in Tutorial to use as foundation.
-- New AP-based Turn System
-- Temp Resistances
-- Weapon Attack Mode Switching
-- AI
-- ProcGen Improvement
-- Make way for torches to do Thermal dmg if lit.
-- Intro Area + Write the Walkthrough for it
-- RNG Equipment/Weapons: I think this needs to be a priority. Even if there
-  was only one enemy type, having a plethora of unique weapons to choose from,
-  even if -- no -- especically because 99% of those items will be trash. It's
-  the search for and eventual discovery of the 1% that creates emergent story for
+- Item Card & Inventory System:
+- - Made Changes to Main RunState::ContextMenu match arm
 - (!) Breakthrough Inventory Management Concept: (!)
   Store all Inventory data in a Binary Tree.
   Each layer corresponds to a subdivision of inventory which would typically
@@ -33,8 +18,19 @@ Do Next:
   Item's depth in the tree determines the AP cost of accessing the item.
   AP Cost = (Layer# - 1) (no items are stored in root/zero layer, this is hud
   gui data and behaviour only)
-
-Hell, use this same tree idea for the Spellbook!
+- Spellbook (in Inventory node-menu)
+- Door interaction system (stuff already moved from player.rs)
+- Get to new Turn System in Tutorial to use as foundation.
+- New AP-based Turn System
+- Implement Burning effect for Torch melee, etc.
+- Weapon Attack Mode Switching
+- AI
+- ProcGen Improvement
+- Intro Area + Write the Walkthrough for it
+- RNG Equipment/Weapons: I think this needs to be a priority. Even if there
+  was only one enemy type, having a plethora of unique weapons to choose from,
+  even if -- no -- especically because 99% of those items will be trash. It's
+  the search for and eventual discovery of the 1% that creates emergent story for
 
 TEST:
 - Bloodstains & Bleeding: Give Orcs 12hp & make Longswords common.

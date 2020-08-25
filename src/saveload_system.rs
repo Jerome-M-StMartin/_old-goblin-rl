@@ -61,7 +61,7 @@ pub fn save_game(ecs : &mut World) {
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
             MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource, Aflame, Hidden,
-            EntryTrigger, JustMoved, Door, BlocksVisibility
+            EntryTrigger, JustMoved, Door, BlocksVisibility, Info
         );
     }
 
@@ -96,7 +96,7 @@ pub fn load_game(ecs: &mut World) {
             AoE, Confusion, Healing, InBackpack, PickUpIntent, UseItemIntent, Particle, Hunger,
             DropItemIntent, EquipIntent, Equippable, Equipped, Bleeding, Weapon, SerializationHelper,
             MagicMapper, Useable, ThrowIntent, Throwable, Flammable, Lightsource, Aflame, Hidden,
-            EntryTrigger, JustMoved, Door, BlocksVisibility
+            EntryTrigger, JustMoved, Door, BlocksVisibility, Info
         );
     }
 
