@@ -1,3 +1,18 @@
+MENU REFACTOR INTO-> INFOCARD-STYLE:
+After considering whether I should incrementally slot-in my refactor to the
+existing system before moving on the the next aspect of the refactor, I've
+decided this is needlessly time-consuming. That method would be required if
+I was working with some legacy system, the functionality of which needing to
+remain unchanged and continuously useable as refactored pieces are applied;
+but this is not the case.
+A ground-up re-factor that I patch back in all-at-once (with incremental
+checking via duct-tape tie-ins to the current system) seems much wiser as it
+will result in a more cohesive, intuitive inventory management system in the
+end I believe.
+
+NOW Goal: Implement inventory node-menu to the right of the infocard such that
+the currently selected node's info is shown in the infocard.
+
 Do Next:
 - Item Card & Inventory System:
 - - Made Changes to Main RunState::ContextMenu match arm

@@ -10,7 +10,7 @@ struct InfoBox {
 }
 
 impl InfoBox {
-    pub fn new_main(screen_scale: (f32, i32, i32)) -> InfoBox {
+    pub fn new_main(screen_scale: (f32, i32, i32)) -> InfoBox { //(scale, center_x, center_y)
         let init_origin: (u32, u32) = (0 as u32, 0 as u32);
         let w: u32 = screen_scale.1 as u32 - (init_origin.0 + 1);
         let h: u32 = (screen_scale.2 as u32 * 2) - (init_origin.1 * 2) - 8;
@@ -33,6 +33,11 @@ impl InfoBox {
         ctx.draw_box(self.origin.0, self.origin.1, self.width, self.height,
             RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
     }
+
+    pub fn draw_color(&self, ctx: &mut Rltk, color: (u8, u8, u8)) {
+        ctx.draw_box(self.origin.0, self.origin.1, self.width, self.height,
+            RGB::named(color), RGB::named(rltk::BLACK));
+    }
 }
 
 pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
@@ -42,7 +47,7 @@ pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
 
         let main_box = InfoBox::new_main(ctx.get_scale());
         let action_box = InfoBox::new((main_box.origin.0 + 1 as u32,
-                                      main_box.origin.1 +  1 as u32),
+                                      main_box.origin.1 + 1 as u32),
                                       (main_box.width / 2) - 1,
                                       main_box.height / 4);
         let stat_box = InfoBox::new( ((action_box.origin.0 + action_box.width + 1) as u32,
@@ -58,7 +63,7 @@ pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
                                       main_box.width - 2,
                                       main_box.height - (action_box.height + desc_box.height + 4));
 
-        main_box.draw(ctx);
+        main_box.draw_color(ctx, rltk::GREEN);
         action_box.draw(ctx);
         stat_box.draw(ctx);
         desc_box.draw(ctx);

@@ -305,11 +305,12 @@ impl GameState for State {
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
-            RunState::ShowContextMenu { selection, focus } => {
+            /*THIS IS FOR INFOCARD.RS TESTING PURPOSES
+             * RunState::ShowContextMenu { selection, focus } => {
                 let player = self.ecs.fetch::<Entity>();
                 gui::show_infocard(&self.ecs, ctx, *player);
-            }
-            /*RunState::ShowContextMenu { selection, focus } => {
+            }*/
+            RunState::ShowContextMenu { selection, focus } => {
                 let result = gui::open_context_menu(&self.ecs, ctx, selection, focus);
 
                 match result.0 {
@@ -382,8 +383,11 @@ impl GameState for State {
                         }
                     }
                 }
-            }*/
+            }
             RunState::ShowPlayerMenu { menu_state } => {
+                gui::open_node_menu();
+            }
+            /*RunState::ShowPlayerMenu { menu_state } => {
                 let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
 
                 match out.mr {
@@ -455,7 +459,7 @@ impl GameState for State {
                         }
                     }
                 }
-            }
+            }*/
             RunState::ShowTargeting {range, item} => {
                 let result = gui::target_selection_mode(&mut self.ecs, ctx, range);
                 let useable_storage = self.ecs.read_storage::<Useable>();
@@ -546,6 +550,16 @@ struct Cursor {
     pub active: bool
 }
 
+struct Inventory {
+    pub backpack: Vec<Entity>,
+    pub equipment: Vec<Entity>,
+}
+
+struct UIColors {
+    pub main: (u8, u8, u8),
+    pub cursor: (u8, u8, u8),
+}
+
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
     let context = RltkBuilder::simple80x50()
@@ -629,7 +643,9 @@ fn main() -> rltk::BError {
         entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
-    gs.ecs.insert(Cursor { x: 0, y: 0, active: false }); //probably needs attention
+    gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
+    gs.ecs.insert(Inventory { backpack: Vec::new(), equipment: Vec::new() });
+    gs.ecs.insert(UIColors { main: rltk::WHITE, cursor: rltk::MAGENTA });
 
     gs.generate_world_map(1);
 
