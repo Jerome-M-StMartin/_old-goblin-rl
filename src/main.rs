@@ -27,7 +27,7 @@ pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
 pub mod camera;
-pub mod infocard;
+pub mod menu;
 
 use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
@@ -385,7 +385,12 @@ impl GameState for State {
                 }
             }
             RunState::ShowPlayerMenu { menu_state } => {
-                gui::open_node_menu();
+                let node_menu_origin: (i32, i32) = (1, 1);
+                if let Some(m_state) = menu_state.unwrap() {
+                    menu::show_menu(&self.ecs, ctx, node_menu_origin, m_state);
+                } else {
+                    menu::show_menu(&self.ecs, ctx, node_menu_origin, None);
+                }
             }
             /*RunState::ShowPlayerMenu { menu_state } => {
                 let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
@@ -551,8 +556,10 @@ struct Cursor {
 }
 
 struct Inventory {
-    pub backpack: Vec<Entity>,
-    pub equipment: Vec<Entity>,
+    pub hands: (Option<Entity>, Option<Entity>),
+    pub quickbar: Vec<Option<Entity>>,
+    pub backpack: Vec<Option<Entity>>,
+    pub equipment: Vec<Option<Entity>>,
 }
 
 struct UIColors {
@@ -644,7 +651,12 @@ fn main() -> rltk::BError {
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
-    gs.ecs.insert(Inventory { backpack: Vec::new(), equipment: Vec::new() });
+    gs.ecs.insert(Inventory { 
+        hands: (None, None),
+        quickbar: Vec::new(),
+        backpack: Vec::new(),
+        equipment: Vec::new(),
+    });
     gs.ecs.insert(UIColors { main: rltk::WHITE, cursor: rltk::MAGENTA });
 
     gs.generate_world_map(1);
