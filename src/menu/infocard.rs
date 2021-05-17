@@ -1,7 +1,7 @@
 use rltk::{RGB, Rltk};
 use specs::prelude::*;
 use std::cmp::max;
-use super::{Info, MenuOption};
+use super::{super::components::Info, MenuOption};
 
 struct InfoBox {
     pub origin: (u32, u32), //top left corner coordinates

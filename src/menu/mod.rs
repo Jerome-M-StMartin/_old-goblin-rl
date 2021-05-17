@@ -4,7 +4,7 @@ use specs::prelude::*;
 use super::{Rltk, UIColors, Inventory, MenuOption};
 use rltk::RGB;
 
-mod infocard;
+pub mod infocard;
 
 /*
  * Concept:
@@ -31,14 +31,14 @@ struct MenuState {
     pub mr: MenuResult,
 }
 
-struct Menu {
+pub struct Menu {
     menu_chars: Vec<char>,
     state: Option<MenuState>,
 }
 
 impl Menu {
     fn new(origin: (i32, i32), width: u8, depth: u8) -> Menu {
-       let m = Menu {
+       let mut m = Menu {
             menu_chars: Vec::new(),
             state: None,
        };
@@ -81,7 +81,7 @@ fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<Me
     let qkbar: &Vec<Option<Entity>> = &inv.quickbar;
     let bkpk: &Vec<Option<Entity>> = &inv.backpack;
 
-    let to_print: Vec<char> = vec!['┌', '•', ' ', '┌', '•', ' ', '┌', '•', ' ',
+    let mut to_print: Vec<char> = vec!['┌', '•', ' ', '┌', '•', ' ', '┌', '•', ' ',
                                    '├', '•', ' ', '├', '•', ' ', '├', '•', ' ',
                                    '└', '•', ' ', '└', '•', ' ', '└', '•', ' '];
 
@@ -98,7 +98,7 @@ fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<Me
             if curr_idx >= to_print.len() {
                 panic!("curr_index ({}) out of bounds.", curr_idx);
             }
-            match (dir, prev_dir) {
+            match (dir, &prev_dir) {
                 (UDLR::UP, Some(UDLR::UP)) => {
                     to_print[curr_idx] = '│';
                     curr_idx = udlr_to_idx(curr_idx, UDLR::UP);
@@ -161,7 +161,7 @@ fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<Me
     let mid_row: &[char] = &to_print[9..18];
     let bot_row: &[char] = &to_print[18..];
 
-    let i = 0;
+    let mut i = 0;
     loop {
         match i {
             0 => {
@@ -183,7 +183,7 @@ fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<Me
 }
 
 fn udlr_to_idx (from_idx: usize, dir: UDLR) -> usize {
-    let new_idx: usize = from_idx;
+    let mut new_idx: usize = from_idx;
     match dir {
         UDLR::UP => { new_idx = from_idx - 9; },
         UDLR::DOWN => { new_idx = from_idx + 9; },

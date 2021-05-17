@@ -3,7 +3,7 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
              Viewshed, RunState, Equipped, Menuable, MenuOption, Cursor, Hidden, camera,
-             infocard, };
+             menu::infocard, };
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum MainMenuSelection { NewGame, LoadGame, Quit }

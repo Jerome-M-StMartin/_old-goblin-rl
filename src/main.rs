@@ -384,15 +384,16 @@ impl GameState for State {
                     }
                 }
             }
-            RunState::ShowPlayerMenu { menu_state } => {
+            //menu as module version - incomplete
+            /*RunState::ShowPlayerMenu { menu_state } => {
                 let node_menu_origin: (i32, i32) = (1, 1);
                 if let Some(m_state) = menu_state.unwrap() {
                     menu::show_menu(&self.ecs, ctx, node_menu_origin, m_state);
                 } else {
                     menu::show_menu(&self.ecs, ctx, node_menu_origin, None);
                 }
-            }
-            /*RunState::ShowPlayerMenu { menu_state } => {
+            }*/
+            RunState::ShowPlayerMenu { menu_state } => {
                 let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
 
                 match out.mr {
@@ -464,7 +465,7 @@ impl GameState for State {
                         }
                     }
                 }
-            }*/
+            }
             RunState::ShowTargeting {range, item} => {
                 let result = gui::target_selection_mode(&mut self.ecs, ctx, range);
                 let useable_storage = self.ecs.read_storage::<Useable>();
