@@ -1,0 +1,90 @@
+TO-LEARN:
+1.) ?
+
+TO-DO:
+1.) Build complete 'infocard' with mock RPG data representing character stats & inventory.
+?.) Establish what remains internal to this crate and what should be broken
+    into other small crates. 
+---------------------------------
+DONE.) ScrollBar Prototype v1
+DONE.) Drawable Observers
+DONE.) Input Handler + Observer Pattern (w/ Focus System)
+DONE.) Generic Type Node.payloads
+DONE.) serde_yaml
+DONE.) Command Pattern (impl on Cursor)
+DONE.) Get cursor onto screen with user interactability via Command Pattern.
+DONE.) Finish re-re-implementation of the Command Pattern
+DONE.) Implement Drawables
+
+YAML:
+Writing this to help cement my understanding of YAML, and how I will be using
+it here, into my brainum contraption.
+
+I will be using two crates: yaml-rust and serde-yaml.
+- yaml-rust: This one converts between String and yaml::Yaml.
+- serde-yaml: This one converts between rust data structures and yaml:Yaml.
+
+So yaml::Yaml is of the String type, but specifically in the yaml format.
+
+NOTE: No need to use yaml-rust directly, as serde_yaml uses it in the backend
+and you can call serde_yaml::to_string(), which (i think) is actually a call
+to yaml-rust.
+
+Basic How-To:
+
+fn myFn() -> Result<(), serde_yaml::Error> {
+	let point: Point = Point { x: 0, y: 0};
+	let serialized_point = serde_yaml::to_string(&point)?;
+	let deserialized_point: Point = serde_yaml::from_str(&serialized_point)?;
+	Ok(())
+}
+
+In order to write Yaml directly that can be deserialized, it has to match the
+format that serde-yaml expects. It seems that the best way would be to start
+with a Rust struct, convert it to a yaml String, see what the format is, and
+copy that format to write more of them directly in yaml.
+
+=========================
+========= STORY =========
+=========================
+Randomized bank of dialogue that cycles for each _new_ non-critical goblin you speak with.
+
+=========================
+===== Card-Actions ======
+=========================
+
+What if each weapon gave its users a sub-deck of cards, added to the 'library'
+of the wielder. When the weapon is unequipped these cards are removed from the
+'library'.
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ⌜ ◁⦕ Sudden  Lunge ⦖▷ ⌝ ┃
+┃                         ┃
+┃ ┌Cost─────────────────┐ ┃
+┃ │ ⭮ ﹢⧗ ﹢♦ ♦ ♦       │ ┃
+┃ └─────────────────────┘ ┃
+┃            ⎯            ┃
+┃ ┌Effect───────────────┐ ┃
+┃ │Deal Piercing Weapon │ ┃
+┃ │Damage to any target │ ┃
+┃ │creature at Range 1. │ ┃
+┃ │                     │ ┃
+┃ │Overexertion: Pay ⧗⧗ │ ┃
+┃ │after this action    │ ┃
+┃ │resolves.            │ ┃
+┃ └─────────────────────┘ ┃
+┃ ⌞           Rarity: 🟂 ⌟ ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+ --- UNICODE CHARACTERS --- :
+○
+⃝
+⭮ = Action consumes entire turn in addition to other costs.
+⏱ or ⧗ = Action Point
+♡ = Health Point
+♦ = Fatigue Point
+⏾  = Mana Point
+⏺🟂 🟆 🟊 <-Rarity Symbols[Unlimited, 1/1,000,000, 1/100,000, 1/10,000]
+⚇ <-Basic NPC glyph?
+

@@ -27,7 +27,6 @@ pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
 pub mod camera;
-pub mod menu;
 
 use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
@@ -75,7 +74,8 @@ pub enum RunState {
 
 pub struct State {
     pub ecs: World,
-    pub tooltips_on: bool,
+    gui: gui::GUI,
+    pub tooltips_on: bool, //<-delete after UI integration
 
     mapgen_next_state: Option<RunState>,
     mapgen_history: Vec<Map>,
@@ -244,6 +244,8 @@ impl GameState for State {
         ctx.cls(); //clearscreen
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
 
+        //First, figure out which screen/mode we're on/in. e.g Don't need to draw
+        //the map or HUD if we're in the Main Menu or Game Over screens/modes.
         match newrunstate {
             RunState::MainMenu{..} => {}
             RunState::GameOver => {}
@@ -265,6 +267,7 @@ impl GameState for State {
             }
         }
 
+        //Now match on the runstate again to handle all other runstate-speicific factors.
         match newrunstate {
             RunState::MapGeneration => {
                 if !SHOW_MAPGEN_VISUALIZER {
@@ -571,13 +574,16 @@ struct UIColors {
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
     let context = RltkBuilder::simple80x50()
-        .with_title("Wizard of the Old Tongue")
+        .with_title("GoblinRL")
+        //.with_font("../resources/unicode_16x16.png", 16, 16)
+        .with_fps_cap(60.0)
         .build()?;
 
     //context.with_post_scanlines(true);
 
     let mut gs = State {
         ecs: World::new(),
+        gui: gui::GUI::new(),
         tooltips_on: false,
 
         mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }),
@@ -648,7 +654,7 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(gamelog::GameLog {
-        entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
+        entries: vec!["The Wandering Wood Walks With One's Peripheral Gaze".to_string()]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
