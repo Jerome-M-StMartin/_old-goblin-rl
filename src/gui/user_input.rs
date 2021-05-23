@@ -13,17 +13,20 @@
 //input is invalid for the "focus" Observer, the corresponding input in the InputState is simply
 //ignored by the focus Observer.
 
+use std::any::Any;
+use std::rc::{Rc, Weak};
+use std::cell::{Cell, RefCell};
+
+use bracket_terminal::prelude::{BTerm, Point, VirtualKeyCode};
+
 use super::look_n_feel::Dir;
 use super::observer::{IdGenerator, Observable, Observer};
-use bracket_terminal::prelude::{BTerm, Point, VirtualKeyCode};
-use std::any::Any;
-use std::sync::{RwLock, Weak, Arc};
 
 pub struct UserInput {
     pub id_gen: IdGenerator,
-    observers: RwLock<Vec<Weak<dyn Observer>>>, //focus is at index 0
-    pub input: RwLock<Option<InputEvent>>,
-    focus_id: RwLock<Option<usize>>,
+    observers: RefCell<Vec<Weak<dyn Observer>>>, //focus is at index 0
+    pub input: Cell<Option<InputEvent>>,
+    focus_id: Cell<Option<usize>>,
 }
 
 #[derive(Clone, Copy)]
@@ -41,15 +44,15 @@ impl UserInput {
     pub fn new() -> Self {
         UserInput {
             id_gen: IdGenerator::new(),
-            observers: RwLock::new(Vec::new()),
-            input: RwLock::new(None),
-            focus_id: RwLock::new(None),
+            observers: RefCell::new(Vec::new()),
+            input: Cell::new(None),
+            focus_id: Cell::new(None),
         }
     }
 
-    pub fn transcribe_input(&self, ctx: &BTerm) -> bool { //use return val to control observer notification
+    pub fn transcribe_input(&self, ctx: &BTerm) -> bool { //use returned bool to control observer notification
         let mut dirty: bool = false;
-        let mut input: Option<InputEvent>;
+        let mut input: Option<InputEvent> = None;
         if let Some(key) = ctx.key {
             match key {
                 VirtualKeyCode::W => input = Some(InputEvent::WASD(Dir::UP)),
@@ -63,27 +66,19 @@ impl UserInput {
                 VirtualKeyCode::L => input = Some(InputEvent::HJKL(Dir::RIGHT)),
 
                 VirtualKeyCode::Tab => {
-                    let next_id = &self.next_observer_id();
-                    if *next_id == 0 {
-                        self.focus_id.set(None);
-                    } else {
-                        self.focus_id.set(Some(next_id.clone()));
-                    }
+                    let next_id = self.next_observer_id();
+                    self.focus_id.set(Some(next_id));
                 }
                 VirtualKeyCode::T => input = Some(InputEvent::TOOLTIPS),
                 VirtualKeyCode::Escape => input = Some(InputEvent::ESC),
                 VirtualKeyCode::Return => input = Some(InputEvent::ENTER),
 
                 _ => {
-                    input = None;
-                    if let Ok(unlocked_input) = self.input.write() {
-                        unlocked_input = input;
-                    }
+                    self.input.set(input);
                     return dirty;
                 }
             }
         } else {
-            input = None;
             self.input.set(input);
             return dirty;
         };
@@ -94,21 +89,34 @@ impl UserInput {
     }
 
     //Return next observer id after popping next_focus from observers vec and moving it to the
-    //front (observers[0] is the current focus).
+    //front. (observers[0] should always be the current focus).
     fn next_observer_id(&self) -> usize {
+        let mut focus_id: usize = 0;
         let mut observers = self.observers.borrow_mut();
-        let mut next_focus_id: usize = 0;
-        if let Some(next_focus_ptr) = observers.pop() {
-            if let Some(next_focus) = next_focus_ptr.upgrade() {
+        if let Some(next_focus_weak) = observers.pop() {
+            if let Some(next_focus) = next_focus_weak.upgrade() {
+                focus_id = next_focus.id();
+                self.focus_id.set(Some(focus_id));
                 next_focus.setup_cursor();
-                next_focus_id = next_focus.id();
-                let strong_ptr = next_focus;
-                let weak_ptr = Arc::downgrade(&strong_ptr);
-                observers.insert(0, weak_ptr);
+                observers.insert(0, Rc::downgrade(&next_focus));
             }
         }
+        focus_id
+    }
 
-        return next_focus_id;
+    fn set_focus(&self, observer_id: usize) {
+        let mut idx = 0;
+        let mut observers = self.observers.borrow_mut();
+        for observer_weak in observers.clone().iter() {
+            if let Some(observer) = observer_weak.upgrade() {
+                if observer.id() == observer_id {
+                    let new_focus = observers.swap_remove(idx);
+                    observers.insert(0, new_focus);
+                    self.focus_id.set(Some(observer_id));
+                }
+                idx += 1;
+            }
+        }
     }
 }
 
@@ -116,35 +124,36 @@ impl Observable for UserInput {
     fn notify_observers(&self) {
         let mut to_remove: Vec<usize> = Vec::new();
         let mut idx: usize = 0;
-        for observer_ptr in self.observers.borrow().iter() {
-            if let Some(observer) = observer_ptr.upgrade() {
+
+        for weak_observer in self.observers.borrow_mut().iter() {
+            if let Some(observer) = weak_observer.upgrade() {
                 observer.update();
             } else {
-                //queue lazy removal of dropped observers
                 to_remove.push(idx);
             }
             idx += 1;
         }
 
-        //lazy removal of dropped observers:
-        for idx in to_remove.into_iter() {
-            self.observers.borrow_mut().swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+        //lazy removal of dropped observers
+        if !to_remove.is_empty() {
+            for idx in to_remove.into_iter() {
+                self.observers.borrow_mut().swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+            }
         }
     }
 
     fn notify_focus(&self) {
-        let observer = &self.observers.borrow()[0];
-        if let Some(focus) = observer.upgrade() {
+        let weak_focus = &self.observers.borrow()[0];
+        if let Some(focus) = weak_focus.upgrade() {
             focus.update();
         }
     }
 
     //Called by Observer trait objects who want to be notified by this Observable.
-    fn add_observer(&self, to_add: Weak<RwLock<dyn Observer>>) {
-        if let Some(observer) = to_add.upgrade() {
-            *self.focus_id.borrow_mut() = Some(observer.id());
+    fn add_observer(&self, to_add: Weak<dyn Observer>) {
+        if let Some(_) = to_add.upgrade() {
+            self.observers.borrow_mut().push(to_add);
         }
-        self.observers.borrow_mut().push(to_add);
     }
 
     fn as_any(&self) -> &dyn Any {

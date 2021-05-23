@@ -2,7 +2,7 @@
 //Jerome M. St.Martin
 //Node Menu Project
 //5/13/2021
-
+/*
 use super::Drawable;
 use super::super::command::{Command, Commandable};
 use super::super::cursor::Cursor;
@@ -180,3 +180,4 @@ impl Observer for SubWindow {
     }
 }
 // --- ---
+*/

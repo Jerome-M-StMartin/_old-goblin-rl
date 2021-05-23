@@ -10,8 +10,10 @@ use super::user_input::{InputEvent, UserInput};
 use bracket_terminal::prelude::{to_cp437, BTerm, FontCharType, Point};
 use std::any::{Any, TypeId};
 use std::cell::Cell;
-use std::sync::Arc;
+use std::rc::Rc;
 
+
+//This struct is shared and should only have one instance, use it elsewhere in code always as Rc<Cursor>.
 pub struct Cursor {
     pub pos: Cell<Point>,                  // position
     pub glyph: Cell<Option<FontCharType>>, // char that visually represents cursor
@@ -20,14 +22,14 @@ pub struct Cursor {
 
     //Observer Pattern Fields
     observer_id: usize,
-    to_observe: Arc<dyn Observable>,
+    to_observe: Rc<dyn Observable>,
 
     //Command Pattern Field
     cmd_history: CommandHistory<Cursor>, // stateful expansion to Command Pattern
 }
 
 impl Cursor {
-    pub fn new(observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
+    pub fn new(observer_id: usize, to_observe: Rc<dyn Observable>) -> Cursor {
         Cursor {
             pos: Cell::new(Point { x: 0, y: 0 }),
             glyph: Cell::new(Some(to_cp437('>'))),
@@ -38,24 +40,6 @@ impl Cursor {
             cmd_history: CommandHistory::new(),
         }
     }
-
-    //Move to an orthogonally adjacent cell.
-    /*pub fn orth_move(&self, d: Dir) {
-        let mut pos = self.pos.get();
-        match d {
-            Dir::UP => pos.y -= 1,
-            Dir::DOWN => pos.y += 1,
-            Dir::LEFT => pos.x -= 1,
-            Dir::RIGHT => pos.x += 1,
-        }
-    }
-
-    //Teleport the Cursor to a specified cell location.
-    pub fn teleport(&self, destination: Point) {
-        if destination.x >= 0 && destination.y >= 0 {
-            self.pos.set(destination);
-        }
-    }*/
 
     pub fn set_bg(&self, c: ColorOption) {
         self.bg.set(c);
@@ -130,13 +114,14 @@ impl Observer for Cursor {
     fn update(&self) {
         let observable = self.to_observe.as_any().downcast_ref::<UserInput>();
         if let Some(user_input) = observable {
-            let input_event = user_input.input.borrow();
-            match *input_event {
-                Some(InputEvent::HJKL(dir)) => {
-                    let cmd = MoveCommand::new(dir);
-                    self.send(Box::new(cmd));
+            if let Some(input_event) = user_input.input.get() {
+                match input_event {
+                    InputEvent::HJKL(dir) => {
+                        let cmd = MoveCommand::new(dir);
+                        self.send(Box::new(cmd));
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
     }

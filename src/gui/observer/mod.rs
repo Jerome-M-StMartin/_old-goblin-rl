@@ -1,5 +1,4 @@
 //Jerome M. St.Martin
-//Node Menu Project
 //12/18/2020
 
 //OBSERVER DESIGN PATTERN
@@ -7,25 +6,23 @@
 
 use std::any::Any;
 use std::collections::HashSet;
-use std::sync::{RwLock, Weak};
+use std::rc::Weak;
+use std::cell::RefCell;
 
 pub struct IdGenerator {
-    used_ids: RwLock<HashSet<usize>>,
+    used_ids: RefCell<HashSet<usize>>,
 }
 impl IdGenerator {
     pub fn new() -> Self {
         IdGenerator {
-            used_ids: RwLock::new(HashSet::new()),
+            used_ids: RefCell::new(HashSet::new()),
         }
     }
 
     //Guaranteed to return a unique usize for this session.
     pub fn generate_observer_id(&self) -> usize {
         let mut new_id: usize = rand::random();
-        let mut used_ids: HashSet<usize>;
-        if let Ok(used_ids_guard) = self.used_ids.write() {
-            used_ids = *used_ids_guard;
-        }
+        let mut used_ids = self.used_ids.borrow_mut();
         while used_ids.contains(&new_id) {
             new_id = rand::random();
         }
@@ -41,16 +38,13 @@ pub trait Observer {
     //Observables with separate IdGenerators.
     fn id(&self) -> usize;
     fn update(&self);
-    fn setup_cursor(&self);
+    fn setup_cursor(&self); //<------------this needs to be moved elsewhere
 }
 
-//Implementors of the Observable trait should probably be placed behind a Mutex,
-//else Rust will worry about data-racing and make it impossible for the Observers
-//to observe this Observable.
 pub trait Observable {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
-    fn add_observer(&self, to_add: Weak<RwLock<dyn Observer>>);
+    fn add_observer(&self, to_add: Weak<dyn Observer>);
     fn as_any(&self) -> &dyn Any;
 }
 

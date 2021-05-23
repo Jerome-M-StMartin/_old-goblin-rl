@@ -6,7 +6,7 @@
 //Self-contained ScrollBar object that accepts Commands when
 //it is the Focus. Shows a movable window into a Vec<&T>, defined
 //by the slice_bounds field.
-
+/*
 use super::Drawable;
 use super::super::command::{Command, CommandHistory, Commandable};
 use super::super::cursor::Cursor;
@@ -232,7 +232,7 @@ impl<T> Command<ScrollBar<T>> for MoveCursorCommand {
         self
     }
 }
-//============================
+*/
 
 /*
  * ┌•

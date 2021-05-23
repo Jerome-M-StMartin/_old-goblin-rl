@@ -1,12 +1,11 @@
 //Jerome M. St.Martin
-//Node Menu Project
 //12/07/2020
 
 //COMMAND PATTERN
 
 /* How To Use:
  * 1.) Create new command obj (struct that implements Command trait).
- * 2.) Make them public so other things can create and send them to that obj.
+ * 2.) Make them public so other things can create and give ownership of them.
  * 3.) Have some input handler somewhere generate these command objects and send
  *     them where they need to go.
  *
@@ -23,7 +22,7 @@
  * dyn Command, in this context, represents one of any number of commands
  * that are implemented for a specific T.
  *
- * So target_instance is an object of type T.
+ * So target_instance is an immutable borrow of an object of type T.
  */
 
 use std::any::Any;
@@ -32,8 +31,17 @@ use std::cell::RefCell;
 pub trait Command<T> {
     fn execute(&self, target_instance: &T);
     fn as_any(&self) -> &dyn Any;
+    fn reverse_me(&mut self) {} //overwrite if this command is being sent to a Commandable with a CommandHistory.
 }
 
+pub trait Commandable<T> {
+    fn send(&self, cmd: Box<dyn Command<T>>);
+}
+
+//A Commandable with a CommandHistory should implement a fn reverse_cmd(cmd) method on itself,
+//such that the commands in CommandHistory can be executed as normal without looking into the
+//history of what was changed. Thus the commands themseves contain the deltas needed to revert
+//their previous execution.
 pub struct CommandHistory<T> {
     hist: RefCell<Vec<Box<dyn Command<T>>>>,
 }
@@ -42,19 +50,15 @@ impl<T> CommandHistory<T> {
     pub fn new() -> Self {
         CommandHistory { hist: RefCell::new(Vec::new()) }
     }
-    //Does this 'static lifetime create a mem leak if num. of commands created approaches INF?
-    //Or is it the type, Command<T>, that is 'static, not the passed-in instance?
+
     pub fn push(&self, cmd: impl Command<T> + 'static) {
         self.hist.borrow_mut().push(Box::new(cmd));
     }
+
     pub fn pop(&self) -> Result<Box<dyn Command<T>>, &str> {
         if let Some(last_cmd) = self.hist.borrow_mut().pop() {
             return Ok(last_cmd);
         }
         Err("Command History vec is empty.")
     }
-}
-
-pub trait Commandable<T> {
-    fn send(&self, cmd: Box<dyn Command<T>>);
 }

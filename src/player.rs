@@ -3,12 +3,12 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, gui::PlayerMenuState, JustMoved, };
+            HungerState, JustMoved, };
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
 
-    gui::enable_cursor_control(ecs, ctx);
+    //gui::enable_cursor_control(ecs, ctx);
 
     new_runstate = match ctx.key {
         None => return RunState::AwaitingInput,
@@ -26,7 +26,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
 
             //open backpack/inventory
             VirtualKeyCode::B |
-            VirtualKeyCode::I => return RunState::ShowPlayerMenu { menu_state: PlayerMenuState::default() },
+            //VirtualKeyCode::I => return RunState::ShowPlayerMenu { menu_state: PlayerMenuState::default() },
 
             //use stairs
             VirtualKeyCode::Period => {
