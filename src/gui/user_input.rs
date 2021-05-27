@@ -89,7 +89,8 @@ impl UserInput {
     }
 
     //Return next observer id after popping next_focus from observers vec and moving it to the
-    //front. (observers[0] should always be the current focus).
+    //front. (observers[0] should always be the current focus). Popped observer is never re-added
+    //to observers vec if its Rc::upgrade fails, which is an easy lazy-removal implementation.
     fn next_observer_id(&self) -> usize {
         let mut focus_id: usize = 0;
         let mut observers = self.observers.borrow_mut();
@@ -104,7 +105,7 @@ impl UserInput {
         focus_id
     }
 
-    fn set_focus(&self, observer_id: usize) {
+    pub fn set_focus(&self, observer_id: usize) {
         let mut idx = 0;
         let mut observers = self.observers.borrow_mut();
         for observer_weak in observers.clone().iter() {
@@ -150,10 +151,9 @@ impl Observable for UserInput {
     }
 
     //Called by Observer trait objects who want to be notified by this Observable.
+    //gui::add_gui_obj() calls this
     fn add_observer(&self, to_add: Weak<dyn Observer>) {
-        if let Some(_) = to_add.upgrade() {
-            self.observers.borrow_mut().push(to_add);
-        }
+        self.observers.borrow_mut().push(to_add);
     }
 
     fn as_any(&self) -> &dyn Any {

@@ -58,6 +58,8 @@ pub use components::*;
 pub use map::*;
 pub use rect::Rect;
 
+use crate::gui::observer::Observable;
+
 const SHOW_MAPGEN_VISUALIZER: bool = false;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -82,7 +84,7 @@ pub enum RunState {
 pub struct State {
     pub ecs: World,
     gui: gui::GUI,
-    static_drawables: HashMap<String, Rc<dyn Drawable>>,
+    static_gui_objs: HashMap<String, Rc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
     pub tooltips_on: bool, //<-delete after UI integration
 
     mapgen_next_state: Option<RunState>,
@@ -527,21 +529,66 @@ impl GameState for State {
             }*/
 
             RunState::MainMenu => {
-                self.gui.tick(ctx);
-            }
+                use gui::Observer;
+                use gui::main_menu::{Selection, MainMenu};
 
-            /*RunState::GameOver => {
-                let result = gui::game_over(ctx);
-                match result {
-                    gui::MenuResult::Continue => {}
-                    gui::MenuResult::Cancel => {}
-                    gui::MenuResult::Selected => {
-                        self.game_over_cleanup();
-                        newrunstate = RunState::MainMenu { menu_selection: gui::MainMenuSelection::NewGame };
+
+                //if a MainMenu object hasn't been created yet, create one.
+                if let None = self.static_gui_objs.get("main_menu") {
+                    let main_menu = Rc::new(gui::MainMenu::new(self.gui.user_input.clone()));
+                    self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
+
+                    let weak = Rc::downgrade(&main_menu.clone());
+                    self.gui.user_input.add_observer(weak);
+                    self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
+
+                } else {
+                    self.gui.tick(ctx);
+
+                    let main_menu = self.static_gui_objs.get("main_menu").unwrap().as_any().downcast_ref::<MainMenu>().unwrap();
+                    match main_menu.get_selection() {
+                        Some(Selection::NewGame) => {
+                            newrunstate = RunState::PreRun;
+                            self.gui.rm_drawable(main_menu.id());
+                        }
+                        Some(Selection::LoadGame) => {
+                            saveload_system::load_game(&mut self.ecs);
+                            newrunstate = RunState::AwaitingInput;
+                            saveload_system::delete_save();
+                            self.gui.rm_drawable(main_menu.id());
+                        },
+                        Some(Selection::Quit) => ::std::process::exit(0),
+                        _ => {},
                     }
                 }
-            }*/
+            }
+            
+            RunState::GameOver => {
+                use gui::Observer;
+                use gui::game_over::{Selection, GameOver};
+    
+                if let None = self.static_gui_objs.get("game_over") {
+                    let game_over = Rc::new(gui::GameOver::new(self.gui.user_input.clone()));
+                    self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
 
+                    let weak = Rc::downgrade(&game_over.clone());
+                    self.gui.user_input.add_observer(weak);
+                    self.gui.add_drawable(game_over.id(), game_over.clone(), true);
+
+                } else {
+                    self.gui.tick(ctx);
+
+                    let game_over = self.static_gui_objs.get("game_over").unwrap().as_any().downcast_ref::<GameOver>().unwrap();
+                    match game_over.get_selection() {
+                        Some(Selection::NewGame) => {
+                            newrunstate = RunState::PreRun;
+                            self.gui.rm_drawable(game_over.id());
+                        }
+                        Some(Selection::Quit) => ::std::process::exit(0),
+                        _ => {},
+                    }
+                }
+            }
             _ => {}
         }
 
@@ -583,17 +630,15 @@ fn main() -> rltk::BError {
 
     //context.with_post_scanlines(true);
 
-    //initialization of State fields
-    let mut static_drawables: HashMap<String, Rc<dyn Drawable>> = HashMap::new();
+    //----------- initialization of State fields ------------
     let user_input = Rc::new(gui::user_input::UserInput::new());
-    let main_menu = Rc::new(gui::MainMenu::new(user_input.clone()));
-    static_drawables.insert("main_menu".to_string(), main_menu.clone());
-    let gui = gui::GUI::new(user_input, main_menu);
+    let gui = gui::GUI::new(user_input);
+    //-------------------------------------------------------
 
     let mut gs = State {
         ecs: World::new(),
         gui,
-        static_drawables,
+        static_gui_objs: HashMap::new(),
         tooltips_on: false,
 
         //mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }), OLD

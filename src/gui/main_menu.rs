@@ -19,6 +19,7 @@ pub enum Selection { NewGame, LoadGame, Quit }
 pub struct MainMenu {
     pos: Point,
     selection: Cell<Selection>,
+    selection_made: Cell<bool>,
 
     observer_id: usize,
     user_input: Rc<dyn Observable>,
@@ -29,9 +30,16 @@ impl MainMenu {
         MainMenu {
             pos: Point {x:0,y:0},
             selection: Cell::new(Selection::NewGame),
+            selection_made: Cell::new(false),
             observer_id: user_input.id_gen.generate_observer_id(),
             user_input,
         }
+    }
+    pub fn get_selection(&self) -> Option<Selection> {
+        if self.selection_made.get() {
+            return Some(self.selection.get());
+        }
+        None
     }
     fn change_selection(&self, direction: Dir) {
         match (direction, self.selection.get()) {
@@ -54,9 +62,6 @@ impl MainMenu {
             (Dir::LEFT, Selection::Quit) => self.selection.set(Selection::NewGame),
         };
     }
-    fn select(&self) -> Selection {
-        self.selection.get()
-    }
 }
 
 impl Drawable for MainMenu {
@@ -78,10 +83,10 @@ impl Drawable for MainMenu {
             }
         }
     }
-    fn move_to(&self, pos: Point) {
+    fn move_to(&self, _pos: Point) {
         //self.pos = pos;
     }
-    fn orth_move(&self, direction: Dir) {
+    fn orth_move(&self, _direction: Dir) {
         /*match direction {
             Dir::UP => self.pos.y -= 1,
             Dir::DOWN => self.pos.y += 1,
@@ -90,6 +95,7 @@ impl Drawable for MainMenu {
             _ => {},
         }*/
     }
+    fn as_any(&self) -> &dyn Any { self }
 }
 
 
@@ -152,7 +158,7 @@ impl SelectCommand {
 }
 impl Command<MainMenu> for SelectCommand {
     fn execute(&self, main_menu: &MainMenu) {
-        main_menu.select();
+        main_menu.selection_made.set(true);
     }
     fn as_any(&self) -> &dyn Any { self }
 }

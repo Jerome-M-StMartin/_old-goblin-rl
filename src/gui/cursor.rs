@@ -99,6 +99,7 @@ impl Drawable for Cursor {
             }
         self.pos.set(pos);
     }
+    fn as_any(&self) -> &dyn Any { self }
 }
 
 //==================================
