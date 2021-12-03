@@ -468,15 +468,6 @@ impl Default for Menuable {
     }
 }
 
-//--------------UI Drawable Components--------------------
-//This struct is not for in-diegesis/on-map rendering (which is done via Renderable component),
-//rather it is for UI element drawing only. If an entity has this component, that entity is able
-//to be represented in the UI in the form defined by the fields of this Drawable component.
-//All fields must be thread-safe readable, this data will be observed by the UI thread.
-pub struct Drawable {
-    
-}
-
 //--------------Behavior/AI Components-----------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Behavior {

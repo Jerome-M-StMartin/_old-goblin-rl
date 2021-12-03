@@ -11,20 +11,21 @@ use std::collections::HashMap;
 use bracket_terminal::prelude::BTerm;
 
 mod command;
-mod look_n_feel;
 mod yaml_parser;
 
+pub mod textify;
+pub mod look_n_feel;
 pub mod observer;
 pub mod main_menu;
 pub mod game_over;
 pub mod cursor;
 pub mod drawable;
-pub mod user_input;
 
 use cursor::Cursor;
 use drawable::Drawable;
 use observer::Observable;
-use user_input::UserInput;
+use super::user_input::UserInput;
+use super::user_input;
 
 pub use observer::Observer;
 pub use main_menu::MainMenu;

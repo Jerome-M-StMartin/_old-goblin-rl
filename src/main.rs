@@ -28,6 +28,7 @@ mod hunger_system;
 mod throw_system;
 mod light_system;
 mod trigger_system;
+mod user_input;
 
 pub mod particle_system;
 pub mod random_table;
@@ -488,6 +489,7 @@ impl GameState for State {
                     }
                 }
             }*/
+
             RunState::MagicMapReveal { row } => {
                 let mut map = self.ecs.fetch_mut::<Map>();
                 for x in 0..map.width {
@@ -500,32 +502,15 @@ impl GameState for State {
                     newrunstate = RunState::MagicMapReveal{ row: row + 1 };
                 }
             }
+
             RunState::NextLevel => {
                 self.goto_next_level();
                 newrunstate = RunState::PreRun;
             }
+
             /*RunState::SaveGame => {
                 saveload_system::save_game(&mut self.ecs); 
                 newrunstate = RunState::MainMenu {menu_selection: gui::MainMenuSelection::LoadGame};
-            }*/
-            /* OLD
-            RunState::MainMenu{..} => {
-                let result = gui::main_menu(self, ctx);
-                match result {
-                    gui::MainMenuResult::NoSelection {selected} =>
-                        newrunstate = RunState::MainMenu {menu_selection: selected},
-                    gui::MainMenuResult::Selected {selected} => {
-                        match selected {
-                            gui::MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
-                            gui::MainMenuSelection::LoadGame => {
-                                saveload_system::load_game(&mut self.ecs);
-                                newrunstate = RunState::AwaitingInput;
-                                saveload_system::delete_save();
-                            }
-                            gui::MainMenuSelection::Quit => {::std::process::exit(0);}
-                        }
-                    }
-                }
             }*/
 
             RunState::MainMenu => {
@@ -554,7 +539,7 @@ impl GameState for State {
                         Some(Selection::LoadGame) => {
                             saveload_system::load_game(&mut self.ecs);
                             newrunstate = RunState::AwaitingInput;
-                            saveload_system::delete_save();
+                            saveload_system::delete_save(); //death is permanent; disables 'save scumming' and its varants.
                             self.gui.rm_drawable(main_menu.id());
                         },
                         Some(Selection::Quit) => ::std::process::exit(0),
@@ -631,7 +616,8 @@ fn main() -> rltk::BError {
     //context.with_post_scanlines(true);
 
     //----------- initialization of State fields ------------
-    let user_input = Rc::new(gui::user_input::UserInput::new());
+    //let user_input = Rc::new(gui::user_input::UserInput::new()); from when user_input was in gui
+    let user_input = Rc::new(user_input::UserInput::new());
     let gui = gui::GUI::new(user_input);
     //-------------------------------------------------------
 
@@ -660,7 +646,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<DamageOnUse>();
     gs.ecs.register::<DamageQueue>();
     gs.ecs.register::<Item>();
-    //gs.ecs.register::<Item>();
     gs.ecs.register::<PickUpIntent>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<UseItemIntent>();
@@ -710,7 +695,9 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(gamelog::GameLog {
-        entries: vec!["The Wandering Wood Walks With One's Peripheral Gaze".to_string()]});
+        entries: vec!["A most stifling damp chokes the air,".to_string(),
+                      "the Wandering Waters of Ru'Iakh have become close.".to_string(),
+                     ]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });

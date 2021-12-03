@@ -5,6 +5,15 @@ use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Curso
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
             HungerState, JustMoved, };
 
+// NEW VERSION for GUI module integration - 12/02/2021
+pub fn new_player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
+    let new_runstate: RunState = match gui.user_input {
+        _ => RunState::AwaitingInput,
+    };
+
+    return new_runstate;
+}
+
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
 

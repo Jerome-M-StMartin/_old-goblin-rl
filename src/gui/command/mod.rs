@@ -9,7 +9,7 @@
  * 3.) Have some input handler somewhere generate these command objects and send
  *     them where they need to go.
  *
- * In this way, each object that needs to use this Command Pattern has a
+ * In this way, each type that needs to use this Command Pattern has a
  * unique set of commands that apply only to itself. There are no generic
  * shared commands.
  */

@@ -2,9 +2,20 @@ TO-LEARN:
 1.) ?
 
 TO-DO:
-1.) Build complete 'infocard' with mock RPG data representing character stats & inventory.
-?.) Establish what remains internal to this crate and what should be broken
-    into other small crates. 
+1.) Replace player::player_input with gui::user_input implementation?
+    So make gui::user_input.rs into its own module. Right? I think so.
+	Actually, first check if I can & should be passing all user
+	input through the GUI module. This does make a certain sense.
+2.) Verify if implementing Drawable on ECS components is possible.
+	Wrong! This is NOT the ECS way! I need a GUIDrawSystem which
+	operates on Entities with an attached Drawable component.
+	No need to impl anything on components, as that would make
+	them object-like, with logic as well as data. Components
+	are meant to be data only.
+3.) Draw basic UI (log, hp, etc) with gui module
+
+4.) (Obsolete under new IntoTheBreach/FTL/Wind&WiltingBlossom-esk design.)
+    Build complete 'infocard' with mock RPG data representing character stats & inventory.
 ---------------------------------
 DONE.) ScrollBar Prototype v1
 DONE.) Drawable Observers
@@ -16,19 +27,21 @@ DONE.) Get cursor onto screen with user interactability via Command Pattern.
 DONE.) Finish re-re-implementation of the Command Pattern
 DONE.) Implement Drawables
 
+
 YAML:
-Writing this to help cement my understanding of YAML, and how I will be using
-it here, into my brainum contraption.
+Writing this to help cement my understanding of YAML,
+and how I will be using it here.
 
-I will be using two crates: yaml-rust and serde-yaml.
+I will be using serde-yaml, which itself uses yaml-rust.
+
 - yaml-rust: This one converts between String and yaml::Yaml.
-- serde-yaml: This one converts between rust data structures and yaml:Yaml.
+- serde-yaml: This one converts between rust data structures and yaml::Yaml.
 
-So yaml::Yaml is of the String type, but specifically in the yaml format.
+	So yaml::Yaml is of the String type, but specifically in the yaml format.
 
-NOTE: No need to use yaml-rust directly, as serde_yaml uses it in the backend
-and you can call serde_yaml::to_string(), which (i think) is actually a call
-to yaml-rust.
+NOTE: No need to use yaml-rust directly. If, for some reason, you need to
+convert from yaml into a String you may call serde_yaml::to_string()
+which, I think, calls yaml-rust::to_string() internally.
 
 Basic How-To:
 
@@ -39,52 +52,9 @@ fn myFn() -> Result<(), serde_yaml::Error> {
 	Ok(())
 }
 
-In order to write Yaml directly that can be deserialized, it has to match the
+In order to write Yaml manually that can be deserialized, it has to match the
 format that serde-yaml expects. It seems that the best way would be to start
 with a Rust struct, convert it to a yaml String, see what the format is, and
 copy that format to write more of them directly in yaml.
 
-=========================
-========= STORY =========
-=========================
-Randomized bank of dialogue that cycles for each _new_ non-critical goblin you speak with.
-
-=========================
-===== Card-Actions ======
-=========================
-
-What if each weapon gave its users a sub-deck of cards, added to the 'library'
-of the wielder. When the weapon is unequipped these cards are removed from the
-'library'.
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ⌜ ◁⦕ Sudden  Lunge ⦖▷ ⌝ ┃
-┃                         ┃
-┃ ┌Cost─────────────────┐ ┃
-┃ │ ⭮ ﹢⧗ ﹢♦ ♦ ♦       │ ┃
-┃ └─────────────────────┘ ┃
-┃            ⎯            ┃
-┃ ┌Effect───────────────┐ ┃
-┃ │Deal Piercing Weapon │ ┃
-┃ │Damage to any target │ ┃
-┃ │creature at Range 1. │ ┃
-┃ │                     │ ┃
-┃ │Overexertion: Pay ⧗⧗ │ ┃
-┃ │after this action    │ ┃
-┃ │resolves.            │ ┃
-┃ └─────────────────────┘ ┃
-┃ ⌞           Rarity: 🟂 ⌟ ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-
- --- UNICODE CHARACTERS --- :
-○
-⃝
-⭮ = Action consumes entire turn in addition to other costs.
-⏱ or ⧗ = Action Point
-♡ = Health Point
-♦ = Fatigue Point
-⏾  = Mana Point
-⏺🟂 🟆 🟊 <-Rarity Symbols[Unlimited, 1/1,000,000, 1/100,000, 1/10,000]
-⚇ <-Basic NPC glyph?
 
