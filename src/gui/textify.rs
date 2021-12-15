@@ -9,7 +9,9 @@ use bracket_terminal::prelude::{TextBlock, TextBuilder};
 
 use super::look_n_feel::ColorOption;
 
-/* Usage:
+/* Idea: Allows implementors to translate themselves into a block of text for the GUI. 
+ *
+ * Usage:
  * Some System needs to gather all components on some Focus entity that implement Textify,
  * then insert each's TextBlock into some Drawable struct which has .draw() called on it
  * in the .tick() fn of the GUI.

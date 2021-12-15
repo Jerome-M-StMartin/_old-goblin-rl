@@ -5,8 +5,8 @@ use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Curso
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
             HungerState, JustMoved, };
 
-// NEW VERSION for GUI module integration - 12/02/2021
-pub fn new_player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
+// NEW VERSION of player_input() for GUI module integration - began 12/02/2021
+pub fn player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
     let new_runstate: RunState = match gui.user_input {
         _ => RunState::AwaitingInput,
     };
@@ -14,7 +14,29 @@ pub fn new_player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
     return new_runstate;
 }
 
-pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
+//Command needs to be moved out of gui module.
+use super::gui::command::{Command, Commandable};
+use super::gui::observer::Observer;
+use super::user_input::InputEvent;
+impl Observer for Player {
+    fn id(&self) -> usize { self.observer_id }
+    fn update(&self) {
+        let observable = self.user_input.as_any().downcast_ref::<UserInput>();
+        if let Some(user_input) = observable {
+            if let Some(input_event) = user_input.input.get() {
+                match input_event {
+                    InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
+                        self.send(Box::new(MoveCommand::new()));
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
+    fn setup_cursor(&self) {} //this needs to leave this trait
+}
+
+/*pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
 
     //gui::enable_cursor_control(ecs, ctx);
@@ -74,7 +96,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     };
     
     return new_runstate;
-}
+}*/
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();

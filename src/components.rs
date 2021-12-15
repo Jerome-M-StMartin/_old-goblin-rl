@@ -17,6 +17,9 @@ pub struct SerializationHelper {
 
 //Does the Component macro know to use NullStorage?...
 //-------------Fieldless Components-----------------------
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Player {}
+
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Hostile {}
 
@@ -28,9 +31,6 @@ pub struct BlocksTile {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct BlocksVisibility {}
-
-#[derive(Component, Serialize, Deserialize, Clone)]
-pub struct Player {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Consumable {}
@@ -52,7 +52,7 @@ pub struct Hidden {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct JustMoved {}
-//--------------------------------------
+//--------------------------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Door { 

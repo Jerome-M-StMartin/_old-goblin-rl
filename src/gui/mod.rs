@@ -10,9 +10,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use bracket_terminal::prelude::BTerm;
 
-mod command;
 mod yaml_parser;
 
+pub mod command;
 pub mod textify;
 pub mod look_n_feel;
 pub mod observer;

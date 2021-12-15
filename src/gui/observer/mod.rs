@@ -31,7 +31,7 @@ impl IdGenerator {
     }
 }
 
-pub trait Observer {
+pub trait Observer : Send + Sync {
     //Each implementor of Observer must store a unique observer id,
     //so each Observable needs either: access to a shared IdGenerator,
     //or its own IdGenerator. Observers must not be shared between
@@ -41,7 +41,7 @@ pub trait Observer {
     fn setup_cursor(&self); //<------------this needs to be moved elsewhere
 }
 
-pub trait Observable {
+pub trait Observable : Send + Sync {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
     fn add_observer(&self, to_add: Weak<dyn Observer>);

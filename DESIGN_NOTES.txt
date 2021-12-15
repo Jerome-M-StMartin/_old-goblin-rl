@@ -1,0 +1,88 @@
+Title: Give Up Never Goblin, Homosapiens Overrated (GUNG-HO)
+
+Gun-Goblin IDea:
+ Setting is the deep caverns of a goblin warren within the crust
+ of post-human Earth. The PC is a digger, the lowest class in
+ this warren society, but one day at work they dig up an ancient
+ relic: A six-shooter, fully loaded and operational - preserved
+ within an otherwise empty gunsafe, hinges devoured by rust.
+
+ With this gun, the player character is given six "outs", or
+ easy kills for use in dangerous battles. A way to ease a brand
+ new player into a game that's challenging from the start. Or
+ a test of skill for an experienced player - save the gun for
+ the late game, or never use it at all.
+
+ This item allows the difficulty curve to reach an absurd level,
+ which should never be a part of the base design, but because of
+ the GIMMICK, it's important to give the player a way to beat a
+ their old character - no matter how OP they were.
+
+GIMMICK:
+ The final boss is GOBLIN CEO. When you defeat him (and thus win
+ the game), the next time you reach the GOBLIN CEO it will be a
+ copy of that character which you previously beat the game with,
+ including - most importantly - your character's name. But the
+ GOBLIN CEO will never have the gun, even if your past character
+ had it.
+
+Gameplay:
+
+ Stages > Levels
+
+ Each stage is a puzzle, challenge, xor story element.
+
+ Each stage is a small square grid of fixed size, populated via procgen
+ with terrain, hazards, and hostiles.
+	(Benefits: Easier to program, test, and store;
+		   divides the game into discrete puzzles;
+		   allows for hand-crafted levels, sometimes.
+	..)
+
+=========================
+========= STORY =========
+=========================
+At fixed points throughout the map, configured like the FTL sector map, there
+are story nodes. Each node has a set of possible story elements, chosen at
+random from a culled subset such that it makes sense based on the character's
+previously selected story nodes.
+
+=========================
+===== Card-Actions ======
+=========================
+
+What if each weapon gave its users a sub-deck of cards, added to the 'library'
+of the wielder. When the weapon is unequipped these cards are removed from the
+'library'.
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ⌜ ◁⦕ Sudden  Lunge ⦖▷ ⌝ ┃
+┃                         ┃
+┃ ┌Cost─────────────────┐ ┃
+┃ │ ⭮ ﹢⧗ ﹢♦ ♦ ♦       │ ┃
+┃ └─────────────────────┘ ┃
+┃            ⎯            ┃
+┃ ┌Effect───────────────┐ ┃
+┃ │Deal Piercing Weapon │ ┃
+┃ │Damage to any target │ ┃
+┃ │creature at Range 1. │ ┃
+┃ │                     │ ┃
+┃ │Overexertion: Pay ⧗⧗ │ ┃
+┃ │after this action    │ ┃
+┃ │resolves.            │ ┃
+┃ └─────────────────────┘ ┃
+┃ ⌞           Rarity: 🟂 ⌟ ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+
+ --- UNICODE CHARACTERS --- :
+○
+⃝
+⭮ = Action consumes entire turn in addition to other costs.
+⏱ or ⧗ = Action Point
+♡ = Health Point
+♦ = Fatigue Point
+⏾  = Mana Point
+⏺🟂 🟆 🟊 <-Rarity Symbols[Unlimited, 1/1,000,000, 1/100,000, 1/10,000]
+⚇ <-Basic NPC glyph?
+

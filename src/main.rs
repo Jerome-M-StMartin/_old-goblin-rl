@@ -84,6 +84,7 @@ pub enum RunState {
 
 pub struct State {
     pub ecs: World,
+    user_input: Rc<user_input::UserInput>,
     gui: gui::GUI,
     static_gui_objs: HashMap<String, Rc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
     pub tooltips_on: bool, //<-delete after UI integration
@@ -530,7 +531,8 @@ impl GameState for State {
                 } else {
                     self.gui.tick(ctx);
 
-                    let main_menu = self.static_gui_objs.get("main_menu").unwrap().as_any().downcast_ref::<MainMenu>().unwrap();
+                    let main_menu = self.static_gui_objs.get("main_menu")
+                                    .unwrap().as_any().downcast_ref::<MainMenu>().unwrap();
                     match main_menu.get_selection() {
                         Some(Selection::NewGame) => {
                             newrunstate = RunState::PreRun;
@@ -539,7 +541,7 @@ impl GameState for State {
                         Some(Selection::LoadGame) => {
                             saveload_system::load_game(&mut self.ecs);
                             newrunstate = RunState::AwaitingInput;
-                            saveload_system::delete_save(); //death is permanent; disables 'save scumming' and its varants.
+                            saveload_system::delete_save(); //death is permanent; disables 'save scumming'.
                             self.gui.rm_drawable(main_menu.id());
                         },
                         Some(Selection::Quit) => ::std::process::exit(0),
@@ -563,7 +565,8 @@ impl GameState for State {
                 } else {
                     self.gui.tick(ctx);
 
-                    let game_over = self.static_gui_objs.get("game_over").unwrap().as_any().downcast_ref::<GameOver>().unwrap();
+                    let game_over = self.static_gui_objs.get("game_over")
+                        .unwrap().as_any().downcast_ref::<GameOver>().unwrap();
                     match game_over.get_selection() {
                         Some(Selection::NewGame) => {
                             newrunstate = RunState::PreRun;
@@ -587,7 +590,8 @@ impl GameState for State {
     }
 }
 
-struct Cursor { 
+//Needs to be more obviously differentiated from GUI::Cursor. -------------------------- !!!
+struct Cursor {
     pub x: i32, 
     pub y: i32,
     pub active: bool
@@ -616,13 +620,13 @@ fn main() -> rltk::BError {
     //context.with_post_scanlines(true);
 
     //----------- initialization of State fields ------------
-    //let user_input = Rc::new(gui::user_input::UserInput::new()); from when user_input was in gui
     let user_input = Rc::new(user_input::UserInput::new());
-    let gui = gui::GUI::new(user_input);
+    let gui = gui::GUI::new(user_input.clone());
     //-------------------------------------------------------
 
     let mut gs = State {
         ecs: World::new(),
+        user_input,
         gui,
         static_gui_objs: HashMap::new(),
         tooltips_on: false,

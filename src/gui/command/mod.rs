@@ -26,12 +26,13 @@
  */
 
 use std::any::Any;
-use std::cell::RefCell;
+//use std::cell::RefCell;
+use std::sync::Mutex;
 
 pub trait Command<T> {
     fn execute(&self, target_instance: &T);
     fn as_any(&self) -> &dyn Any;
-    fn reverse_me(&mut self) {} //overwrite if this command is being sent to a Commandable with a CommandHistory.
+    fn reverse_me(&mut self) {} //override if this command is being sent to a Commandable with a CommandHistory.
 }
 
 pub trait Commandable<T> {
@@ -40,15 +41,17 @@ pub trait Commandable<T> {
 
 //A Commandable with a CommandHistory should implement a fn reverse_cmd(cmd) method on itself,
 //such that the commands in CommandHistory can be executed as normal without looking into the
-//history of what was changed. Thus the commands themseves contain the deltas needed to revert
+//history of what was changed. Thus the commands themselves contain the deltas needed to revert
 //their previous execution.
 pub struct CommandHistory<T> {
-    hist: RefCell<Vec<Box<dyn Command<T>>>>,
+    //hist: RefCell<Vec<Box<dyn Command<T>>>>,
+    hist: Mutex<Vec<Box<dyn Command<T>>>>,
 }
 
 impl<T> CommandHistory<T> {
     pub fn new() -> Self {
-        CommandHistory { hist: RefCell::new(Vec::new()) }
+        //CommandHistory { hist: RefCell::new(Vec::new()) }
+        CommandHistory { hist: Mutex::new(Vec::new()) }
     }
 
     pub fn push(&self, cmd: impl Command<T> + 'static) {

@@ -2,51 +2,54 @@
 //Node Menu Project
 //12/07/2020
 
-use super::command::{Command, CommandHistory, Commandable};
+use super::command::{Command, /*CommandHistory,*/ Commandable};
 use super::drawable::Drawable;
 use super::look_n_feel::{ColorOption, Dir};
 use super::observer::{Observable, Observer};
 use super::user_input::{InputEvent, UserInput};
 use bracket_terminal::prelude::{to_cp437, BTerm, FontCharType, Point};
 use std::any::{Any, TypeId};
-use std::cell::Cell;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
-
-//This struct is shared and should only have one instance, use it elsewhere in code always as Rc<Cursor>.
+//This struct is shared and should only have one instance, alias as Arc<Cursor>.
 pub struct Cursor {
-    pub pos: Cell<Point>,                  // position
-    pub glyph: Cell<Option<FontCharType>>, // char that visually represents cursor
-    pub color: Cell<ColorOption>,          // glyph color
-    pub bg: Cell<ColorOption>,             // background color
+    pub pos: Mutex<Point>,
+    pub glyph: Mutex<Option<FontCharType>>,
+    pub color: Mutex<ColorOption>,
+    pub bg: Mutex<ColorOption>,
 
-    //Observer Pattern Fields
     observer_id: usize,
-    to_observe: Rc<dyn Observable>,
+    to_observe: Arc<dyn Observable>,
 
-    //Command Pattern Field
-    cmd_history: CommandHistory<Cursor>, // stateful expansion to Command Pattern
+    //cmd_history: CommandHistory<Cursor>,
 }
 
 impl Cursor {
-    pub fn new(observer_id: usize, to_observe: Rc<dyn Observable>) -> Cursor {
+    pub fn new(observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
         Cursor {
-            pos: Cell::new(Point { x: 0, y: 0 }),
-            glyph: Cell::new(Some(to_cp437('>'))),
-            color: Cell::new(ColorOption::DEFAULT),
-            bg: Cell::new(ColorOption::FOCUS),
+            pos: Mutex::new(Point { x: 0, y: 0 }),
+            glyph: Mutex::new(Some(to_cp437('>'))),
+            color: Mutex::new(ColorOption::DEFAULT),
+            bg: Mutex::new(ColorOption::FOCUS),
             observer_id,
             to_observe,
-            cmd_history: CommandHistory::new(),
         }
     }
 
     pub fn set_bg(&self, c: ColorOption) {
-        self.bg.set(c);
+        if let Ok(val) = self.bg.get_mut() {
+            *val = c;
+        } else if Err() {
+            panic!("Panic in gui::cursor.set_bg(), a Mutex was poisoned.");
+        }
     }
 
     pub fn set_glyph(&self, new_glyph: FontCharType) {
-        self.glyph.set(Some(new_glyph));
+        if let Ok(val) = self.bg.get_mut() {
+            *val = new_glyph;
+        } else if Err() {
+            panic!("Panic in gui::cursor.set_glyph(), a Mutex was poisoned.");
+        }
     }
 
     //Use to-be-implemented particle/animation system
@@ -54,14 +57,7 @@ impl Cursor {
     pub fn blink(_: ColorOption) {}
 
     pub fn undo(&self) {
-        match self.cmd_history.pop() {
-            Ok(cmd) => {
-                cmd.execute(self);
-            }
-            Err(e) => {
-                eprintln!("Attempted cmd_history.pop() but:\n  {}", e);
-            }
-        }
+        println!("No CmdHistory from which to Undo! [gui::cursor.undo()]");
     }
 }
 
@@ -106,8 +102,7 @@ impl Drawable for Cursor {
 //==== Observer Pattern Stuff ======
 //==================================
 //Only for when the Cursor is itself the Focus observer of the UserInput Observable.
-//Else, the current Focus will control the Cursor through its shared reference (i.e.
-//Rc<RefCell<Cursor>>).
+//Else, the current Focus will control the Cursor through its shared reference.
 impl Observer for Cursor {
     fn id(&self) -> usize {
         self.observer_id
@@ -119,7 +114,8 @@ impl Observer for Cursor {
                 match input_event {
                     InputEvent::HJKL(dir) => {
                         let cmd = MoveCommand::new(dir);
-                        self.send(Box::new(cmd));
+                        //self.send(Box::new(cmd));
+                        self.send(Arc::new(cmd));
                     }
                     _ => {}
                 }
@@ -127,7 +123,8 @@ impl Observer for Cursor {
         }
     }
     fn setup_cursor(&self) {
-        self.set_glyph(to_cp437('*'));
+        //self.set_glyph(to_cp437('*'));
+        self.set_bg(ColorOption::FOCUS);
     }
 }
 
@@ -194,3 +191,56 @@ fn opposite_dir(d: &Dir) -> Dir {
         Dir::RIGHT => return Dir::LEFT,
     }
 }
+
+/*This is the pre-threadsafe implementation.
+ *
+ * pub struct Cursor {
+    pub pos: Cell<Point>,                  // position
+    pub glyph: Cell<Option<FontCharType>>, // char that visually represents cursor
+    pub color: Cell<ColorOption>,          // glyph color
+    pub bg: Cell<ColorOption>,             // background color
+
+    //Observer Pattern Fields
+    observer_id: usize,
+    to_observe: Rc<dyn Observable>,
+
+    //Command Pattern Field
+    cmd_history: CommandHistory<Cursor>, // stateful expansion to Command Pattern
+}
+
+impl Cursor {
+    pub fn new(observer_id: usize, to_observe: Rc<dyn Observable>) -> Cursor {
+        Cursor {
+            pos: Cell::new(Point { x: 0, y: 0 }),
+            glyph: Cell::new(Some(to_cp437('>'))),
+            color: Cell::new(ColorOption::DEFAULT),
+            bg: Cell::new(ColorOption::FOCUS),
+            observer_id,
+            to_observe,
+            cmd_history: CommandHistory::new(),
+        }
+    }
+
+    pub fn set_bg(&self, c: ColorOption) {
+        self.bg.set(c);
+    }
+
+    pub fn set_glyph(&self, new_glyph: FontCharType) {
+        self.glyph.set(Some(new_glyph));
+    }
+
+    //Use to-be-implemented particle/animation system
+    //Flash the given ColorOption temporarily
+    pub fn blink(_: ColorOption) {}
+
+    pub fn undo(&self) {
+        match self.cmd_history.pop() {
+            Ok(cmd) => {
+                cmd.execute(self);
+            }
+            Err(e) => {
+                eprintln!("Attempted cmd_history.pop() but:\n  {}", e);
+            }
+        }
+    }
+}*/
