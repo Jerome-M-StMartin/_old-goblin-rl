@@ -7,7 +7,7 @@ TODO:
 
 0.) Implement Send + Sync on Observable trait objects, and make
 the user_input field of the Player Component(ECS) hold an
-Arc<dyn Observable>, because the ECS architecture is multithreaded.
+Arc<dyn Observable>. Req'd because the ECS architecture is multithreaded.
 
 Send + Sync are Marker Traits, and are automatically implemented by
 the compilier if all types held by the struct in question are Send + Sync.

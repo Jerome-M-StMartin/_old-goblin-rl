@@ -1,9 +1,8 @@
 //Jerome M. St.Martin
 //05/24/2021
 
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::any::Any;
-use std::cell::Cell;
 
 use bracket_terminal::prelude::{BTerm, Point};
 
@@ -18,21 +17,25 @@ pub enum Selection { NewGame, Quit }
 
 pub struct GameOver {
     pos: Point,
-    selection: Cell<Selection>,
-    selection_made: Cell<bool>,
+    selection: Mutex<Selection>,
+    selection_made: Mutex<bool>,
 
     observer_id: usize,
-    user_input: Rc<dyn Observable>,
+    user_input: Arc<dyn Observable>,
 }
 
 impl GameOver {
-    pub fn new(user_input: Rc<UserInput>) -> Self {
-        GameOver {
-            pos: Point {x:0,y:0},
-            selection: Cell::new(Selection::NewGame),
-            selection_made: Cell::new(false),
-            observer_id: user_input.id_gen.generate_observer_id(),
-            user_input,
+    pub fn new(user_input: Arc<UserInput>) -> Self {
+        if let Ok(guard) = user_input.id_gen.lock() {
+            GameOver {
+                pos: Point {x:0,y:0},
+                selection: Mutex::new(Selection::NewGame),
+                selection_made: Mutex::new(false),
+                observer_id: *guard.generate_observer_id(),
+                user_input,
+            }
+        } else {
+            panic!("Found Mutex was Poinoned in gui::GameOver::new().")
         }
     }
     pub fn get_selection(&self) -> Option<Selection> {

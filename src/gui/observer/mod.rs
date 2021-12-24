@@ -6,16 +6,15 @@
 
 use std::any::Any;
 use std::collections::HashSet;
-use std::rc::Weak;
-use std::cell::RefCell;
+use std::sync::{Arc, Weak, Mutex};
 
 pub struct IdGenerator {
-    used_ids: RefCell<HashSet<usize>>,
+    used_ids: Arc<HashSet<usize>>,
 }
 impl IdGenerator {
     pub fn new() -> Self {
         IdGenerator {
-            used_ids: RefCell::new(HashSet::new()),
+            used_ids: Arc::new(HashSet::new()),
         }
     }
 
@@ -44,7 +43,7 @@ pub trait Observer : Send + Sync {
 pub trait Observable : Send + Sync {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
-    fn add_observer(&self, to_add: Weak<dyn Observer>);
+    fn add_observer(&self, to_add: Mutex<Weak<dyn Observer>>);
     fn as_any(&self) -> &dyn Any;
 }
 

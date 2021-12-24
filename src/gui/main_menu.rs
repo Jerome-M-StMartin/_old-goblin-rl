@@ -1,9 +1,8 @@
 //Jerome M. St.Martin
 //05/19/2021
 
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::any::Any;
-use std::cell::Cell;
 
 use bracket_terminal::prelude::{BTerm, Point};
 
@@ -18,49 +17,57 @@ pub enum Selection { NewGame, LoadGame, Quit }
 
 pub struct MainMenu {
     pos: Point,
-    selection: Cell<Selection>,
-    selection_made: Cell<bool>,
+    selection: Mutex<Selection>,
+    selection_made: Mutex<bool>,
 
     observer_id: usize,
-    user_input: Rc<dyn Observable>,
+    user_input: Arc<dyn Observable>,
 }
 
 impl MainMenu {
-    pub fn new(user_input: Rc<UserInput>) -> Self {
+    pub fn new(user_input: Arc<UserInput>) -> Self {
         MainMenu {
             pos: Point {x:0,y:0},
-            selection: Cell::new(Selection::NewGame),
-            selection_made: Cell::new(false),
+            selection: Mutex::new(Selection::NewGame),
+            selection_made: Mutex::new(false),
             observer_id: user_input.id_gen.generate_observer_id(),
             user_input,
         }
     }
     pub fn get_selection(&self) -> Option<Selection> {
-        if self.selection_made.get() {
-            return Some(self.selection.get());
-        }
+        if let Ok(guard) = self.selection.lock() {
+            return Some(*guard);
+        } else { panic!("Mutex poisoned, noticed in MainMenu::get_selection().") }
         None
     }
     fn change_selection(&self, direction: Dir) {
-        match (direction, self.selection.get()) {
-            (Dir::UP, Selection::NewGame) => self.selection.set(Selection::Quit),
-            (Dir::RIGHT, Selection::NewGame) => self.selection.set(Selection::Quit),
+        let mut variant;
+        if let Ok(guard) = self.selection.lock() {
 
-            (Dir::UP, Selection::LoadGame) => self.selection.set(Selection::NewGame),
-            (Dir::RIGHT, Selection::LoadGame) => self.selection.set(Selection::NewGame),
+            match (direction, *guard) {
+                (Dir::UP, Selection::NewGame) => variant = Selection::Quit,
+                (Dir::RIGHT, Selection::NewGame) => variant = Selection::Quit,
 
-            (Dir::UP, Selection::Quit) => self.selection.set(Selection::LoadGame),
-            (Dir::RIGHT, Selection::Quit) => self.selection.set(Selection::LoadGame),
+                (Dir::UP, Selection::LoadGame) => variant = Selection::NewGame,
+                (Dir::RIGHT, Selection::LoadGame) => variant = Selection::NewGame,
 
-            (Dir::DOWN, Selection::NewGame) => self.selection.set(Selection::LoadGame),
-            (Dir::LEFT, Selection::NewGame) => self.selection.set(Selection::LoadGame),
+                (Dir::UP, Selection::Quit) => variant = Selection::LoadGame,
+                (Dir::RIGHT, Selection::Quit) => variant = Selection::LoadGame,
 
-            (Dir::DOWN, Selection::LoadGame) => self.selection.set(Selection::Quit),
-            (Dir::LEFT, Selection::LoadGame) => self.selection.set(Selection::Quit),
+                (Dir::DOWN, Selection::NewGame) => variant = Selection::LoadGame,
+                (Dir::LEFT, Selection::NewGame) => variant = Selection::LoadGame,
 
-            (Dir::DOWN, Selection::Quit) => self.selection.set(Selection::NewGame),
-            (Dir::LEFT, Selection::Quit) => self.selection.set(Selection::NewGame),
-        };
+                (Dir::DOWN, Selection::LoadGame) => variant = Selection::Quit,
+                (Dir::LEFT, Selection::LoadGame) => variant = Selection::Quit,
+
+                (Dir::DOWN, Selection::Quit) => variant = Selection::NewGame,
+                (Dir::LEFT, Selection::Quit) => variant = Selection::NewGame,
+            };
+
+            *guard = variant;
+        } else {
+            panic!("Mutex poisoned, noticed in MainMenu::change_selection().")
+        }
     }
 }
 

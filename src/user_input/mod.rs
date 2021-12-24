@@ -47,7 +47,7 @@ impl UserInput {
         UserInput {
             id_gen: Mutex::new(IdGenerator::new()),
             observers: Mutex::new(Vec::new()),
-            input: Mutex::new(None),
+            input: Mutex::new(Option::None),
             focus_id: Mutex::new(None),
         }
     }
@@ -128,33 +128,41 @@ impl Observable for UserInput {
         let mut to_remove: Vec<usize> = Vec::new();
         let mut idx: usize = 0;
 
-        for weak_observer in self.observers.borrow_mut().iter() {
-            if let Some(observer) = weak_observer.upgrade() {
-                observer.update();
-            } else {
-                to_remove.push(idx);
+        if let Ok(guard) = self.observers.lock() {
+            for weak_observer in *guard.borrow_mut().iter() {
+                if let Some(observer) = weak_observer.upgrade() {
+                    observer.update();
+                } else {
+                    to_remove.push(idx);
+                }
+                idx += 1;
             }
-            idx += 1;
-        }
 
-        //lazy removal of dropped observers
-        if !to_remove.is_empty() {
-            for idx in to_remove.into_iter() {
-                self.observers.borrow_mut().swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+            //lazy removal of dropped observers
+            if !to_remove.is_empty() {
+                for idx in to_remove.into_iter() {
+                    *guard.borrow_mut().swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+                }
             }
-        }
+   
+        } else { Err("Mutex was poisoned. user_input::mod.rs, fn notify_observers()") }
+
     }
 
     fn notify_focus(&self) {
-        let weak_focus = &self.observers.borrow()[0];
-        if let Some(focus) = weak_focus.upgrade() {
-            focus.update();
+        if let Ok(guard) = &self.observers.lock() {
+            let weak_focus = *guard.borrow()[0];
+            if let Some(focus) = weak_focus.upgrade() {
+                focus.update();
+            }
         }
     }
 
     //Called by Observer trait objects who want to be notified by this Observable.
     fn add_observer(&self, to_add: Weak<dyn Observer>) {
-        self.observers.borrow_mut().push(to_add);
+        if let Ok(guard) = self.observers.lock() {
+            *guard.borrow_mut().push(to_add);
+        }
     }
 
     fn as_any(&self) -> &dyn Any {

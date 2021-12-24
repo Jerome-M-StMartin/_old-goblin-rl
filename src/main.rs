@@ -28,8 +28,8 @@ mod hunger_system;
 mod throw_system;
 mod light_system;
 mod trigger_system;
-mod user_input;
 
+pub mod user_input;
 pub mod particle_system;
 pub mod random_table;
 pub mod saveload_system;

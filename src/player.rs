@@ -3,7 +3,7 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, JustMoved, };
+            HungerState, JustMoved, user_input::UserInput};
 
 // NEW VERSION of player_input() for GUI module integration - began 12/02/2021
 pub fn player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
@@ -26,7 +26,7 @@ impl Observer for Player {
             if let Some(input_event) = user_input.input.get() {
                 match input_event {
                     InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                        self.send(Box::new(MoveCommand::new()));
+                        //self.send(Box::new(MoveCommand::new()));
                     },
                     _ => {},
                 }
