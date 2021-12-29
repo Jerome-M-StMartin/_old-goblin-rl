@@ -5,7 +5,7 @@
 #![allow(dead_code)]
 extern crate rand;
 extern crate serde;
-use std::rc::{Rc, Weak};
+use std::sync::{Arc, Weak};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use bracket_terminal::prelude::BTerm;
@@ -32,8 +32,8 @@ pub use main_menu::MainMenu;
 pub use game_over::GameOver;
 
 pub struct GUI {
-    pub user_input: Rc<UserInput>,
-    pub cursor: Rc<Cursor>,
+    pub user_input: Arc<UserInput>,
+    pub cursor: Arc<Cursor>,
 
     //DO THESE NEED TO BE Rc<> ??? I don't think so anymore, please verify.------------!
     drawables: RefCell<HashMap<usize, Weak<dyn Drawable>>>, //all Drawable components.
@@ -51,24 +51,30 @@ impl Drawable for InfoCard {}
 
 impl GUI {
     //creates, initializes, and returns the gui object
-    pub fn new(user_input: Rc<UserInput>) -> Self {
+    pub fn new(user_input: Arc<UserInput>) -> Self {
         // --- Initialize ---
         let drawables: HashMap<usize, Weak<dyn Drawable>> = HashMap::new();
         let to_draw: Vec<usize> = Vec::new();
+        let gui: Self;
+        let arc_cursor: Arc<Cursor>;
         
         // - CURSOR - 
-        let cursor_observer_id = user_input.id_gen.generate_observer_id();
-        let cursor = Cursor::new(cursor_observer_id, user_input.clone());
-        let rc_cursor = Rc::new(cursor);
-        let rc_cursor_as_observer: Rc<dyn Observer> = rc_cursor.clone();
-        user_input.add_observer(Rc::downgrade(&rc_cursor_as_observer));
+        if let Ok(guard) = user_input.id_gen.lock() {
+            let cursor_observer_id = guard.generate_observer_id();
+            let cursor = Cursor::new(cursor_observer_id, user_input.clone());
+            arc_cursor = Arc::new(cursor);
+            let arc_cursor_as_observer: Arc<dyn Observer> = arc_cursor.clone();
+            user_input.add_observer(Arc::downgrade(&arc_cursor_as_observer));
         
-        GUI {
-            user_input,
-            cursor: rc_cursor,
-            drawables: RefCell::new(drawables),
-            to_draw: RefCell::new(to_draw),
-        }
+            gui = GUI {
+                user_input: user_input.clone(),
+                cursor: arc_cursor,
+                drawables: RefCell::new(drawables),
+                to_draw: RefCell::new(to_draw),
+            };
+        } else { panic!("Mutex on user_input.id_gen was poisoned.") };
+
+        gui
     }
 
     //call this function in the main bracket-lib game loop.
@@ -106,8 +112,8 @@ impl GUI {
         }
     }
 
-    pub fn add_drawable(&self, id: usize, to_add: Rc<dyn Drawable>, set_focus: bool) {
-        self.drawables.borrow_mut().insert(id, Rc::downgrade(&to_add));
+    pub fn add_drawable(&self, id: usize, to_add: Arc<dyn Drawable>, set_focus: bool) {
+        self.drawables.borrow_mut().insert(id, Arc::downgrade(&to_add));
         self.to_draw.borrow_mut().push(id);
 
         if set_focus {

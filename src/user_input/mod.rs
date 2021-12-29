@@ -47,13 +47,13 @@ impl UserInput {
         UserInput {
             id_gen: Mutex::new(IdGenerator::new()),
             observers: Mutex::new(Vec::new()),
-            input: Mutex::new(Option::None),
+            input: RwLock::new(Option::None),
             focus_id: Mutex::new(None),
         }
     }
 
     pub fn transcribe_input(&self, ctx: &BTerm) -> bool { //use returned bool to control observer notification
-        let mut dirty: bool = false;
+        //let mut dirty: bool = true; Uneccessary, use input's None variant.
         let mut input: Option<InputEvent> = None;
         if let Some(key) = ctx.key {
             match key {
@@ -67,27 +67,26 @@ impl UserInput {
                 VirtualKeyCode::H => input = Some(InputEvent::HJKL(Dir::LEFT)),
                 VirtualKeyCode::L => input = Some(InputEvent::HJKL(Dir::RIGHT)),
 
-                VirtualKeyCode::Tab => {
+                VirtualKeyCode::Tab => { //Change Focus (change which observer receives input event commands)
                     let next_id = self.next_observer_id();
-                    self.focus_id.set(Some(next_id));
+                    if let Ok(mut guard) = self.focus_id.lock() {
+                        *guard = Some(next_id);
+                    }
                 }
                 VirtualKeyCode::T => input = Some(InputEvent::TOOLTIPS),
                 VirtualKeyCode::Escape => input = Some(InputEvent::ESC),
                 VirtualKeyCode::Return => input = Some(InputEvent::ENTER),
 
-                _ => {
-                    self.input.set(input);
-                    return dirty;
-                }
+                _ => {}
             }
-        } else {
-            self.input.set(input); //local input == None, in this case
-            return dirty;
         };
 
-        dirty = true;
-        self.input.set(input);
-        return dirty;
+        if let Ok(mut guard) = self.input.write() {
+            *guard = input;
+            return true
+        }
+        
+        false
     }
 
     //Return next observer id after popping next_focus from observers vec and moving it to the
@@ -95,29 +94,50 @@ impl UserInput {
     //to observers vec if its Rc::upgrade fails, which is an easy lazy-removal implementation.
     fn next_observer_id(&self) -> usize {
         let mut focus_id: usize = 0;
-        let mut observers = self.observers.borrow_mut();
-        if let Some(next_focus_weak) = observers.pop() {
-            if let Some(next_focus) = next_focus_weak.upgrade() {
-                focus_id = next_focus.id();
-                self.focus_id.set(Some(focus_id));
-                next_focus.setup_cursor();
-                observers.insert(0, Arc::downgrade(&next_focus));
+        //obtain lock on observer-vec Mutex
+        if let Ok(guard) = self.observers.lock() {
+            let mut observers = guard;
+
+            //grab next Weak<Observer> from the observer-vec & upgrade to Arc<>
+            if let Some(next_focus_weak) = observers.pop() {
+                if let Some(next_focus) = next_focus_weak.upgrade() {
+
+                    //set & lite-initialize new focus id, insert at head of observer-vec
+                    focus_id = next_focus.id();
+                    if let Ok(mut guard) = self.focus_id.lock() {
+                        *guard = Some(focus_id);
+                    }
+                    next_focus.setup_cursor();
+                    observers.insert(0, Arc::downgrade(&next_focus));
+                }
             }
         }
+
+        //return the new focus_id, which was the next observer when this fn was called
         focus_id
     }
 
     pub fn set_focus(&self, observer_id: usize) {
         let mut idx = 0;
-        let mut observers = self.observers.borrow_mut();
-        for observer_weak in observers.clone().iter() {
-            if let Some(observer) = observer_weak.upgrade() {
-                if observer.id() == observer_id {
-                    let new_focus = observers.swap_remove(idx);
-                    observers.insert(0, new_focus);
-                    self.focus_id.set(Some(observer_id));
+
+        //obtain lock on observer-vec'
+        if let Ok(mut guard) = self.observers.lock() {
+            //iterate over each observer
+            for observer_weak in guard.clone().iter() {
+                if let Some(observer) = observer_weak.upgrade() {
+
+                    //check if it's the target
+                    if observer.id() == observer_id {
+                        let new_focus = guard.swap_remove(idx); //O(1) but not in-place
+                        guard.insert(0, new_focus);
+                        
+                        //obtain a Mutex lock & set new focus
+                        if let Ok(mut guard) = self.focus_id.lock() {
+                            *guard = Some(observer_id);
+                        }
+                    }
+                    idx += 1;
                 }
-                idx += 1;
             }
         }
     }
@@ -129,7 +149,8 @@ impl Observable for UserInput {
         let mut idx: usize = 0;
 
         if let Ok(guard) = self.observers.lock() {
-            for weak_observer in *guard.borrow_mut().iter() {
+            let mut observers = guard;
+            for weak_observer in observers.iter() {
                 if let Some(observer) = weak_observer.upgrade() {
                     observer.update();
                 } else {
@@ -141,17 +162,17 @@ impl Observable for UserInput {
             //lazy removal of dropped observers
             if !to_remove.is_empty() {
                 for idx in to_remove.into_iter() {
-                    *guard.borrow_mut().swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+                    observers.swap_remove(idx); //swap_remove() does not preserve order but is O(1).
                 }
             }
    
-        } else { Err("Mutex was poisoned. user_input::mod.rs, fn notify_observers()") }
+        } else { panic!("Mutex was poisoned in user_input::mod.rs::notify_observers()"); }
 
     }
 
     fn notify_focus(&self) {
         if let Ok(guard) = &self.observers.lock() {
-            let weak_focus = *guard.borrow()[0];
+            let weak_focus = guard[0].clone();
             if let Some(focus) = weak_focus.upgrade() {
                 focus.update();
             }
@@ -160,8 +181,8 @@ impl Observable for UserInput {
 
     //Called by Observer trait objects who want to be notified by this Observable.
     fn add_observer(&self, to_add: Weak<dyn Observer>) {
-        if let Ok(guard) = self.observers.lock() {
-            *guard.borrow_mut().push(to_add);
+        if let Ok(mut guard) = self.observers.lock() {
+            guard.push(to_add);
         }
     }
 

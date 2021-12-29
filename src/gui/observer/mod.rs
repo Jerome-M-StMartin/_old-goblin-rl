@@ -6,26 +6,27 @@
 
 use std::any::Any;
 use std::collections::HashSet;
-use std::sync::{Arc, Weak, Mutex};
+use std::sync::{Weak, Mutex};
 
 pub struct IdGenerator {
-    used_ids: Arc<HashSet<usize>>,
+    used_ids: Mutex<HashSet<usize>>,
 }
 impl IdGenerator {
     pub fn new() -> Self {
         IdGenerator {
-            used_ids: Arc::new(HashSet::new()),
+            used_ids: Mutex::new(HashSet::new()),
         }
     }
 
     //Guaranteed to return a unique usize for this session.
     pub fn generate_observer_id(&self) -> usize {
         let mut new_id: usize = rand::random();
-        let mut used_ids = self.used_ids.borrow_mut();
-        while used_ids.contains(&new_id) {
-            new_id = rand::random();
+        if let Ok(mut used_ids) = self.used_ids.lock() {
+            while used_ids.contains(&new_id) {
+                new_id = rand::random();
+            }
+            used_ids.insert(new_id);
         }
-        used_ids.insert(new_id);
         new_id
     }
 }
@@ -43,7 +44,7 @@ pub trait Observer : Send + Sync {
 pub trait Observable : Send + Sync {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
-    fn add_observer(&self, to_add: Mutex<Weak<dyn Observer>>);
+    fn add_observer(&self, to_add: Weak<dyn Observer>);
     fn as_any(&self) -> &dyn Any;
 }
 

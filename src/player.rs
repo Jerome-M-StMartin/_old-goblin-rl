@@ -5,7 +5,7 @@ use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Curso
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
             HungerState, JustMoved, user_input::UserInput};
 
-// NEW VERSION of player_input() for GUI module integration - began 12/02/2021
+/*// NEW VERSION of player_input() for GUI module integration - began 12/02/2021
 pub fn player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
     let new_runstate: RunState = match gui.user_input {
         _ => RunState::AwaitingInput,
@@ -34,9 +34,9 @@ impl Observer for Player {
         }
     }
     fn setup_cursor(&self) {} //this needs to leave this trait
-}
+}*/
 
-/*pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
+pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
 
     //gui::enable_cursor_control(ecs, ctx);
@@ -96,7 +96,7 @@ impl Observer for Player {
     };
     
     return new_runstate;
-}*/
+}
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();

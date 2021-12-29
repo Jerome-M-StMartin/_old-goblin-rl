@@ -31,33 +31,39 @@ impl GameOver {
                 pos: Point {x:0,y:0},
                 selection: Mutex::new(Selection::NewGame),
                 selection_made: Mutex::new(false),
-                observer_id: *guard.generate_observer_id(),
-                user_input,
+                observer_id: guard.generate_observer_id(),
+                user_input: user_input.clone(),
             }
         } else {
             panic!("Found Mutex was Poinoned in gui::GameOver::new().")
         }
     }
     pub fn get_selection(&self) -> Option<Selection> {
-        if self.selection_made.get() {
-            return Some(self.selection.get());
+        if let Ok(_) = self.selection_made.lock() {
+            if let Ok(guard) = self.selection.lock() {
+               return  Some(*guard);
+            };
         }
         None
     }
     fn change_selection(&self, direction: Dir) {
-        match (direction, self.selection.get()) {
-            (Dir::UP, Selection::NewGame) => self.selection.set(Selection::Quit),
-            (Dir::RIGHT, Selection::NewGame) => self.selection.set(Selection::Quit),
+        if let Ok(mut curr_selection) = self.selection.lock() {
+            let new_selection: Selection = match (direction, *curr_selection) {
+                (Dir::UP, Selection::NewGame) => Selection::Quit,
+                (Dir::RIGHT, Selection::NewGame) => Selection::Quit,
 
-            (Dir::UP, Selection::Quit) => self.selection.set(Selection::NewGame),
-            (Dir::RIGHT, Selection::Quit) => self.selection.set(Selection::NewGame),
+                (Dir::UP, Selection::Quit) => Selection::NewGame,
+                (Dir::RIGHT, Selection::Quit) => Selection::NewGame,
 
-            (Dir::DOWN, Selection::NewGame) => self.selection.set(Selection::Quit),
-            (Dir::LEFT, Selection::NewGame) => self.selection.set(Selection::Quit),
+                (Dir::DOWN, Selection::NewGame) => Selection::Quit,
+                (Dir::LEFT, Selection::NewGame) => Selection::Quit,
 
-            (Dir::DOWN, Selection::Quit) => self.selection.set(Selection::NewGame),
-            (Dir::LEFT, Selection::Quit) => self.selection.set(Selection::NewGame),
-        };
+                (Dir::DOWN, Selection::Quit) => Selection::NewGame,
+                (Dir::LEFT, Selection::Quit) => Selection::NewGame,
+            };
+
+            *curr_selection = new_selection;
+        }
     }
 }
 
@@ -67,15 +73,18 @@ impl Drawable for GameOver {
         ctx.print_color_centered(15, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "GAME OVER");
         ctx.print_color_centered(24, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "New Game");
         ctx.print_color_centered(25, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "Quit Game");
-        match self.selection.get() {
-            Selection::NewGame => {
-                ctx.print_color_centered(24, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "New Game");
-            },
-            Selection::Quit => {
-                ctx.print_color_centered(25, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Quit Game");
+        if let Ok(guard) = self.selection.lock() {
+            match *guard {
+                Selection::NewGame => {
+                    ctx.print_color_centered(24, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "New Game");
+                },
+                Selection::Quit => {
+                    ctx.print_color_centered(25, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Quit Game");
+                }
             }
         }
     }
+
     fn move_to(&self, _pos: Point) {
         //self.pos = pos;
     }
@@ -98,18 +107,23 @@ impl Drawable for GameOver {
 //===================================
 impl Observer for GameOver {
     fn id(&self) -> usize { self.observer_id }
+
+    //Called by Observable when its data is dirty/
+    //Calls .send() on a Command for self
     fn update(&self) {
         let observable = self.user_input.as_any().downcast_ref::<UserInput>();
         if let Some(user_input) = observable {
-            if let Some(input_event) = user_input.input.get() {
-                match input_event {
-                    InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                        self.send(Box::new(ChangeSelectionCommand::new(dir)));
-                    },
-                    InputEvent::ENTER => {
-                        self.send(Box::new(SelectCommand::new()));
+            if let Ok(guard) = user_input.input.read() {
+                if let Some(input_event) = *guard {
+                    match input_event {
+                        InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
+                            self.send(Arc::new(ChangeSelectionCommand::new(dir)));
+                        },
+                        InputEvent::ENTER => {
+                            self.send(Arc::new(SelectCommand::new()));
+                        }
+                        _ => {},
                     }
-                    _ => {},
                 }
             }
         }
@@ -122,7 +136,7 @@ impl Observer for GameOver {
 //======== Command Pattern ==========
 //===================================
 impl Commandable<GameOver> for GameOver {
-    fn send(&self, cmd: Box<dyn Command<GameOver>>) {
+    fn send(&self, cmd: Arc<dyn Command<GameOver>>) {
         cmd.execute(self);
     }
 }
@@ -151,7 +165,9 @@ impl SelectCommand {
 }
 impl Command<GameOver> for SelectCommand {
     fn execute(&self, main_menu: &GameOver) {
-        main_menu.selection_made.set(true);
+        if let Ok(mut guard) = main_menu.selection_made.lock() {
+            *guard = true;
+        }
     }
     fn as_any(&self) -> &dyn Any { self }
 }

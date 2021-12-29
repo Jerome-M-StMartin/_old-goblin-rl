@@ -37,19 +37,15 @@ impl Cursor {
     }
 
     pub fn set_bg(&self, c: ColorOption) {
-        if let Ok(val) = self.bg.get_mut() {
-            *val = c;
-        } else if Err() {
-            panic!("Panic in gui::cursor.set_bg(), a Mutex was poisoned.");
-        }
+        if let Ok(mut guard) = self.bg.lock() {
+            *guard = c;
+        } else { panic!("Panic in gui::cursor.set_bg(), a Mutex was poisoned."); }
     }
 
     pub fn set_glyph(&self, new_glyph: FontCharType) {
-        if let Ok(val) = self.bg.get_mut() {
-            *val = new_glyph;
-        } else if Err() {
-            panic!("Panic in gui::cursor.set_glyph(), a Mutex was poisoned.");
-        }
+        if let Ok(mut guard) = self.glyph.lock() {
+            *guard = Some(new_glyph);
+        } else { panic!("Panic in gui::cursor.set_glyph(), a Mutex was poisoned."); }
     }
 
     //Use to-be-implemented particle/animation system
@@ -63,22 +59,28 @@ impl Cursor {
 
 impl Drawable for Cursor {
     fn draw(&self, ctx: &mut BTerm) {
-        if let Some(glyph) = self.glyph.get() {
-            let p: Point = self.pos.get();
-            ctx.set(
-                p.x,
-                p.y,
-                ColorOption::FOCUS.value(),
-                ColorOption::NONE.value(),
-                glyph,
-            );
+        if let Ok(guard) = self.glyph.lock() {
+            if let Some(glyph) = *guard {
+                if let Ok(p) = self.pos.lock() {
+                    ctx.set(
+                        p.x,
+                        p.y,
+                        ColorOption::FOCUS.value(),
+                        ColorOption::NONE.value(),
+                        glyph,
+                    );
+                }
+            }
         }
     }
     fn move_to(&self, pos: Point) {
-       self.pos.set(pos); 
+        if let Ok(mut guard) = self.pos.lock() {
+            *guard = pos;
+        }
     }
     fn orth_move(&self, direction: Dir) {
-        let mut pos = self.pos.get();
+        if let Ok(mut pos) = self.pos.lock() {
+
             match direction {
                 Dir::UP => { 
                     pos.y -= 1;
@@ -93,7 +95,7 @@ impl Drawable for Cursor {
                     pos.x += 1;
                 },
             }
-        self.pos.set(pos);
+        }
     }
     fn as_any(&self) -> &dyn Any { self }
 }
@@ -110,14 +112,15 @@ impl Observer for Cursor {
     fn update(&self) {
         let observable = self.to_observe.as_any().downcast_ref::<UserInput>();
         if let Some(user_input) = observable {
-            if let Some(input_event) = user_input.input.get() {
-                match input_event {
-                    InputEvent::HJKL(dir) => {
-                        let cmd = MoveCommand::new(dir);
-                        //self.send(Box::new(cmd));
-                        self.send(Arc::new(cmd));
+            if let Ok(guard) = user_input.input.read() {
+                if let Some(input_event) = *guard {
+                    match input_event {
+                        InputEvent::HJKL(dir) => {
+                            let cmd = MoveCommand::new(dir);
+                            self.send(Arc::new(cmd));
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         }
@@ -133,8 +136,8 @@ impl Observer for Cursor {
 //==================================
 
 impl Commandable<Cursor> for Cursor {
-    fn send(&self, cmd: Box<dyn Command<Cursor>>) {
-        //What cmd type is this cmd?
+    fn send(&self, cmd: Arc<dyn Command<Cursor>>) {
+        /*//What cmd type is this cmd?
         let cmd_type: TypeId = cmd.as_any().type_id();
 
         //Push cmd to history if possible for this cmd type
@@ -142,7 +145,7 @@ impl Commandable<Cursor> for Cursor {
             let move_cmd = cmd.as_any().downcast_ref::<MoveCommand>();
             let inverse: Dir = opposite_dir(&move_cmd.unwrap().move_direction);
             self.cmd_history.push(MoveCommand::new(inverse));
-        }
+        }*/
 
         cmd.execute(self);
     }

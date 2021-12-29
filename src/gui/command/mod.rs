@@ -26,8 +26,7 @@
  */
 
 use std::any::Any;
-//use std::cell::RefCell;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 pub trait Command<T> {
     fn execute(&self, target_instance: &T);
@@ -36,7 +35,7 @@ pub trait Command<T> {
 }
 
 pub trait Commandable<T> {
-    fn send(&self, cmd: Box<dyn Command<T>>);
+    fn send(&self, cmd: Arc<dyn Command<T>>);
 }
 
 //A Commandable with a CommandHistory should implement a fn reverse_cmd(cmd) method on itself,
@@ -44,8 +43,7 @@ pub trait Commandable<T> {
 //history of what was changed. Thus the commands themselves contain the deltas needed to revert
 //their previous execution.
 pub struct CommandHistory<T> {
-    //hist: RefCell<Vec<Box<dyn Command<T>>>>,
-    hist: Mutex<Vec<Box<dyn Command<T>>>>,
+    hist: Mutex<Vec<Arc<dyn Command<T>>>>,
 }
 
 impl<T> CommandHistory<T> {
@@ -55,12 +53,16 @@ impl<T> CommandHistory<T> {
     }
 
     pub fn push(&self, cmd: impl Command<T> + 'static) {
-        self.hist.borrow_mut().push(Box::new(cmd));
+        if let Ok(mut guard) = self.hist.lock() {
+            guard.push(Arc::new(cmd));
+        }
     }
 
-    pub fn pop(&self) -> Result<Box<dyn Command<T>>, &str> {
-        if let Some(last_cmd) = self.hist.borrow_mut().pop() {
-            return Ok(last_cmd);
+    pub fn pop(&self) -> Result<Arc<dyn Command<T>>, &str> {
+        if let Ok(mut guard) = self.hist.lock() {
+            if let Some(last_cmd) = guard.pop() {
+                return Ok(last_cmd);
+            }
         }
         Err("Command History vec is empty.")
     }

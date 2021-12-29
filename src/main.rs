@@ -1,6 +1,6 @@
 extern crate serde;
 
-use std::rc::Rc;
+use std::sync::Arc;
 use std::collections::HashMap;
 
 use rltk::{GameState, Rltk, Point, VirtualKeyCode};
@@ -84,9 +84,9 @@ pub enum RunState {
 
 pub struct State {
     pub ecs: World,
-    user_input: Rc<user_input::UserInput>,
+    user_input: Arc<user_input::UserInput>,
     gui: gui::GUI,
-    static_gui_objs: HashMap<String, Rc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
+    static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
     pub tooltips_on: bool, //<-delete after UI integration
 
     mapgen_next_state: Option<RunState>,
@@ -521,10 +521,10 @@ impl GameState for State {
 
                 //if a MainMenu object hasn't been created yet, create one.
                 if let None = self.static_gui_objs.get("main_menu") {
-                    let main_menu = Rc::new(gui::MainMenu::new(self.gui.user_input.clone()));
+                    let main_menu = Arc::new(gui::MainMenu::new(self.gui.user_input.clone()));
                     self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
 
-                    let weak = Rc::downgrade(&main_menu.clone());
+                    let weak = Arc::downgrade(&main_menu.clone());
                     self.gui.user_input.add_observer(weak);
                     self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
 
@@ -555,10 +555,10 @@ impl GameState for State {
                 use gui::game_over::{Selection, GameOver};
     
                 if let None = self.static_gui_objs.get("game_over") {
-                    let game_over = Rc::new(gui::GameOver::new(self.gui.user_input.clone()));
+                    let game_over = Arc::new(gui::GameOver::new(self.gui.user_input.clone()));
                     self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
 
-                    let weak = Rc::downgrade(&game_over.clone());
+                    let weak = Arc::downgrade(&game_over.clone());
                     self.gui.user_input.add_observer(weak);
                     self.gui.add_drawable(game_over.id(), game_over.clone(), true);
 
@@ -620,7 +620,7 @@ fn main() -> rltk::BError {
     //context.with_post_scanlines(true);
 
     //----------- initialization of State fields ------------
-    let user_input = Rc::new(user_input::UserInput::new());
+    let user_input = Arc::new(user_input::UserInput::new());
     let gui = gui::GUI::new(user_input.clone());
     //-------------------------------------------------------
 

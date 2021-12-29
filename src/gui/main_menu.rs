@@ -26,23 +26,30 @@ pub struct MainMenu {
 
 impl MainMenu {
     pub fn new(user_input: Arc<UserInput>) -> Self {
+        let new_id: usize;
+        if let Ok(guard) = user_input.id_gen.lock() {
+            new_id = guard.generate_observer_id();
+        } else { panic!("Mutex poisoned, GUI::MainMenu::new()") };
+
         MainMenu {
             pos: Point {x:0,y:0},
             selection: Mutex::new(Selection::NewGame),
             selection_made: Mutex::new(false),
-            observer_id: user_input.id_gen.generate_observer_id(),
+            observer_id: new_id,
             user_input,
         }
     }
     pub fn get_selection(&self) -> Option<Selection> {
         if let Ok(guard) = self.selection.lock() {
-            return Some(*guard);
-        } else { panic!("Mutex poisoned, noticed in MainMenu::get_selection().") }
+            Some(guard)
+        } else {
+            panic!("Mutex poisoned, noticed in MainMenu::get_selection().");
+        };
         None
     }
     fn change_selection(&self, direction: Dir) {
-        let mut variant;
-        if let Ok(guard) = self.selection.lock() {
+        let variant;
+        if let Ok(mut guard) = self.selection.lock() {
 
             match (direction, *guard) {
                 (Dir::UP, Selection::NewGame) => variant = Selection::Quit,
@@ -78,15 +85,18 @@ impl Drawable for MainMenu {
         ctx.print_color_centered(24, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "New Game");
         ctx.print_color_centered(25, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "Load Game");
         ctx.print_color_centered(26, ColorOption::DEFAULT.value(), ColorOption::NONE.value(), "Quit Game");
-        match self.selection.get() {
-            Selection::NewGame => {
-                ctx.print_color_centered(24, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "New Game");
-            },
-            Selection::LoadGame => {
-                ctx.print_color_centered(25, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Load Game");
-            },
-            Selection::Quit => {
-                ctx.print_color_centered(26, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Quit Game");
+
+        if let Ok(guard) = self.selection.lock() {
+            match *guard {
+                Selection::NewGame => {
+                    ctx.print_color_centered(24, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "New Game");
+                },
+                Selection::LoadGame => {
+                    ctx.print_color_centered(25, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Load Game");
+                },
+                Selection::Quit => {
+                    ctx.print_color_centered(26, ColorOption::FOCUS.value(), ColorOption::NONE.value(), "Quit Game");
+                }
             }
         }
     }
@@ -115,15 +125,17 @@ impl Observer for MainMenu {
     fn update(&self) {
         let observable = self.user_input.as_any().downcast_ref::<UserInput>();
         if let Some(user_input) = observable {
-            if let Some(input_event) = user_input.input.get() {
-                match input_event {
-                    InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                        self.send(Box::new(ChangeSelectionCommand::new(dir)));
-                    },
-                    InputEvent::ENTER => {
-                        self.send(Box::new(SelectCommand::new()));
+            if let Ok(guard) = user_input.input.read() {
+                if let Some(input_event) = *guard {
+                    match input_event {
+                        InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
+                            self.send(Arc::new(ChangeSelectionCommand::new(dir)));
+                        },
+                        InputEvent::ENTER => {
+                            self.send(Arc::new(SelectCommand::new()));
+                        }
+                        _ => {},
                     }
-                    _ => {},
                 }
             }
         }
@@ -136,7 +148,7 @@ impl Observer for MainMenu {
 //======== Command Pattern ==========
 //===================================
 impl Commandable<MainMenu> for MainMenu {
-    fn send(&self, cmd: Box<dyn Command<MainMenu>>) {
+    fn send(&self, cmd: Arc<dyn Command<MainMenu>>) {
         cmd.execute(self);
     }
 }
@@ -165,7 +177,9 @@ impl SelectCommand {
 }
 impl Command<MainMenu> for SelectCommand {
     fn execute(&self, main_menu: &MainMenu) {
-        main_menu.selection_made.set(true);
+        if let Ok(mut guard) = main_menu.selection_made.lock() {
+            *guard = true;
+        }
     }
     fn as_any(&self) -> &dyn Any { self }
 }
