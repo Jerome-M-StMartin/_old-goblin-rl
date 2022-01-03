@@ -23,10 +23,10 @@ pub mod drawable;
 
 use cursor::Cursor;
 use drawable::Drawable;
-use observer::Observable;
 use super::user_input::UserInput;
 use super::user_input;
 
+pub use observer::Observable;
 pub use observer::Observer;
 pub use main_menu::MainMenu;
 pub use game_over::GameOver;

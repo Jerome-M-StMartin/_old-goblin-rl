@@ -1,40 +1,40 @@
 use rltk::{VirtualKeyCode, Rltk, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
+use std::sync::Arc;
+use std::any::Any;
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, JustMoved, user_input::UserInput};
+            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
+            JustMoved, user_input::UserInput, gui::command::{Command, Commandable}};
+use super::gui::look_n_feel::Dir;
 
-/*// NEW VERSION of player_input() for GUI module integration - began 12/02/2021
-pub fn player_input(ecs: &mut World, gui: &gui::GUI) -> RunState {
-    let new_runstate: RunState = match gui.user_input {
-        _ => RunState::AwaitingInput,
-    };
-
-    return new_runstate;
+//-----------------------------------------------------------------
+//----------- Command Pattern for UserInput -> Player -------------
+//-----------------------------------------------------------------
+impl Commandable<Player> for Player {
+    fn send(&self, cmd: Arc<dyn Command<Player>>) {
+        cmd.execute(self);
+    }   
 }
 
-//Command needs to be moved out of gui module.
-use super::gui::command::{Command, Commandable};
-use super::gui::observer::Observer;
-use super::user_input::InputEvent;
-impl Observer for Player {
-    fn id(&self) -> usize { self.observer_id }
-    fn update(&self) {
-        let observable = self.user_input.as_any().downcast_ref::<UserInput>();
-        if let Some(user_input) = observable {
-            if let Some(input_event) = user_input.input.get() {
-                match input_event {
-                    InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                        //self.send(Box::new(MoveCommand::new()));
-                    },
-                    _ => {},
-                }
-            }
-        }
+pub struct MoveCommand {
+    move_direction: Dir,
+}
+impl Command<Player> for MoveCommand {
+    fn execute(&self, player: &Player) {
+        try_move_player();
     }
-    fn setup_cursor(&self) {} //this needs to leave this trait
-}*/
+    fn as_any(&self) -> &dyn Any { self }
+}
+
+pub struct WaitCommand {}
+impl Command<Player> for WaitCommand {
+    fn execute(&self, player: &Player) {
+        skip_turn();
+    }
+    fn as_any(&self) -> &dyn Any { self }
+}
+//-----------------------------------------------------------------
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;

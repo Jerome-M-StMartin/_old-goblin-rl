@@ -3,20 +3,15 @@
 ========================== ARCHITECTURE NOTES ===========================
 =========================================================================
 
-TODO:
-
-0.) Implement Send + Sync on Observable trait objects, and make
+DONE.) Move UserInput access point to the main State struct, out from the GUI
+    struct.
+DONE.) Implement Send + Sync on Observable trait objects, and make
 the user_input field of the Player Component(ECS) hold an
 Arc<dyn Observable>. Req'd because the ECS architecture is multithreaded.
-
-Send + Sync are Marker Traits, and are automatically implemented by
+	Send + Sync are Marker Traits, and are automatically implemented by
 the compilier if all types held by the struct in question are Send + Sync.
 So I need only change all Oberver Pattern stuff from Rc<>s, Cells, and
 RefCells, into Arc<>s, RwLocks, and/or Mutexes. Wow, big job; might
 have to extend thread-safe changes to entirety of GUI module???
 
-- Changes made to gui::Cursor and gui::Command such that Cursor has no errors
-  and is now Send + Sync.
 
-DONE.) Move UserInput access point to the main State struct, out from the GUI
-    struct.

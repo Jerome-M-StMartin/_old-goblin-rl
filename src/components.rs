@@ -5,6 +5,8 @@ use serde::{Serialize, Deserialize};
 use specs::saveload::{Marker, ConvertSaveload};
 use specs::error::NoError;
 use std::ops::{Add, Sub};
+use std::sync::Arc;
+use crate::user_input::UserInput;
 
 //serialization helper code. Each component that contains an Entity must impl ConvertSaveload.
 pub struct SerializeMe;
@@ -17,9 +19,6 @@ pub struct SerializationHelper {
 
 //Does the Component macro know to use NullStorage?...
 //-------------Fieldless Components-----------------------
-#[derive(Component, Serialize, Deserialize, Clone)]
-pub struct Player {}
-
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Hostile {}
 
@@ -53,6 +52,22 @@ pub struct Hidden {}
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct JustMoved {}
 //--------------------------------------------------------
+
+/***
+ *Wait...why in the hell would I ever want to grab UserInput from inside
+ * the ECS storage(s)? Just doesn't make sense, it already lives one
+ * layer of abstraction shallower... yeah wow this is bad design.
+ *
+ * Serde skip macro is necessary because Deserializing Arc<> doesn't
+ * really make any sense. Different instances of this program run at
+ * different times will ofc have difference memory locations for data,
+ * so the Arc<> from a previous session will not be the same address
+ * for a new session, even if the data inside the Arc<> is duplicated. */
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Player {
+    //#[serde(skip)]
+    //user_input: Arc<UserInput>
+}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Door { 

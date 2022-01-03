@@ -191,6 +191,20 @@ impl Observable for UserInput {
     }
 }
 
+//Serde requires a Default method so it can populate the Player Component's
+//Arc<UserInput> field upon Deserialization. This is just to satisfy rust's
+//memory safety requirements, a proper reference to the 'real' UserInput
+//struct must be fed to the Player Component after serialization occurrs.
+impl Default for UserInput {
+    fn default() -> Self {
+        UserInput {
+            id_gen: Mutex::new(IdGenerator::new()),
+            observers: Mutex::new(Vec::new()),
+            input: RwLock::new(Option::None),
+            focus_id: Mutex::new(None),
+        }
+    }
+}
 
 /*Pre-threadsafe version:
 pub struct UserInput {

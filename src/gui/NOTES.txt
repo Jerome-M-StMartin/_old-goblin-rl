@@ -2,11 +2,6 @@ TO-LEARN:
 1.) ?
 
 TO-DO:
-0.) Just changed impl Observable to hold its Observers in a Mutex<Weak<dyn
-    Observers>>. So Fix everything to account for this.
-	Lots of stuff needs to aqcuire the lock on the Mutex now first,
-	so lots of mutex boilerplate to add basically. Get at it! :]
-
 1.) Replace player::player_input with gui::user_input implementation?
     So make gui::user_input.rs into its own module. Right? I think so.
 	Actually, first check if I can & should be passing all user
@@ -31,6 +26,8 @@ DONE.) Command Pattern (impl on Cursor)
 DONE.) Get cursor onto screen with user interactability via Command Pattern.
 DONE.) Finish re-re-implementation of the Command Pattern
 DONE.) Implement Drawables
+DONE.) changed impl Observable to hold its Observers in a Mutex<Weak<dyn Observers>>.
+
 
 
 YAML:
