@@ -83,12 +83,16 @@ pub enum RunState {
 }
 
 pub struct State {
-    pub ecs: World,
+    pub ecs: World, //specs World
+
     user_input: Arc<user_input::UserInput>,
+
+    //from-scratch gui crate
     gui: gui::GUI,
     static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
     pub tooltips_on: bool, //<-delete after UI integration
 
+    //rltk-based map procgen state - to-be-removed
     mapgen_next_state: Option<RunState>,
     mapgen_history: Vec<Map>,
     mapgen_index: usize,

@@ -75,7 +75,7 @@ fn to_string_test00() {
     let result = to_string(&test.data);
     match result {
         Ok(v) => {
-            assert_eq!(v, "---\n123456789");
+            assert_eq!(v, "---\n123456789\n");
         }
         Err(e) => {
             eprintln!("Error: {}", e);

@@ -2,6 +2,21 @@
 =========================================================================
 ========================== ARCHITECTURE NOTES ===========================
 =========================================================================
+TODO
+1
+I'm not seeing the "big picture" with building architecture in rust yet. This
+is some experience that makes me favor the OOP style, and the strictness of
+conformity in languages like Java, and having been forced to learn with Java.
+
+Anyway, I need to store some PlayerController struct in the main State struct,
+which will be Observer and Commandable. 
+
+- I have made a PlayerController struct in player.rs, on which must be
+  implemented all the functions currently attributed to the player.rs module.
+  PlayerController will be a pseudo-singleton for now (more when multiplayer
+  is enabled), which will be stored in the main::State struct. (Later, State
+  will store a data structure holding multiple PlayerControllers, I guess?)
+
 
 DONE.) Move UserInput access point to the main State struct, out from the GUI
     struct.

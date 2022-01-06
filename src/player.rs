@@ -5,11 +5,21 @@ use std::sync::Arc;
 use std::any::Any;
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
-            JustMoved, user_input::UserInput, gui::command::{Command, Commandable}};
-use super::gui::look_n_feel::Dir;
+            JustMoved, user_input::UserInput, gui::command::{Command, Commandable, CommandHistory},
+            gui::look_n_feel::Dir};
+
+pub struct PlayerController {
+    player: Arc<Player>,
+    input: Arc<UserInput>,
+    cmd_hist: CommandHistory<PlayerController>,
+}
+
+impl PlayerController {
+
+}
 
 //-----------------------------------------------------------------
-//----------- Command Pattern for UserInput -> Player -------------
+//------- Command Pattern for UserInput -> PlayerController -------
 //-----------------------------------------------------------------
 impl Commandable<Player> for Player {
     fn send(&self, cmd: Arc<dyn Command<Player>>) {
@@ -22,7 +32,7 @@ pub struct MoveCommand {
 }
 impl Command<Player> for MoveCommand {
     fn execute(&self, player: &Player) {
-        try_move_player();
+        //try_move_player();
     }
     fn as_any(&self) -> &dyn Any { self }
 }
@@ -30,7 +40,7 @@ impl Command<Player> for MoveCommand {
 pub struct WaitCommand {}
 impl Command<Player> for WaitCommand {
     fn execute(&self, player: &Player) {
-        skip_turn();
+        //skip_turn();
     }
     fn as_any(&self) -> &dyn Any { self }
 }
