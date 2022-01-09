@@ -2,49 +2,86 @@ use rltk::{VirtualKeyCode, Rltk, Point};
 use specs::prelude::*;
 use std::cmp::{max, min};
 use std::sync::Arc;
-use std::any::Any;
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
-            JustMoved, user_input::UserInput, gui::command::{Command, Commandable, CommandHistory},
-            gui::look_n_feel::Dir};
+            JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,
+            };
+use crate::user_input::{UserInput, InputEvent};
+use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
 
 pub struct PlayerController {
-    player: Arc<Player>,
-    input: Arc<UserInput>,
-    cmd_hist: CommandHistory<PlayerController>,
+    observer_id: usize,
+    user_input: Arc<UserInput>,
+    cmd_queue: CommandQueue,
+    //cmd_hist: Arc<CommandHistory<PlayerController>>,
 }
 
 impl PlayerController {
-
-}
-
-//-----------------------------------------------------------------
-//------- Command Pattern for UserInput -> PlayerController -------
-//-----------------------------------------------------------------
-impl Commandable<Player> for Player {
-    fn send(&self, cmd: Arc<dyn Command<Player>>) {
-        cmd.execute(self);
-    }   
-}
-
-pub struct MoveCommand {
-    move_direction: Dir,
-}
-impl Command<Player> for MoveCommand {
-    fn execute(&self, player: &Player) {
-        //try_move_player();
+    pub fn new(observer_id: usize, user_input: Arc<UserInput>) -> Self {
+        PlayerController {
+            observer_id,
+            user_input,
+            cmd_queue: CommandQueue::new(),
+            //cmd_hist: CommandHistory::new(),
+        }
     }
-    fn as_any(&self) -> &dyn Any { self }
 }
 
-pub struct WaitCommand {}
-impl Command<Player> for WaitCommand {
-    fn execute(&self, player: &Player) {
-        //skip_turn();
-    }
-    fn as_any(&self) -> &dyn Any { self }
-}
 //-----------------------------------------------------------------
+//------------ Observer Pattern for PlayerController --------------
+//-----------------------------------------------------------------
+impl Observer for PlayerController {
+    fn id(&self) -> usize {
+        self.observer_id
+    }
+    fn update(&self) {
+        if let Ok(input_event_guard) = self.user_input.input.read() {
+            if let Some(input_event) = *input_event_guard {
+                let cmd_option = match input_event {
+                    InputEvent::WASD(dir) => { Some(Command::Move { dir }) }//move
+                    InputEvent::ENTER => { Some(Command::Wait) }//context action
+                    InputEvent::SPACE => { Some(Command::Wait) }//wait
+                    _ => { None }
+                };
+
+                if let Some(cmd) = cmd_option {
+                    self.send(cmd);
+                }
+            }
+        }
+    }
+    fn setup_cursor(&self) {}
+}//----------------------------------------------------------------
+
+//-----------------------------------------------------------------
+//------------- Command Pattern for PlayerController --------------
+//-----------------------------------------------------------------
+impl Commandable for PlayerController {
+    fn send(&self, command: Command) {
+        self.cmd_queue.push(command);
+    }
+
+    fn process(&mut self) {
+        let mut next: Option<Command> = self.cmd_queue.next();
+        while next.is_some() {
+            match next.unwrap() {
+                Command::ContextAction{id} => {
+                    //todo
+                },
+                Command::Goto{pos} => {
+                    //todo
+                },
+                Command::Move{dir} => {
+                    //todo
+                },
+                Command::Wait => {
+                    //todo
+                },
+            };
+            next = self.cmd_queue.next();
+        }
+    }
+}//----------------------------------------------------------------
 
 pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     let new_runstate : RunState;
@@ -132,7 +169,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
             let target = stats.get(*potential_target);
             if let Some(_target) = target {
                 melee_intent.insert(entity, MeleeIntent{target: *potential_target})
-                .expect("Add target failed.");
+                .expect("Add target failed for bump attack.");
                 
                 return RunState::PlayerTurn; //cancel movement
             }

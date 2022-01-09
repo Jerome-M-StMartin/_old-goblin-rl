@@ -37,6 +37,7 @@ pub enum InputEvent {
     CURSOR(Point),
     WASD(Dir),
     HJKL(Dir),
+    SPACE,
     TOOLTIPS,
     ESC,
     ENTER,
@@ -191,7 +192,9 @@ impl Observable for UserInput {
     }
 }
 
-//Serde requires a Default method so it can populate the Player Component's
+/*DEPRECIATED - NO LONGER STORING ANYTHING IN THE 'PLAYER' COMPONENT
+ *
+ * //Serde requires a Default method so it can populate the Player Component's
 //Arc<UserInput> field upon Deserialization. This is just to satisfy rust's
 //memory safety requirements, a proper reference to the 'real' UserInput
 //struct must be fed to the Player Component after serialization occurrs.
@@ -204,7 +207,7 @@ impl Default for UserInput {
             focus_id: Mutex::new(None),
         }
     }
-}
+}*/
 
 /*Pre-threadsafe version:
 pub struct UserInput {

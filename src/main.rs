@@ -29,6 +29,7 @@ mod throw_system;
 mod light_system;
 mod trigger_system;
 
+pub mod command;
 pub mod user_input;
 pub mod particle_system;
 pub mod random_table;

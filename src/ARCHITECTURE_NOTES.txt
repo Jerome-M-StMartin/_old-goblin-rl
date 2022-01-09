@@ -3,6 +3,10 @@
 ========================== ARCHITECTURE NOTES ===========================
 =========================================================================
 TODO
+0
+I'm now making the COMMAND PATTERN use Enums for polymorphism rather than
+trait objects.
+
 1
 I'm not seeing the "big picture" with building architecture in rust yet. This
 is some experience that makes me favor the OOP style, and the strictness of
