@@ -1,11 +1,12 @@
-use rltk::{VirtualKeyCode, Rltk, Point};
-use specs::prelude::*;
 use std::cmp::{max, min};
 use std::sync::Arc;
+
+use specs::prelude::*;
+use rltk::{VirtualKeyCode, Rltk, Point};
+
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
-            JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,
-            };
+            JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,};
 use crate::user_input::{UserInput, InputEvent};
 use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
 
@@ -13,16 +14,17 @@ pub struct PlayerController {
     observer_id: usize,
     user_input: Arc<UserInput>,
     cmd_queue: CommandQueue,
-    //cmd_hist: Arc<CommandHistory<PlayerController>>,
+    cmd_hist: CommandHistory,
 }
 
 impl PlayerController {
-    pub fn new(observer_id: usize, user_input: Arc<UserInput>) -> Self {
+    pub fn new(user_input: Arc<UserInput>) -> Self {
+        let observer_id: usize = user_input.generate_id();
         PlayerController {
             observer_id,
             user_input,
             cmd_queue: CommandQueue::new(),
-            //cmd_hist: CommandHistory::new(),
+            cmd_hist: CommandHistory::new(),
         }
     }
 }
@@ -30,6 +32,9 @@ impl PlayerController {
 //-----------------------------------------------------------------
 //------------ Observer Pattern for PlayerController --------------
 //-----------------------------------------------------------------
+/* Calls to self.Observer::update() by this Observer's Observable result in a call
+ * to self.Commandable::send(), a Command Pattern implementation.
+ * */
 impl Observer for PlayerController {
     fn id(&self) -> usize {
         self.observer_id
@@ -39,7 +44,7 @@ impl Observer for PlayerController {
             if let Some(input_event) = *input_event_guard {
                 let cmd_option = match input_event {
                     InputEvent::WASD(dir) => { Some(Command::Move { dir }) }//move
-                    InputEvent::ENTER => { Some(Command::Wait) }//context action
+                    InputEvent::ENTER => { Some(Command::Grab) }//context action
                     InputEvent::SPACE => { Some(Command::Wait) }//wait
                     _ => { None }
                 };
@@ -61,24 +66,47 @@ impl Commandable for PlayerController {
         self.cmd_queue.push(command);
     }
 
-    fn process(&mut self) {
-        let mut next: Option<Command> = self.cmd_queue.next();
+    //Call from the main loop after user has commited to executing
+    //the series of commands currently stored in the CommandQueue.
+    fn process(&self, ecs: &mut World) -> RunState {
+        let mut runstate: RunState = RunState::AwaitingInput;
+        let mut next: Option<Command> = self.cmd_queue.pop_front();
         while next.is_some() {
             match next.unwrap() {
-                Command::ContextAction{id} => {
-                    //todo
-                },
-                Command::Goto{pos} => {
-                    //todo
+                Command::Grab => {
+                    get_item(ecs);
                 },
                 Command::Move{dir} => {
-                    //todo
+                    match dir {
+                        Dir::UP => { runstate = try_move_player(0, -1, ecs) },
+                        Dir::DOWN => { runstate = try_move_player(0, 1, ecs) },
+                        Dir::LEFT => { runstate = try_move_player(-1, 0, ecs) },
+                        Dir::RIGHT => { runstate = try_move_player(1, 0, ecs) },
+                    };
                 },
                 Command::Wait => {
-                    //todo
+                    skip_turn(ecs);
                 },
+                _ => {},
             };
-            next = self.cmd_queue.next();
+            next = self.cmd_queue.pop();
+        }
+
+        runstate
+    }
+
+    fn undo(&self) {
+        let mut next: Option<Command> = self.cmd_queue.pop();
+
+        while next.is_some() {
+            match next.unwrap() {
+                Command::Grab => {},
+                Command::Move{dir} => {},
+                Command::Wait => {},
+                _ => {},
+            }
+
+            next = self.cmd_queue.pop();
         }
     }
 }//----------------------------------------------------------------

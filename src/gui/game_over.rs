@@ -9,7 +9,7 @@ use bracket_terminal::prelude::{BTerm, Point};
 use super::look_n_feel::{ColorOption, Dir};
 use super::drawable::Drawable;
 use super::observer::{Observer, Observable};
-use super::command::{Command, Commandable};
+use super::command::{Command, Commandable, CommandQueue};
 use super::user_input::{InputEvent, UserInput};
 
 #[derive(PartialEq, Copy, Clone)]
@@ -21,7 +21,9 @@ pub struct GameOver {
     selection_made: Mutex<bool>,
 
     observer_id: usize,
-    user_input: Arc<dyn Observable>,
+    user_input: Arc<UserInput>,
+
+    cmd_queue: CommandQueue,
 }
 
 impl GameOver {
@@ -33,6 +35,7 @@ impl GameOver {
                 selection_made: Mutex::new(false),
                 observer_id: guard.generate_observer_id(),
                 user_input: user_input.clone(),
+                cmd_queue: CommandQueue::new(),
             }
         } else {
             panic!("Found Mutex was Poinoned in gui::GameOver::new().")
@@ -108,22 +111,17 @@ impl Drawable for GameOver {
 impl Observer for GameOver {
     fn id(&self) -> usize { self.observer_id }
 
-    //Called by Observable when its data is dirty/
-    //Calls .send() on a Command for self
     fn update(&self) {
-        let observable = self.user_input.as_any().downcast_ref::<UserInput>();
-        if let Some(user_input) = observable {
-            if let Ok(guard) = user_input.input.read() {
-                if let Some(input_event) = *guard {
-                    match input_event {
-                        InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                            self.send(Arc::new(ChangeSelectionCommand::new(dir)));
-                        },
-                        InputEvent::ENTER => {
-                            self.send(Arc::new(SelectCommand::new()));
-                        }
-                        _ => {},
-                    }
+        if let Ok(input_event_guard) = self.user_input.input.read() {
+            if let Some(input_event) = *input_event_guard {
+                let cmd_option = match input_event {
+                    InputEvent::WASD(dir) => { Some(Command::Move {dir}) },
+                    InputEvent::ENTER => { Some(Command::Select) },
+                    _ => { None },
+                };
+
+                if let Some(cmd) = cmd_option {
+                    self.send(cmd);
                 }
             }
         }
@@ -135,39 +133,26 @@ impl Observer for GameOver {
 //===================================
 //======== Command Pattern ==========
 //===================================
-impl Commandable<GameOver> for GameOver {
-    fn send(&self, cmd: Arc<dyn Command<GameOver>>) {
-        cmd.execute(self);
+impl Commandable for GameOver {
+    fn send(&self, cmd: Command) {
+        self.cmd_queue.push(cmd);
     }
-}
-
-//======= Commands =======
-struct ChangeSelectionCommand {
-    direction: Dir,
-}
-impl ChangeSelectionCommand {
-    pub fn new(direction: Dir) -> Self {
-        ChangeSelectionCommand { direction }
-    }
-}
-impl Command<GameOver> for ChangeSelectionCommand {
-    fn execute(&self, main_menu: &GameOver) {
-        main_menu.change_selection(self.direction);
-    }
-    fn as_any(&self) -> &dyn Any { self }
-}
-
-struct SelectCommand {}
-impl SelectCommand {
-    pub fn new() -> Self {
-        SelectCommand {}
-    }
-}
-impl Command<GameOver> for SelectCommand {
-    fn execute(&self, main_menu: &GameOver) {
-        if let Ok(mut guard) = main_menu.selection_made.lock() {
-            *guard = true;
+    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {
+        let mut next: Option<Command> = self.cmd_queue.pop_front();
+        while next.is_some() {
+            match next.unwrap() {
+                Command::Select => {
+                    if let Ok(mut selection_made) = self.selection_made.lock() {
+                        *selection_made = true;
+                    }
+                },
+                Command::Move{dir} => {
+                    self.change_selection(dir)
+                },
+                _ => {},
+            }
+            next = self.cmd_queue.pop_front();
         }
+        super::super::RunState::GameOver
     }
-    fn as_any(&self) -> &dyn Any { self }
 }

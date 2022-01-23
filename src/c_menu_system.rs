@@ -1,3 +1,12 @@
+
+/*
+ * Now Defunct:
+ * Due to new plan to shape the gameplay into an 'Into the Breach' style,
+ * there is little need to have a context menu attached to every game obj.
+ */
+
+
+
 use specs::prelude::*;
 use super::{Menuable, MenuOption, Item, Position, InBackpack, Equippable, Hostile, Useable, Throwable,
             EntryTrigger, Equipped};

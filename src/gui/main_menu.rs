@@ -9,7 +9,7 @@ use bracket_terminal::prelude::{BTerm, Point};
 use super::look_n_feel::{ColorOption, Dir};
 use super::drawable::Drawable;
 use super::observer::{Observer, Observable};
-use super::command::{Command, Commandable};
+use super::command::{Command, Commandable, CommandQueue};
 use super::user_input::{InputEvent, UserInput};
 
 #[derive(PartialEq, Copy, Clone)]
@@ -21,7 +21,9 @@ pub struct MainMenu {
     selection_made: Mutex<bool>,
 
     observer_id: usize,
-    user_input: Arc<dyn Observable>,
+    user_input: Arc<UserInput>,
+
+    cmd_queue: CommandQueue,
 }
 
 impl MainMenu {
@@ -29,7 +31,9 @@ impl MainMenu {
         let new_id: usize;
         if let Ok(guard) = user_input.id_gen.lock() {
             new_id = guard.generate_observer_id();
-        } else { panic!("Mutex poisoned, GUI::MainMenu::new()") };
+        } else {
+            panic!("Mutex poisoned, GUI::MainMenu::new()");
+        }
 
         MainMenu {
             pos: Point {x:0,y:0},
@@ -37,16 +41,21 @@ impl MainMenu {
             selection_made: Mutex::new(false),
             observer_id: new_id,
             user_input,
+            cmd_queue: CommandQueue::new(),
         }
     }
+
     pub fn get_selection(&self) -> Option<Selection> {
-        if let Ok(guard) = self.selection.lock() {
-            Some(guard)
-        } else {
-            panic!("Mutex poisoned, noticed in MainMenu::get_selection().");
-        };
-        None
+        if let Ok(selection_made) = self.selection_made.lock() {
+            if *selection_made {
+                if let Ok(guard) = self.selection.lock() {
+                    return Some(*guard);
+                };
+            } else { return None; };
+        }
+        panic!("Mutex poisoned, noticed in MainMenu::get_selection().");
     }
+    
     fn change_selection(&self, direction: Dir) {
         let variant;
         if let Ok(mut guard) = self.selection.lock() {
@@ -123,19 +132,16 @@ impl Drawable for MainMenu {
 impl Observer for MainMenu {
     fn id(&self) -> usize { self.observer_id }
     fn update(&self) {
-        let observable = self.user_input.as_any().downcast_ref::<UserInput>();
-        if let Some(user_input) = observable {
-            if let Ok(guard) = user_input.input.read() {
-                if let Some(input_event) = *guard {
-                    match input_event {
-                        InputEvent::HJKL(dir) | InputEvent::WASD(dir) => {
-                            self.send(Arc::new(ChangeSelectionCommand::new(dir)));
-                        },
-                        InputEvent::ENTER => {
-                            self.send(Arc::new(SelectCommand::new()));
-                        }
-                        _ => {},
-                    }
+        if let Ok(input_event_guard) = self.user_input.input.read() {
+            if let Some(input_event) = *input_event_guard {
+                let cmd_option = match input_event {
+                    InputEvent::WASD(dir) => { Some(Command::Move {dir}) },
+                    InputEvent::ENTER => { Some(Command::Select) },
+                    _ => { None },
+                };
+
+                if let Some(cmd) = cmd_option {
+                    self.send(cmd);
                 }
             }
         }
@@ -147,39 +153,27 @@ impl Observer for MainMenu {
 //===================================
 //======== Command Pattern ==========
 //===================================
-impl Commandable<MainMenu> for MainMenu {
-    fn send(&self, cmd: Arc<dyn Command<MainMenu>>) {
-        cmd.execute(self);
+impl Commandable for MainMenu {
+    fn send(&self, cmd: Command) {
+        self.cmd_queue.push(cmd)
     }
-}
-
-//======= Commands =======
-struct ChangeSelectionCommand {
-    direction: Dir,
-}
-impl ChangeSelectionCommand {
-    pub fn new(direction: Dir) -> Self {
-        ChangeSelectionCommand { direction }
-    }
-}
-impl Command<MainMenu> for ChangeSelectionCommand {
-    fn execute(&self, main_menu: &MainMenu) {
-        main_menu.change_selection(self.direction);
-    }
-    fn as_any(&self) -> &dyn Any { self }
-}
-
-struct SelectCommand {}
-impl SelectCommand {
-    pub fn new() -> Self {
-        SelectCommand {}
-    }
-}
-impl Command<MainMenu> for SelectCommand {
-    fn execute(&self, main_menu: &MainMenu) {
-        if let Ok(mut guard) = main_menu.selection_made.lock() {
-            *guard = true;
+    
+    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {
+        let mut next: Option<Command> = self.cmd_queue.pop_front();
+        while next.is_some() {
+            match next.unwrap() {
+                Command::Select => {
+                    if let Ok(mut selection_made) = self.selection_made.lock() {
+                        *selection_made = true;
+                    }           
+                },
+                Command::Move{dir} => {
+                    self.change_selection(dir);
+                },
+                _ => {},
+            }
+            next = self.cmd_queue.pop_front();
         }
+        super::super::RunState::MainMenu
     }
-    fn as_any(&self) -> &dyn Any { self }
 }

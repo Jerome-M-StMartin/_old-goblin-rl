@@ -53,38 +53,46 @@ impl UserInput {
         }
     }
 
-    pub fn transcribe_input(&self, ctx: &BTerm) -> bool { //use returned bool to control observer notification
-        //let mut dirty: bool = true; Uneccessary, use input's None variant.
-        let mut input: Option<InputEvent> = None;
+    pub fn tick(&self, ctx: &BTerm) {
+        if Self::transcribe_input(&self, ctx) {
+            Self::notify_focus(&self);
+        }
+    }
+
+    fn transcribe_input(&self, ctx: &BTerm) -> bool { //use returned bool to control observer notification
+        let mut new_input: Option<InputEvent> = None;
         if let Some(key) = ctx.key {
             match key {
-                VirtualKeyCode::W => input = Some(InputEvent::WASD(Dir::UP)),
-                VirtualKeyCode::S => input = Some(InputEvent::WASD(Dir::DOWN)),
-                VirtualKeyCode::A => input = Some(InputEvent::WASD(Dir::LEFT)),
-                VirtualKeyCode::D => input = Some(InputEvent::WASD(Dir::RIGHT)),
+                VirtualKeyCode::W => new_input = Some(InputEvent::WASD(Dir::UP)),
+                VirtualKeyCode::S => new_input = Some(InputEvent::WASD(Dir::DOWN)),
+                VirtualKeyCode::A => new_input = Some(InputEvent::WASD(Dir::LEFT)),
+                VirtualKeyCode::D => new_input = Some(InputEvent::WASD(Dir::RIGHT)),
 
-                VirtualKeyCode::K => input = Some(InputEvent::HJKL(Dir::UP)),
-                VirtualKeyCode::J => input = Some(InputEvent::HJKL(Dir::DOWN)),
-                VirtualKeyCode::H => input = Some(InputEvent::HJKL(Dir::LEFT)),
-                VirtualKeyCode::L => input = Some(InputEvent::HJKL(Dir::RIGHT)),
+                VirtualKeyCode::K => new_input = Some(InputEvent::HJKL(Dir::UP)),
+                VirtualKeyCode::J => new_input = Some(InputEvent::HJKL(Dir::DOWN)),
+                VirtualKeyCode::H => new_input = Some(InputEvent::HJKL(Dir::LEFT)),
+                VirtualKeyCode::L => new_input = Some(InputEvent::HJKL(Dir::RIGHT)),
 
-                VirtualKeyCode::Tab => { //Change Focus (change which observer receives input event commands)
+                VirtualKeyCode::Tab => { //Change Focus
                     let next_id = self.next_observer_id();
                     if let Ok(mut guard) = self.focus_id.lock() {
                         *guard = Some(next_id);
                     }
                 }
-                VirtualKeyCode::T => input = Some(InputEvent::TOOLTIPS),
-                VirtualKeyCode::Escape => input = Some(InputEvent::ESC),
-                VirtualKeyCode::Return => input = Some(InputEvent::ENTER),
+                VirtualKeyCode::T => new_input = Some(InputEvent::TOOLTIPS),
+                VirtualKeyCode::Escape => new_input = Some(InputEvent::ESC),
+                VirtualKeyCode::Return => new_input = Some(InputEvent::ENTER),
 
                 _ => {}
             }
         };
 
-        if let Ok(mut guard) = self.input.write() {
-            *guard = input;
-            return true
+        if let Ok(mut input) = self.input.write() {
+            *input = new_input;
+
+            if input.is_some() {
+                return true;
+            }
         }
         
         false
@@ -141,6 +149,13 @@ impl UserInput {
                 }
             }
         }
+    }
+
+    pub fn generate_id(&self) -> usize {
+        if let Ok(id_gen) = self.id_gen.lock() {
+            return id_gen.generate_observer_id();
+        }
+        panic!("Unable to get ObserverID; was the id_gen Mutex poisoned???");
     }
 }
 

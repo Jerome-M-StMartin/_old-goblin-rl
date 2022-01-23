@@ -1,22 +1,3 @@
-TO-LEARN:
-1.) ?
-
-TO-DO:
-1.) Replace player::player_input with gui::user_input implementation?
-    So make gui::user_input.rs into its own module. Right? I think so.
-	Actually, first check if I can & should be passing all user
-	input through the GUI module. This does make a certain sense.
-2.) Verify if implementing Drawable on ECS components is possible.
-	Wrong! This is NOT the ECS way! I need a GUIDrawSystem which
-	operates on Entities with an attached Drawable component.
-	No need to impl anything on components, as that would make
-	them object-like, with logic as well as data. Components
-	are meant to be data only.
-3.) Draw basic UI (log, hp, etc) with gui module
-
-4.) (Obsolete under new IntoTheBreach/FTL/Wind&WiltingBlossom-esk design.)
-    Build complete 'infocard' with mock RPG data representing character stats & inventory.
----------------------------------
 DONE.) ScrollBar Prototype v1
 DONE.) Drawable Observers
 DONE.) Input Handler + Observer Pattern (w/ Focus System)
@@ -27,6 +8,10 @@ DONE.) Get cursor onto screen with user interactability via Command Pattern.
 DONE.) Finish re-re-implementation of the Command Pattern
 DONE.) Implement Drawables
 DONE.) changed impl Observable to hold its Observers in a Mutex<Weak<dyn Observers>>.
+DONE.) Replace player::player_input with gui::user_input implementation?
+	So make gui::user_input.rs into its own module. Right? I think so.
+	Actually, first check if I can & should be passing all user
+	input through the GUI module. This does make a certain sense.
 
 
 

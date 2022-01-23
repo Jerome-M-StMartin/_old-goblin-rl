@@ -30,7 +30,7 @@ impl ColorOption {
 }//----------------------------------------
 
 // Orthogonal Direction
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Debug)]
 pub enum Dir {
     UP,
     DOWN,

@@ -12,7 +12,6 @@ use bracket_terminal::prelude::BTerm;
 
 mod yaml_parser;
 
-pub mod command;
 pub mod textify;
 pub mod look_n_feel;
 pub mod observer;
@@ -25,6 +24,7 @@ use cursor::Cursor;
 use drawable::Drawable;
 use super::user_input::UserInput;
 use super::user_input;
+use super::command;
 
 pub use observer::Observable;
 pub use observer::Observer;
@@ -40,15 +40,6 @@ pub struct GUI {
     to_draw: RefCell<Vec<usize>>, //these ecs entities need a .draw() call this tick
 }
 
-/*-----example Drawable ecs component
-#[derive(Component)]
-struct GuiData {
-    infocard: Arc<InfoCard>,
-}
-struct InfoCard {}
-impl Drawable for InfoCard {}
-------------------------------*/
-
 impl GUI {
     //creates, initializes, and returns the gui object
     pub fn new(user_input: Arc<UserInput>) -> Self {
@@ -61,7 +52,7 @@ impl GUI {
         // - CURSOR - 
         if let Ok(guard) = user_input.id_gen.lock() {
             let cursor_observer_id = guard.generate_observer_id();
-            let cursor = Cursor::new(cursor_observer_id, user_input.clone());
+            let cursor = Cursor::new(user_input.clone(), cursor_observer_id, user_input.clone());
             arc_cursor = Arc::new(cursor);
             let arc_cursor_as_observer: Arc<dyn Observer> = arc_cursor.clone();
             user_input.add_observer(Arc::downgrade(&arc_cursor_as_observer));
@@ -79,10 +70,7 @@ impl GUI {
 
     //call this function in the main bracket-lib game loop.
     pub fn tick(&mut self, ctx: &mut BTerm) {
-        let input_is_dirty: bool = self.user_input.transcribe_input(ctx); //read & translate input event from BTerm
-        if input_is_dirty {
-            self.user_input.notify_focus(); //notify only the active observer (i.e. the focus)
-        }
+        self.user_input.tick(ctx);
 
         //draw all to_draw gui objs & remove dropped references
         let mut drawable_drops: Vec<usize> = Vec::new();

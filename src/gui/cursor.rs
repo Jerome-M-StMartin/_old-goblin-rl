@@ -2,7 +2,7 @@
 //Node Menu Project
 //12/07/2020
 
-use super::command::{Command, /*CommandHistory,*/ Commandable};
+use super::command::{Command, Commandable, CommandQueue};
 use super::drawable::Drawable;
 use super::look_n_feel::{ColorOption, Dir};
 use super::observer::{Observable, Observer};
@@ -18,21 +18,25 @@ pub struct Cursor {
     pub color: Mutex<ColorOption>,
     pub bg: Mutex<ColorOption>,
 
+    user_input: Arc<UserInput>,
+
     observer_id: usize,
     to_observe: Arc<dyn Observable>,
 
-    //cmd_history: CommandHistory<Cursor>,
+    cmd_queue: CommandQueue,
 }
 
 impl Cursor {
-    pub fn new(observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
+    pub fn new(user_input: Arc<UserInput>, observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
         Cursor {
             pos: Mutex::new(Point { x: 0, y: 0 }),
             glyph: Mutex::new(Some(to_cp437('>'))),
             color: Mutex::new(ColorOption::DEFAULT),
             bg: Mutex::new(ColorOption::FOCUS),
+            user_input,
             observer_id,
             to_observe,
+            cmd_queue: CommandQueue::new(),
         }
     }
 
@@ -110,17 +114,14 @@ impl Observer for Cursor {
         self.observer_id
     }
     fn update(&self) {
-        let observable = self.to_observe.as_any().downcast_ref::<UserInput>();
-        if let Some(user_input) = observable {
-            if let Ok(guard) = user_input.input.read() {
-                if let Some(input_event) = *guard {
-                    match input_event {
-                        InputEvent::HJKL(dir) => {
-                            let cmd = MoveCommand::new(dir);
-                            self.send(Arc::new(cmd));
-                        }
-                        _ => {}
-                    }
+        if let Ok(input_event_guard) = self.user_input.input.read() {
+            if let Some(input_event) = *input_event_guard {
+                let cmd_option: Option<Command> = match input_event {
+                    InputEvent::HJKL(dir) => { Some(Command::Move{dir}) },
+                    _ => { None },
+                };
+                if let Some(cmd) = cmd_option {
+                    self.send(cmd);
                 }
             }
         }
@@ -135,55 +136,23 @@ impl Observer for Cursor {
 //===== Command Pattern Stuff ======
 //==================================
 
-impl Commandable<Cursor> for Cursor {
-    fn send(&self, cmd: Arc<dyn Command<Cursor>>) {
-        /*//What cmd type is this cmd?
-        let cmd_type: TypeId = cmd.as_any().type_id();
+impl Commandable for Cursor {
+    fn send(&self, cmd: Command) {
+        self.cmd_queue.push(cmd)
+    }
 
-        //Push cmd to history if possible for this cmd type
-        if cmd_type == TypeId::of::<MoveCommand>() {
-            let move_cmd = cmd.as_any().downcast_ref::<MoveCommand>();
-            let inverse: Dir = opposite_dir(&move_cmd.unwrap().move_direction);
-            self.cmd_history.push(MoveCommand::new(inverse));
-        }*/
-
-        cmd.execute(self);
+    fn process(&self, _ctx: &mut super::super::World) -> super::super::RunState {
+        let mut next: Option<Command> = self.cmd_queue.pop_front();
+        while next.is_some() {
+            match next.unwrap() {
+                Command::Move{dir} => { self.orth_move(dir); },
+                _ => {},
+            }
+            next = self.cmd_queue.pop_front();
+        }
+        super::super::RunState::GameOver
     }
 }
-
-//======== COMMANDS ==========
-pub struct MoveCommand {
-    move_direction: Dir,
-}
-impl MoveCommand {
-    pub fn new(move_direction: Dir) -> Self {
-        MoveCommand { move_direction }
-    }
-}
-impl Command<Cursor> for MoveCommand {
-    fn execute(&self, cursor: &Cursor) {
-        cursor.orth_move(self.move_direction);
-    }
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-pub struct UndoCommand {}
-impl UndoCommand {
-    pub fn new() -> Self {
-        UndoCommand {}
-    }
-}
-impl Command<Cursor> for UndoCommand {
-    fn execute(&self, cursor: &Cursor) {
-        cursor.undo();
-    }
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-//===================================
 
 //local helper
 fn opposite_dir(d: &Dir) -> Dir {

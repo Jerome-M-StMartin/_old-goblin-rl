@@ -4,10 +4,26 @@
 =========================================================================
 TODO
 0
-I'm now making the COMMAND PATTERN use Enums for polymorphism rather than
-trait objects.
+Re-enable all user input options using the new way.
 
 1
+Clean Up before merging back into trunk.
+
+2
+Create multiples of the currently-existing main::run_systems() fn,
+such that the User is able to 'commit' subdivisions of their turn,
+after each of which some subset of the systems run. This subset
+MIGHT be dynamic, in which case I need to be adding System struct
+instantiations to some 'to_run: Vec' that gets iterated through
+after each sub-turn.
+e.g. If the character commits a Move Action which triggers an
+opportunity attack, a MeleeAttack component needs to be attached
+to the Moving Character and then the MeleeAttack system needs
+to run -- all before the player gets to decide what to do with
+the remainder of their Action Points after they see the outcome
+of their Move Action.
+
+99
 I'm not seeing the "big picture" with building architecture in rust yet. This
 is some experience that makes me favor the OOP style, and the strictness of
 conformity in languages like Java, and having been forced to learn with Java.
@@ -21,9 +37,9 @@ which will be Observer and Commandable.
   is enabled), which will be stored in the main::State struct. (Later, State
   will store a data structure holding multiple PlayerControllers, I guess?)
 
-
 DONE.) Move UserInput access point to the main State struct, out from the GUI
     struct.
+
 DONE.) Implement Send + Sync on Observable trait objects, and make
 the user_input field of the Player Component(ECS) hold an
 Arc<dyn Observable>. Req'd because the ECS architecture is multithreaded.
@@ -32,5 +48,9 @@ the compilier if all types held by the struct in question are Send + Sync.
 So I need only change all Oberver Pattern stuff from Rc<>s, Cells, and
 RefCells, into Arc<>s, RwLocks, and/or Mutexes. Wow, big job; might
 have to extend thread-safe changes to entirety of GUI module???
+
+DONE.) Refactor the COMMAND PATTERN use Enums for polymorphism rather than
+trait objects.
+
 
 

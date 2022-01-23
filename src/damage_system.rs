@@ -35,11 +35,14 @@ impl<'a> System<'a> for DamageSystem {
                     let d_atom = &d_q.queue[i];
                     match d_atom {
                         DamageAtom::Bludgeon(val) => {
-                            d_q.queue[i] = DamageAtom::Bludgeon(val - resistance.bludgeon.value()); },
+                            d_q.queue[i] = DamageAtom::Bludgeon(val - resistance.bludgeon.value());
+                        },
                         DamageAtom::Pierce(val) => {
-                            d_q.queue[i] = DamageAtom::Pierce(val - resistance.pierce.value()); },
+                            d_q.queue[i] = DamageAtom::Pierce(val - resistance.pierce.value());
+                        },
                         DamageAtom::Slash(val) => {
-                            d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value()); },
+                            d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value());
+                        },
                         DamageAtom::Thermal(val) => {
                             d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value());
                         }

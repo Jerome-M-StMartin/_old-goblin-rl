@@ -3,6 +3,7 @@ extern crate serde;
 use std::sync::Arc;
 use std::collections::HashMap;
 
+use command::Commandable;
 use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
@@ -87,6 +88,7 @@ pub struct State {
     pub ecs: World, //specs World
 
     user_input: Arc<user_input::UserInput>,
+    player_controller: Arc<player::PlayerController>,
 
     //from-scratch gui crate
     gui: gui::GUI,
@@ -260,6 +262,7 @@ impl GameState for State {
 
         ctx.cls(); //clearscreen
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
+        self.gui.tick(ctx);
 
         //First, figure out which screen/mode we're on/in. e.g Don't need to draw
         //the map or HUD if we're in the Main Menu or Game Over screens/modes.
@@ -310,7 +313,19 @@ impl GameState for State {
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
-                newrunstate = player_input(&mut self.ecs, ctx);
+                //newrunstate = player_input(&mut self.ecs, ctx); //OLD
+                
+                //TODO
+                /* PlayerController::process() currently loops through its entire
+                 * CommandQueue, executing them all sequentially PER CALL,
+                 * and I'm not yet sure if this is the behavior I want or not.
+                 *
+                 * It is IF I also implement some sort of "see-ahead" mode
+                 * for the player's turn where they get to pseudo-act in a way that visually
+                 * results in gameplay but which is undoable and not commited until they choose
+                 * to submit their final turn, which consists of the Commands in the CommandQueue,
+                 * in the order they were added to the CommandQueue.*/
+                newrunstate = self.player_controller.process(&mut self.ecs);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
@@ -525,19 +540,15 @@ impl GameState for State {
 
 
                 //if a MainMenu object hasn't been created yet, create one.
-                if let None = self.static_gui_objs.get("main_menu") {
-                    let main_menu = Arc::new(gui::MainMenu::new(self.gui.user_input.clone()));
-                    self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
+                if let Some(dyn_main_menu) = self.static_gui_objs.get("main_menu") {
 
-                    let weak = Arc::downgrade(&main_menu.clone());
-                    self.gui.user_input.add_observer(weak);
-                    self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
+                    let main_menu = dyn_main_menu
+                                    .as_any()
+                                    .downcast_ref::<MainMenu>()
+                                    .unwrap();
 
-                } else {
-                    self.gui.tick(ctx);
+                    main_menu.process(&mut self.ecs);
 
-                    let main_menu = self.static_gui_objs.get("main_menu")
-                                    .unwrap().as_any().downcast_ref::<MainMenu>().unwrap();
                     match main_menu.get_selection() {
                         Some(Selection::NewGame) => {
                             newrunstate = RunState::PreRun;
@@ -552,6 +563,14 @@ impl GameState for State {
                         Some(Selection::Quit) => ::std::process::exit(0),
                         _ => {},
                     }
+
+                } else {
+                    let main_menu = Arc::new(gui::MainMenu::new(self.gui.user_input.clone()));
+                    self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
+
+                    let weak = Arc::downgrade(&main_menu.clone());
+                    self.gui.user_input.add_observer(weak);
+                    self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
                 }
             }
             
@@ -559,19 +578,10 @@ impl GameState for State {
                 use gui::Observer;
                 use gui::game_over::{Selection, GameOver};
     
-                if let None = self.static_gui_objs.get("game_over") {
-                    let game_over = Arc::new(gui::GameOver::new(self.gui.user_input.clone()));
-                    self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
+                if let Some(dyn_game_over) = self.static_gui_objs.get("game_over") {
 
-                    let weak = Arc::downgrade(&game_over.clone());
-                    self.gui.user_input.add_observer(weak);
-                    self.gui.add_drawable(game_over.id(), game_over.clone(), true);
-
-                } else {
-                    self.gui.tick(ctx);
-
-                    let game_over = self.static_gui_objs.get("game_over")
-                        .unwrap().as_any().downcast_ref::<GameOver>().unwrap();
+                    let game_over = dyn_game_over.as_any().downcast_ref::<GameOver>().unwrap();
+                    game_over.process(&mut self.ecs);
                     match game_over.get_selection() {
                         Some(Selection::NewGame) => {
                             newrunstate = RunState::PreRun;
@@ -580,6 +590,13 @@ impl GameState for State {
                         Some(Selection::Quit) => ::std::process::exit(0),
                         _ => {},
                     }
+                } else {
+                    let game_over = Arc::new(gui::GameOver::new(self.gui.user_input.clone()));
+                    self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
+
+                    let weak = Arc::downgrade(&game_over.clone());
+                    self.gui.user_input.add_observer(weak);
+                    self.gui.add_drawable(game_over.id(), game_over.clone(), true);
                 }
             }
             _ => {}
@@ -626,12 +643,20 @@ fn main() -> rltk::BError {
 
     //----------- initialization of State fields ------------
     let user_input = Arc::new(user_input::UserInput::new());
+
+    use gui::observer::Observer;
+    let player_controller = player::PlayerController::new(user_input.clone());
+    let pc_arc = Arc::new(player_controller);
+    let pc_trait_obj_arc: Arc<dyn Observer> = pc_arc.clone();
+    user_input.add_observer(Arc::downgrade(&pc_trait_obj_arc));
+
     let gui = gui::GUI::new(user_input.clone());
     //-------------------------------------------------------
 
     let mut gs = State {
         ecs: World::new(),
         user_input,
+        player_controller: pc_arc.clone(),
         gui,
         static_gui_objs: HashMap::new(),
         tooltips_on: false,
