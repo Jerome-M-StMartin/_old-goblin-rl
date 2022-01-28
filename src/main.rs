@@ -538,10 +538,10 @@ impl GameState for State {
                 use gui::Observer;
                 use gui::main_menu::{Selection, MainMenu};
 
-
-                //if a MainMenu object hasn't been created yet, create one.
+                //if a MainMenu object already exists then...
                 if let Some(dyn_main_menu) = self.static_gui_objs.get("main_menu") {
 
+                    //Grab MainMenu as dyn object and cast to concrete obj
                     let main_menu = dyn_main_menu
                                     .as_any()
                                     .downcast_ref::<MainMenu>()
@@ -564,7 +564,7 @@ impl GameState for State {
                         _ => {},
                     }
 
-                } else {
+                } else { //if a MainMenu object hasn't been created yet, create one.
                     let main_menu = Arc::new(gui::MainMenu::new(self.gui.user_input.clone()));
                     self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
 
@@ -601,7 +601,6 @@ impl GameState for State {
             }
             _ => {}
         }
-
 
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();

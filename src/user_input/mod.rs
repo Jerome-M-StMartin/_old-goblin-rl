@@ -82,7 +82,6 @@ impl UserInput {
                 VirtualKeyCode::T => new_input = Some(InputEvent::TOOLTIPS),
                 VirtualKeyCode::Escape => new_input = Some(InputEvent::ESC),
                 VirtualKeyCode::Return => new_input = Some(InputEvent::ENTER),
-
                 _ => {}
             }
         };
@@ -118,6 +117,7 @@ impl UserInput {
                     }
                     next_focus.setup_cursor();
                     observers.insert(0, Arc::downgrade(&next_focus));
+                    println!("{}", next_focus.name());//----------------------------------------Debugging
                 }
             }
         }
@@ -144,6 +144,7 @@ impl UserInput {
                         if let Ok(mut guard) = self.focus_id.lock() {
                             *guard = Some(observer_id);
                         }
+                        break;
                     }
                     idx += 1;
                 }

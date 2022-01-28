@@ -11,6 +11,7 @@ use crate::user_input::{UserInput, InputEvent};
 use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
 
 pub struct PlayerController {
+    name: String,
     observer_id: usize,
     user_input: Arc<UserInput>,
     cmd_queue: CommandQueue,
@@ -21,6 +22,7 @@ impl PlayerController {
     pub fn new(user_input: Arc<UserInput>) -> Self {
         let observer_id: usize = user_input.generate_id();
         PlayerController {
+            name: "PlayerController".to_string(),
             observer_id,
             user_input,
             cmd_queue: CommandQueue::new(),
@@ -56,6 +58,9 @@ impl Observer for PlayerController {
         }
     }
     fn setup_cursor(&self) {}
+    fn name(&self) -> &str {
+        &self.name
+    }
 }//----------------------------------------------------------------
 
 //-----------------------------------------------------------------

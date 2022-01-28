@@ -39,6 +39,7 @@ pub trait Observer : Send + Sync {
     fn id(&self) -> usize;
     fn update(&self);
     fn setup_cursor(&self); //<------------this needs to be moved elsewhere
+    fn name(&self) -> &str; // for debugging
 }
 
 pub trait Observable : Send + Sync {

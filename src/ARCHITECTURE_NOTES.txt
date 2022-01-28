@@ -37,6 +37,25 @@ which will be Observer and Commandable.
   is enabled), which will be stored in the main::State struct. (Later, State
   will store a data structure holding multiple PlayerControllers, I guess?)
 
+=========================================================================
+======================= ARCHITECTURE DESIGN NOTES =======================
+=========================================================================
+- COMPONENTS:
+Noticed two opposite behaviors which arise natrually from a single usage
+choice on Components of the ECS architecture: If we use the same method as
+DamageQueue Components, it allows us to process multiples of the same
+Component Type on a specific Entity during a single tick. If we instead allow
+multiples of the same Component to attach to the same Entity (if possible in
+specs,) then we have a built-in XoT (x over time, e.g. DoT Damage over Time)
+since only one will be caught by each system (Right? Need to check.) 
+
+
+
+=========================================================================
+=========================================================================
+=========================================================================
+
+
 DONE.) Move UserInput access point to the main State struct, out from the GUI
     struct.
 

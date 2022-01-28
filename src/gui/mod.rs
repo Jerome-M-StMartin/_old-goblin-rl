@@ -19,6 +19,7 @@ pub mod main_menu;
 pub mod game_over;
 pub mod cursor;
 pub mod drawable;
+pub mod widget;
 
 use cursor::Cursor;
 use drawable::Drawable;

@@ -16,6 +16,7 @@ use super::user_input::{InputEvent, UserInput};
 pub enum Selection { NewGame, LoadGame, Quit }
 
 pub struct MainMenu {
+    name: String,
     pos: Point,
     selection: Mutex<Selection>,
     selection_made: Mutex<bool>,
@@ -36,6 +37,7 @@ impl MainMenu {
         }
 
         MainMenu {
+            name: "MainMenu".to_string(),
             pos: Point {x:0,y:0},
             selection: Mutex::new(Selection::NewGame),
             selection_made: Mutex::new(false),
@@ -147,6 +149,7 @@ impl Observer for MainMenu {
         }
     }
     fn setup_cursor(&self) {} //this needs to leave this trait
+    fn name(&self) -> &str { &self.name }
 }
 
 

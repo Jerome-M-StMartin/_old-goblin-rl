@@ -13,6 +13,7 @@ use std::sync::{Arc, Mutex};
 
 //This struct is shared and should only have one instance, alias as Arc<Cursor>.
 pub struct Cursor {
+    name: String,
     pub pos: Mutex<Point>,
     pub glyph: Mutex<Option<FontCharType>>,
     pub color: Mutex<ColorOption>,
@@ -29,6 +30,7 @@ pub struct Cursor {
 impl Cursor {
     pub fn new(user_input: Arc<UserInput>, observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
         Cursor {
+            name: "gui::Cursor".to_string(),
             pos: Mutex::new(Point { x: 0, y: 0 }),
             glyph: Mutex::new(Some(to_cp437('>'))),
             color: Mutex::new(ColorOption::DEFAULT),
@@ -83,6 +85,7 @@ impl Drawable for Cursor {
         }
     }
     fn orth_move(&self, direction: Dir) {
+        println!("cursor.orth_move({:?})", &direction);
         if let Ok(mut pos) = self.pos.lock() {
 
             match direction {
@@ -130,6 +133,9 @@ impl Observer for Cursor {
         //self.set_glyph(to_cp437('*'));
         self.set_bg(ColorOption::FOCUS);
     }
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 //==================================
@@ -142,6 +148,7 @@ impl Commandable for Cursor {
     }
 
     fn process(&self, _ctx: &mut super::super::World) -> super::super::RunState {
+        println!("cursor.process()");
         let mut next: Option<Command> = self.cmd_queue.pop_front();
         while next.is_some() {
             match next.unwrap() {

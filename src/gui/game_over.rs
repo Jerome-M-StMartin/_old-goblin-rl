@@ -16,6 +16,7 @@ use super::user_input::{InputEvent, UserInput};
 pub enum Selection { NewGame, Quit }
 
 pub struct GameOver {
+    name: String,
     pos: Point,
     selection: Mutex<Selection>,
     selection_made: Mutex<bool>,
@@ -30,6 +31,7 @@ impl GameOver {
     pub fn new(user_input: Arc<UserInput>) -> Self {
         if let Ok(guard) = user_input.id_gen.lock() {
             GameOver {
+                name: "GameOver".to_string(),
                 pos: Point {x:0,y:0},
                 selection: Mutex::new(Selection::NewGame),
                 selection_made: Mutex::new(false),
@@ -127,6 +129,7 @@ impl Observer for GameOver {
         }
     }
     fn setup_cursor(&self) {} //this needs to leave this trait
+    fn name(&self) -> &str { &self.name }
 }
 
 
