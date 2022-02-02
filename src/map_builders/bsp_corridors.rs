@@ -1,11 +1,11 @@
 use super::{MetaMapBuilder, BuilderMap, Rect, draw_corridor };
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 
 pub struct BspCorridors {}
 
 impl MetaMapBuilder for BspCorridors {
     #[allow(dead_code)]
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap) {
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data : &mut BuilderMap) {
         self.corridors(rng, build_data);
     }
 }

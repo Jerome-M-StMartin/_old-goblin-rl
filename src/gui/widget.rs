@@ -6,7 +6,7 @@
 use std::any::Any;
 use std::collections::HashMap;
 
-use bracket_terminal::prelude::{Point, BTerm};
+use bracket_lib::prelude::{Point, BTerm};
 
 pub struct WidgetStorage {
     data: HashMap<String, Box<dyn IsWidget>>, //arbitrarily chose 8, could only think of 6 but we'll see...

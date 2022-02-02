@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use std::cmp::max;
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
             Resistances, RunState, Bleeding, particle_system::ParticleBuilder, Position};
 
@@ -86,8 +86,8 @@ impl<'a> System<'a> for DamageSystem {
                 log.entries.push(format!("{} suffers {} damage.", &name.name, hp_dmg));
                 
                 //spawn particle
-                particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::ORANGE),
-                    rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                particle_builder.request(pos.x, pos.y, bracket_lib::prelude::RGB::named(bracket_lib::prelude::ORANGE),
+                    bracket_lib::prelude::RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('‼'), 200.0);
             }
             if fp_dmg > 0 {
                 stats.fp = max(0, stats.fp - fp_dmg);

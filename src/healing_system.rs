@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use std::cmp::{min};
 use super::{Name, gamelog::GameLog, Stats, Healing, Bleeding};
-//use rltk::{console};
+//use bracket_lib::prelude::{console};
 
 pub struct HealingSystem {}
 

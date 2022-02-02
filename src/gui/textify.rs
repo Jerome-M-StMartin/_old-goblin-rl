@@ -5,7 +5,7 @@
  * BTerm::TextBlock functionality. For turning any ECS component into visible GUI text.
  */
 
-use bracket_terminal::prelude::{TextBlock, TextBuilder};
+use bracket_lib::prelude::{TextBlock, TextBuilder};
 
 use super::look_n_feel::ColorOption;
 

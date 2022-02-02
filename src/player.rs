@@ -2,7 +2,7 @@ use std::cmp::{max, min};
 use std::sync::Arc;
 
 use specs::prelude::*;
-use rltk::{VirtualKeyCode, Rltk, Point};
+use bracket_lib::prelude::{BTerm, VirtualKeyCode, Point};
 
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
@@ -116,7 +116,7 @@ impl Commandable for PlayerController {
     }
 }//----------------------------------------------------------------
 
-pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
+pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
     let new_runstate : RunState;
 
     //gui::enable_cursor_control(ecs, ctx);

@@ -2,7 +2,7 @@
 //Node Menu Project
 //12/18/2020
 
-use bracket_terminal::prelude::{BLACK, GREEN, MAGENTA, RED, WHITE, YELLOW};
+use bracket_lib::prelude::{BLACK, GREEN, MAGENTA, RED, WHITE, YELLOW};
 use serde::{Deserialize, Serialize};
 
 //--- Standardization of Colors ----

@@ -56,11 +56,11 @@ mod common;
 use common::*;
 
 pub trait InitialMapBuilder {
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap);
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data: &mut BuilderMap);
 }
 
 pub trait MetaMapBuilder {
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap);
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data: &mut BuilderMap);
 }
 
 pub struct BuilderMap {
@@ -121,7 +121,7 @@ impl BuilderChain {
         self.builders.push(metabuilder);
     }
 
-    pub fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator) {
+    pub fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator) {
         match &mut self.starter {
             None => panic!("Cannot run map builder chain without starter build."),
             Some(starter) => {
@@ -141,7 +141,7 @@ impl BuilderChain {
     }
 }
 
-pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator,
+pub fn random_builder(new_depth: i32, rng: &mut bracket_lib::prelude::RandomNumberGenerator,
                                     width: i32, height: i32) -> BuilderChain {
     let mut builder = BuilderChain::new(new_depth, width, height);
     let type_roll = rng.roll_dice(1, 2);
@@ -160,7 +160,7 @@ pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator,
     return builder;
 }
 
-fn random_start_position(rng: &mut rltk::RandomNumberGenerator) -> (XStart, YStart) {
+fn random_start_position(rng: &mut bracket_lib::prelude::RandomNumberGenerator) -> (XStart, YStart) {
     let x;
     let xroll = rng.roll_dice(1, 3);
     match xroll {
@@ -180,7 +180,7 @@ fn random_start_position(rng: &mut rltk::RandomNumberGenerator) -> (XStart, YSta
     (x, y)
 }
 
-fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut BuilderChain) {
+fn random_room_builder(rng: &mut bracket_lib::prelude::RandomNumberGenerator, builder : &mut BuilderChain) {
     let build_roll = rng.roll_dice(1, 4);
     match build_roll {
         1..=2 => builder.start_with(SimpleMapBuilder::new()),
@@ -245,7 +245,7 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut Bui
     }
 }
 
-fn random_shape_builder(rng: &mut rltk::RandomNumberGenerator, builder : &mut BuilderChain) {
+fn random_shape_builder(rng: &mut bracket_lib::prelude::RandomNumberGenerator, builder : &mut BuilderChain) {
     let builder_roll = rng.roll_dice(1, 16);
     match builder_roll {
         1 => builder.start_with(CellularAutomataBuilder::new()),

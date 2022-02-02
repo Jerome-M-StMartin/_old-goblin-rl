@@ -1,12 +1,12 @@
 use specs::prelude::*;
 use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gamelog::GameLog};
-use rltk::{field_of_view, Point};
+use bracket_lib::prelude::{field_of_view, Point};
 
 pub struct VisibilitySystem {}
 
 impl<'a> System<'a> for VisibilitySystem {
     type SystemData = ( WriteExpect<'a, Map>,
-                        WriteExpect<'a, rltk::RandomNumberGenerator>,
+                        WriteExpect<'a, bracket_lib::prelude::RandomNumberGenerator>,
                         WriteExpect<'a, GameLog>,
                         Entities<'a>,
                         WriteStorage<'a, Viewshed>,

@@ -2,7 +2,7 @@ use specs::prelude::*;
 use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
             particle_system::ParticleBuilder, MagicMapper, Aflame, Equipped, UnequipIntent};
-//use rltk::{console};
+//use bracket_lib::prelude::{console};
 
 pub struct ItemCollectionSystem {}
 
@@ -87,7 +87,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             }
                         }
                         Some(area_effect) => { //AoE
-                            let mut blast_tiles = rltk::field_of_view(target, area_effect.radius, &*map);
+                            let mut blast_tiles = bracket_lib::prelude::field_of_view(target, area_effect.radius, &*map);
                             blast_tiles.retain(|p| p.x > 0 &&
                                                    p.x < map.width - 1 &&
                                                    p.y > 0 &&
@@ -100,8 +100,8 @@ impl<'a> System<'a> for ItemUseSystem {
 
                                 //spawn particles
                                 particle_builder.request(tile_idx.x, tile_idx.y,
-                                    rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK),
-                                    rltk::to_cp437('░'), 200.0);
+                                    bracket_lib::prelude::RGB::named(bracket_lib::prelude::ORANGE), bracket_lib::prelude::RGB::named(bracket_lib::prelude::BLACK),
+                                    bracket_lib::prelude::to_cp437('░'), 200.0);
                             }
                         }
                             

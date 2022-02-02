@@ -8,7 +8,7 @@ extern crate serde;
 use std::sync::{Arc, Weak};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use bracket_terminal::prelude::BTerm;
+use bracket_lib::prelude::BTerm;
 
 mod yaml_parser;
 

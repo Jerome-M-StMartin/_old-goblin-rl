@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{Viewshed, Hostile, Map, Position, MeleeIntent, RunState, Confusion, JustMoved};
-use rltk::Point;
+use bracket_lib::prelude::Point;
 
 pub struct HostileAI {}
 
@@ -38,12 +38,12 @@ impl<'a> System<'a> for HostileAI { // 'a syntax is var name for a "lifetime"
             }
 
             if can_act {
-                let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+                let distance = bracket_lib::prelude::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
                 if distance <= 1.5 {
                     melee_intent.insert(entity, MeleeIntent{ target: *player_entity })
                         .expect("Uname to insert attack.");
                 } else if viewshed.visible_tiles.contains(&*player_pos) {
-                    let path = rltk::a_star_search( //path to player
+                    let path = bracket_lib::prelude::a_star_search( //path to player
                         map.xy_idx(pos.x, pos.y),
                         map.xy_idx(player_pos.x, player_pos.y),
                         &*map

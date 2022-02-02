@@ -3,10 +3,14 @@ extern crate serde;
 use std::sync::Arc;
 use std::collections::HashMap;
 
-use command::Commandable;
-use rltk::{GameState, Rltk, Point, VirtualKeyCode};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
+
+//use bracket_lib::prelude::{GameState, Rltk, Point, VirtualKeyCode};
+use bracket_lib::prelude::{GameState, Point, VirtualKeyCode, BTerm, BError, BTermBuilder,
+                           RandomNumberGenerator};
+
+use command::Commandable;
 
 mod components;
 mod map;
@@ -38,7 +42,7 @@ pub mod saveload_system;
 pub mod map_builders;
 pub mod camera;
 
-use player::*;
+//use player::*;
 use visibility_system::VisibilitySystem;
 use hostile_ai_system::HostileAI;
 use map_indexing_system::MapIndexingSystem;
@@ -146,7 +150,7 @@ impl State {
         self.mapgen_index = 0;
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
-        let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
+        let mut rng = self.ecs.write_resource::<RandomNumberGenerator>();
         let mut builder = map_builders::random_builder(new_depth, &mut rng, 64, 64);
         builder.build_map(&mut rng);
         std::mem::drop(rng); //drops the borrow on rng & self
@@ -243,7 +247,7 @@ impl State {
 }
 
 impl GameState for State {
-    fn tick(&mut self, ctx: &mut Rltk) { 
+    fn tick(&mut self, ctx: &mut BTerm) { 
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
@@ -630,9 +634,8 @@ struct UIColors { //-----------------needs to be replaced by gui::look_n_feel::C
     pub cursor: (u8, u8, u8),
 }
 
-fn main() -> rltk::BError {
-    use rltk::RltkBuilder;
-    let context = RltkBuilder::simple80x50()
+fn main() -> BError {
+    let context = BTermBuilder::simple80x50()
         .with_title("GoblinRL")
         //.with_font("../resources/unicode_16x16.png", 16, 16)
         .with_fps_cap(60.0)
@@ -723,7 +726,7 @@ fn main() -> rltk::BError {
 
     gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0));
-    gs.ecs.insert(rltk::RandomNumberGenerator::new());
+    gs.ecs.insert(RandomNumberGenerator::new());
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
@@ -740,9 +743,9 @@ fn main() -> rltk::BError {
         backpack: Vec::new(),
         equipment: Vec::new(),
     });
-    gs.ecs.insert(UIColors { main: rltk::WHITE, cursor: rltk::MAGENTA });
+    gs.ecs.insert(UIColors { main: bracket_lib::prelude::WHITE, cursor: bracket_lib::prelude::MAGENTA });
 
     gs.generate_world_map(1);
 
-    rltk::main_loop(context, gs)
+    bracket_lib::prelude::main_loop(context, gs)
 }

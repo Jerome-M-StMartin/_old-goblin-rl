@@ -1,10 +1,10 @@
 use specs::prelude::*;
-use super::{Map, TileType, Position, Renderable, Hidden};
-use rltk::{Point, Rltk, RGB};
+use super::{BTerm, Map, TileType, Position, Renderable, Hidden};
+use bracket_lib::prelude::{Point, RGB};
 
 const SHOW_BOUNDARIES : bool = true;
 
-pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32,i32,i32,i32) {
+pub fn get_screen_bounds(ecs: &World, ctx: &mut BTerm) -> (i32,i32,i32,i32) {
     let player_pos = ecs.fetch::<Point>();
     let (x_chars, y_chars) = ctx.get_char_size();
 
@@ -19,7 +19,7 @@ pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32,i32,i32,i32) {
     (min_x, max_x, min_y, max_y)
 }
 
-pub fn render_camera(ecs: &World, ctx : &mut Rltk) {
+pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
     let map = ecs.fetch::<Map>();
     let (min_x, max_x, min_y, max_y) = get_screen_bounds(ecs, ctx);
     
@@ -39,7 +39,7 @@ pub fn render_camera(ecs: &World, ctx : &mut Rltk) {
                     ctx.set(x, y, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(rltk::GREY), RGB::named(rltk::BLACK), rltk::to_cp437('?'));
+                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY), RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('?'));
             }
             x += 1;
         }
@@ -67,14 +67,14 @@ pub fn render_camera(ecs: &World, ctx : &mut Rltk) {
     }
 }
 
-fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
+fn get_tile_glyph(idx: usize, map: &Map) -> (bracket_lib::prelude::FontCharType, RGB, RGB) {
     let glyph;
     let mut fg;
     let mut bg = RGB::from_f32(0., 0., 0.);
 
     match map.tiles[idx] {
         TileType::Floor => {
-            glyph = rltk::to_cp437('.');
+            glyph = bracket_lib::prelude::to_cp437('.');
             fg = RGB::from_f32(0.0, 0.5, 0.5);
         }
         TileType::Wall => {
@@ -84,7 +84,7 @@ fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
             fg = RGB::from_f32(0., 1.0, 0.);
         }
         TileType::StairsDown => {
-            glyph = rltk::to_cp437('>');
+            glyph = bracket_lib::prelude::to_cp437('>');
             fg = RGB::from_f32(0., 1.0, 1.0);
         }
     }
@@ -97,7 +97,7 @@ fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
     (glyph, fg, bg)
 }
 
-fn wall_glyph(map: &Map, x: i32, y: i32) -> rltk::FontCharType {
+fn wall_glyph(map: &Map, x: i32, y: i32) -> bracket_lib::prelude::FontCharType {
     if x < 1 || x > map.width - 2 || y < 1 || y > map.height - 2 as i32 { return 35; };
     
     let mut mask: u8 = 0;
@@ -133,7 +133,7 @@ fn is_revealed_wall(map: &Map, x: i32, y: i32) -> bool {
     map.tiles[idx] == TileType::Wall && map.revealed_tiles[idx]
 }
 
-pub fn render_debug_map(map : &Map, ctx : &mut Rltk) {
+pub fn render_debug_map(map : &Map, ctx : &mut BTerm) {
     let player_pos = Point::new(map.width / 2, map.height / 2);
     let (x_chars, y_chars) = ctx.get_char_size();
 
@@ -159,7 +159,7 @@ pub fn render_debug_map(map : &Map, ctx : &mut Rltk) {
                     ctx.set(x, y, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(rltk::GRAY), RGB::named(rltk::BLACK), rltk::to_cp437('·'));
+                ctx.set(x, y, RGB::named(bracket_lib::prelude::GRAY), RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('·'));
             }
             x += 1;
         }

@@ -9,7 +9,7 @@ use super::super::cursor::Cursor;
 use super::super::look_n_feel::{ColorOption, Dir};
 use super::super::observer::{Observable, Observer};
 use super::super::user_input::{InputEvent, UserInput};
-use bracket_terminal::prelude::{to_cp437, BTerm, Point};
+use bracket_lib::prelude::prelude::{to_cp437, BTerm, Point};
 use std::any::Any;
 use std::cell::Cell;
 use std::sync::Arc;

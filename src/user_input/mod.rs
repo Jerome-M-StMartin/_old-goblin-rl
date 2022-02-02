@@ -16,7 +16,7 @@
 use std::any::Any;
 use std::sync::{Mutex, RwLock, Arc, Weak};
 
-use bracket_terminal::prelude::{BTerm, Point, VirtualKeyCode};
+use bracket_lib::prelude::{BTerm, Point, VirtualKeyCode};
 
 use super::gui;
 

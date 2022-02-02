@@ -1,4 +1,7 @@
-use rltk::{BaseMap, Algorithm2D, Point};
+//use bracket_lib::prelude::{BaseMap, Algorithm2D, Point};
+use bracket_lib::prelude::Point;
+use bracket_lib::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
+
 use std::collections::HashSet;
 use specs::prelude::*;
 use serde::{Serialize, Deserialize};
@@ -81,12 +84,12 @@ impl BaseMap for Map {
         let w = self.width as usize;
         let p1 = Point::new(idx1 % w, idx1 / w);
         let p2 = Point::new(idx2 % w, idx2 / w);
-        rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
+        DistanceAlg::Pythagoras.distance2d(p1, p2)
     }
 
     //an exit is an adjacent walkable tile, not a zone transition.
-    fn get_available_exits(&self, idx:usize) -> rltk::SmallVec<[(usize, f32); 10]> {
-        let mut exits = rltk::SmallVec::new();
+    fn get_available_exits(&self, idx:usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = SmallVec::new();
         let x = idx as i32 % self.width;
         let y = idx as i32 / self.width;
         let w = self.width as usize;

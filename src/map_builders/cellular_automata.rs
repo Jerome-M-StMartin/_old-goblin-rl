@@ -1,11 +1,11 @@
 use super::{InitialMapBuilder, BuilderMap, TileType, MetaMapBuilder};
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 
 pub struct CellularAutomataBuilder {}
 
 impl InitialMapBuilder for CellularAutomataBuilder {
     #[allow(dead_code)]
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap) {
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data : &mut BuilderMap) {
         self.build(rng, build_data);
     }
 }
@@ -71,7 +71,7 @@ impl CellularAutomataBuilder {
 }
 
 impl MetaMapBuilder for CellularAutomataBuilder {
-    fn build_map(&mut self, _rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap) {
+    fn build_map(&mut self, _rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.apply_iteration(build_data);
     }
 }

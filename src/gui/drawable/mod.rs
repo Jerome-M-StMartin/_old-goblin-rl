@@ -4,7 +4,7 @@
  */
 use std::any::Any;
 
-use bracket_terminal::prelude::{BTerm, Point};
+use bracket_lib::prelude::{BTerm, Point};
 
 use super::look_n_feel::Dir;
 

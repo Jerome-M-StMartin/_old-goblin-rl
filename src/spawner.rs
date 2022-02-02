@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use rltk::{ RGB, RandomNumberGenerator };
+use bracket_lib::prelude::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, MarkedBuilder};
 use super::{ Stats, Player, Renderable, Name, Position, Viewshed, Hostile, BlocksTile, Rect,
@@ -16,9 +16,9 @@ pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {
     ecs.create_entity()
         .with(Position { x, y })
         .with(Renderable {
-            glyph: rltk::to_cp437('@'),
-            fg: RGB::named(rltk::YELLOW),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437('@'),
+            fg: RGB::named(bracket_lib::prelude::YELLOW),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 0,
         })
         .with(Creature {})
@@ -132,16 +132,16 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Bear Trap", 4)
 }
 
-fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('o'), "Orc"); }
-fn goblin(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, rltk::to_cp437('g'), "Goblin"); }
+fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, bracket_lib::prelude::to_cp437('o'), "Orc"); }
+fn goblin(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, bracket_lib::prelude::to_cp437('g'), "Goblin"); }
 
 fn door(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-        glyph: rltk::to_cp437('+'),
-        fg: RGB::named(rltk::CHOCOLATE),
-            bg: RGB::named(rltk::BLACK),
+        glyph: bracket_lib::prelude::to_cp437('+'),
+        fg: RGB::named(bracket_lib::prelude::CHOCOLATE),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name{ name : "Door".to_string() })
@@ -149,13 +149,13 @@ fn door(ecs: &mut World, x: i32, y: i32) {
         .build();
 }
 
-fn hostile<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: rltk::FontCharType, name: S) {
+fn hostile<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: bracket_lib::prelude::FontCharType, name: S) {
     ecs.create_entity()
         .with(Position { x, y })
         .with(Renderable {
             glyph,
-            fg: RGB::named(rltk::RED),
-            bg: RGB::named(rltk::BLACK),
+            fg: RGB::named(bracket_lib::prelude::RED),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 1,
         })
         .with(Creature {})
@@ -177,9 +177,9 @@ fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(')'),
-            fg: RGB::named(rltk::ORANGE),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(')'),
+            fg: RGB::named(bracket_lib::prelude::ORANGE),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2})
         .with(Name {name: "Scroll of Fireball".to_string() })
         .with(Consumable {})
@@ -198,8 +198,8 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         .with(Position {x, y})
         .with(Renderable {
             glyph: 173,
-            fg: RGB::named(rltk::MAGENTA),
-            bg: RGB::named(rltk::BLACK),
+            fg: RGB::named(bracket_lib::prelude::MAGENTA),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2})
         .with(Name {name: "Health Potion".to_string() })
         .with(Useable { menu_name: "Drink".to_string() })
@@ -215,9 +215,9 @@ pub fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(')'),
-            fg: RGB::named(rltk::MAGENTA),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(')'),
+            fg: RGB::named(bracket_lib::prelude::MAGENTA),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2})
         .with(Name {name: "Scroll of Magic Missile".to_string() })
         .with(Consumable {})
@@ -234,9 +234,9 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(')'),
-            fg: RGB::named(rltk::PINK),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(')'),
+            fg: RGB::named(bracket_lib::prelude::PINK),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name{name: "Scroll of Confusion".to_string() })
@@ -254,9 +254,9 @@ fn magic_mapping_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position{ x, y })
         .with(Renderable{
-            glyph: rltk::to_cp437(')'),
-            fg: RGB::named(rltk::GREEN),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(')'),
+            fg: RGB::named(bracket_lib::prelude::GREEN),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name{ name : "Scroll of Magic Mapping".to_string() })
@@ -273,9 +273,9 @@ fn barrier_scroll(ecs: &mut World, x: i32, y: i32) {
      ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(')'),
-            fg: RGB::named(rltk::CYAN),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(')'),
+            fg: RGB::named(bracket_lib::prelude::CYAN),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name{name: "Scroll of Chitinflesh".to_string() })
@@ -297,9 +297,9 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
      ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437('-'),
-            fg: RGB::named(rltk::GREY),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437('-'),
+            fg: RGB::named(bracket_lib::prelude::GREY),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name{name: "Knife".to_string() })
@@ -318,9 +318,9 @@ fn knife(ecs: &mut World, x: i32, y: i32) {
 fn longsword(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
-        .with(Renderable { glyph: rltk::to_cp437('/'),
-                           fg: RGB::named(rltk::GREY),
-                           bg: RGB::named(rltk::BLACK),
+        .with(Renderable { glyph: bracket_lib::prelude::to_cp437('/'),
+                           fg: RGB::named(bracket_lib::prelude::GREY),
+                           bg: RGB::named(bracket_lib::prelude::BLACK),
                            render_order: 2 })
         .with(Item {})
         .with(Name { name: "Longsword".to_string() })
@@ -338,10 +338,10 @@ fn leather_armor(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            //glyph: rltk::to_cp437('¥'),
+            //glyph: bracket_lib::prelude::to_cp437('¥'),
             glyph: 190,
-            fg: RGB::named(rltk::BROWN1),
-            bg: RGB::named(rltk::BLACK),
+            fg: RGB::named(bracket_lib::prelude::BROWN1),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name { name: "Leather Armor".to_string() })
@@ -362,8 +362,8 @@ fn round_shield(ecs: &mut World, x: i32, y: i32) {
         .with(Position {x, y})
         .with(Renderable {
             glyph: 10,
-            fg: RGB::named(rltk::BROWN1),
-            bg: RGB::named(rltk::BLACK),
+            fg: RGB::named(bracket_lib::prelude::BROWN1),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name { name: "Round Shield".to_string() })
@@ -379,9 +379,9 @@ fn torch(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position {x, y})
         .with(Renderable {
-            glyph: rltk::to_cp437(';'),
-            fg: RGB::named(rltk::ORANGE),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437(';'),
+            fg: RGB::named(bracket_lib::prelude::ORANGE),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name { name: "Torch".to_string() })
@@ -403,8 +403,8 @@ fn flint(ecs: &mut World, x: i32, y: i32) {
         .with(Position {x, y})
         .with(Renderable {
             glyph: 96,
-            fg: RGB::named(rltk::GREY),
-            bg: RGB::named(rltk::BLACK),
+            fg: RGB::named(bracket_lib::prelude::GREY),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name { name: "Flint".to_string() })
@@ -422,9 +422,9 @@ fn bear_trap(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position { x, y })
         .with(Renderable {
-            glyph: rltk::to_cp437('^'),
-            fg: RGB::named(rltk::RED),
-            bg: RGB::named(rltk::BLACK),
+            glyph: bracket_lib::prelude::to_cp437('^'),
+            fg: RGB::named(bracket_lib::prelude::RED),
+            bg: RGB::named(bracket_lib::prelude::BLACK),
             render_order: 2
         })
         .with(Name { name : "Bear Trap".to_string() })

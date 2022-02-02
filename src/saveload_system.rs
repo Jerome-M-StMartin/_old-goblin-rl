@@ -113,8 +113,8 @@ pub fn load_game(ecs: &mut World) {
             deleteme = Some(e);
         }
         for (e,_p,pos) in (&entities, &player, &position).join() {
-            let mut ppos = ecs.write_resource::<rltk::Point>();
-            *ppos = rltk::Point::new(pos.x, pos.y);
+            let mut ppos = ecs.write_resource::<bracket_lib::prelude::Point>();
+            *ppos = bracket_lib::prelude::Point::new(pos.x, pos.y);
             let mut player_resource = ecs.write_resource::<Entity>();
             *player_resource = e;
         }

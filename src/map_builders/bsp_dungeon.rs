@@ -1,5 +1,5 @@
 use super::{InitialMapBuilder, BuilderMap, Rect, TileType, };
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 
 pub struct BspDungeonBuilder {
     rects: Vec<Rect>,
@@ -7,7 +7,7 @@ pub struct BspDungeonBuilder {
 
 impl InitialMapBuilder for BspDungeonBuilder {
     #[allow(dead_code)]
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap) {
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data : &mut BuilderMap) {
         self.build(rng, build_data);
     }
 }

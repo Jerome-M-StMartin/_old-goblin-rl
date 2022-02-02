@@ -1,5 +1,5 @@
 use super::{MetaMapBuilder, BuilderMap, Position, TileType};
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 
 //takes in a preferred starting point and finds the closes legal starting position to that point.
 
@@ -15,7 +15,7 @@ pub struct AreaStartingPosition {
 }
 
 impl MetaMapBuilder for AreaStartingPosition {
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap)  {
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data : &mut BuilderMap)  {
         self.build(rng, build_data);
     }
 }
@@ -50,9 +50,9 @@ impl AreaStartingPosition {
                 available_floors.push(
                     (
                         idx,
-                        rltk::DistanceAlg::PythagorasSquared.distance2d(
-                            rltk::Point::new(idx as i32 % build_data.map.width, idx as i32 / build_data.map.width),
-                            rltk::Point::new(seed_x, seed_y)
+                        bracket_lib::prelude::DistanceAlg::PythagorasSquared.distance2d(
+                            bracket_lib::prelude::Point::new(idx as i32 % build_data.map.width, idx as i32 / build_data.map.width),
+                            bracket_lib::prelude::Point::new(seed_x, seed_y)
                         )
                     )
                 );

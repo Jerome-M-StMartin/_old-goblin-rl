@@ -23,25 +23,11 @@ to run -- all before the player gets to decide what to do with
 the remainder of their Action Points after they see the outcome
 of their Move Action.
 
-99
-I'm not seeing the "big picture" with building architecture in rust yet. This
-is some experience that makes me favor the OOP style, and the strictness of
-conformity in languages like Java, and having been forced to learn with Java.
-
-Anyway, I need to store some PlayerController struct in the main State struct,
-which will be Observer and Commandable. 
-
-- I have made a PlayerController struct in player.rs, on which must be
-  implemented all the functions currently attributed to the player.rs module.
-  PlayerController will be a pseudo-singleton for now (more when multiplayer
-  is enabled), which will be stored in the main::State struct. (Later, State
-  will store a data structure holding multiple PlayerControllers, I guess?)
-
 =========================================================================
 ======================= ARCHITECTURE DESIGN NOTES =======================
 =========================================================================
 - COMPONENTS:
-Noticed two opposite behaviors which arise natrually from a single usage
+Noticed two opposite behaviors which arise naturally from a single usage
 choice on Components of the ECS architecture: If we use the same method as
 DamageQueue Components, it allows us to process multiples of the same
 Component Type on a specific Entity during a single tick. If we instead allow

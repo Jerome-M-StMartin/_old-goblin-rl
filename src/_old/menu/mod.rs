@@ -2,7 +2,7 @@
 //use itertools::izip; //for zipping multiple iters into a single tuple output
 use specs::prelude::*;
 use super::{Rltk, UIColors, Inventory, MenuOption};
-use rltk::RGB;
+use bracket_lib::prelude::RGB;
 
 pub mod infocard;
 
@@ -166,15 +166,15 @@ fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<Me
         match i {
             0 => {
                 let s: String = top_row.iter().collect();
-                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(rltk::BLACK), s);
+                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(bracket_lib::prelude::BLACK), s);
             }
             1..=2 => {
                 let s: String = mid_row.iter().collect();
-                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(rltk::BLACK), s);
+                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(bracket_lib::prelude::BLACK), s);
             }
             _ => {
                 let s: String = mid_row.iter().collect();
-                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(rltk::BLACK), s);
+                ctx.print_color(pos.0, pos.1, colors.main, RGB::named(bracket_lib::prelude::BLACK), s);
                 break;
             }
         }
