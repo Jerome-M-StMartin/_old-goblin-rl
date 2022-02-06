@@ -886,6 +886,7 @@ name = "my_rl"
 version = "0.1.0"
 dependencies = [
  "bracket-lib",
+ "lazy_static",
  "rand 0.7.3",
  "serde",
  "serde_derive",

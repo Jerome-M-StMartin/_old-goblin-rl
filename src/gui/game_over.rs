@@ -44,10 +44,12 @@ impl GameOver {
         }
     }
     pub fn get_selection(&self) -> Option<Selection> {
-        if let Ok(_) = self.selection_made.lock() {
-            if let Ok(guard) = self.selection.lock() {
-               return  Some(*guard);
-            };
+        if let Ok(selection_made) = self.selection_made.lock() {
+            if *selection_made {
+                if let Ok(selection) = self.selection.lock() {
+                    return  Some(*selection);
+                };
+            }
         }
         None
     }

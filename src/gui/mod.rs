@@ -10,8 +10,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use bracket_lib::prelude::BTerm;
 
-mod yaml_parser;
-
 pub mod textify;
 pub mod look_n_feel;
 pub mod observer;

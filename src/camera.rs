@@ -39,7 +39,7 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
                     ctx.set(x, y, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY), RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('?'));
+                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY), RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('#'));
             }
             x += 1;
         }
@@ -49,7 +49,7 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
     let positions = ecs.read_storage::<Position>();
     let renderables = ecs.read_storage::<Renderable>();
     let hidden = ecs.read_storage::<Hidden>();
-    let map = ecs.fetch::<Map>();
+    //let map = ecs.fetch::<Map>();
 
     let mut data = (&positions, &renderables, !&hidden).join().collect::<Vec<_>>();
     data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));

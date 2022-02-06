@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate serde;
 
 use std::sync::Arc;
@@ -8,7 +10,7 @@ use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
 //use bracket_lib::prelude::{GameState, Rltk, Point, VirtualKeyCode};
 use bracket_lib::prelude::{GameState, Point, VirtualKeyCode, BTerm, BError, BTermBuilder,
-                           RandomNumberGenerator};
+                           RandomNumberGenerator, WHITE, KHAKI, MAGENTA};
 
 use command::Commandable;
 
@@ -216,8 +218,9 @@ impl State {
 
         // Notify the player and give them some health
         let player_entity = self.ecs.fetch::<Entity>();
-        let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
-        gamelog.entries.push("You descend to the next level and take a moment to rest.".to_string());
+        gamelog::Logger::new()
+            .append("You descend to the next level and take a moment to rest.")
+            .log();
         let mut stats_storage = self.ecs.write_storage::<Stats>();
         let player_stats = stats_storage.get_mut(*player_entity);
         if let Some(stats) = player_stats {
@@ -252,19 +255,23 @@ impl GameState for State {
         {
             let runstate = self.ecs.fetch::<RunState>();
             newrunstate = *runstate;
-           
-            //reset cursor to inactive state
+            
             match *runstate {
                 RunState::AwaitingInput => {}
                 RunState::ShowTargeting {range: _, item: _} => {}
-                _ => {
+                _ => {//reset cursor to inactive state
                     let mut cursor = self.ecs.fetch_mut::<Cursor>();
                     cursor.active = false;
                 }
             }
         }
+        
+        //Clear both main-map and log consoles.
+        ctx.set_active_console(0);
+        ctx.cls();
+        ctx.set_active_console(1);
+        ctx.cls();
 
-        ctx.cls(); //clearscreen
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
         self.gui.tick(ctx);
 
@@ -277,14 +284,14 @@ impl GameState for State {
             _ => {
                 
                 //draw_map(&self.ecs.fetch::<Map>(), ctx); //Was already commented out, don't remember why. (05/2021)
-                match ctx.key {
+                /*match ctx.key {
                     None => {}
                     Some(key) => match key {
                         VirtualKeyCode::T =>
                             self.tooltips_on = !self.tooltips_on,
                         _ => {}
                     }
-                }
+                }*/
 
                 camera::render_camera(&self.ecs, ctx);
                 //gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
@@ -297,6 +304,7 @@ impl GameState for State {
                 if !SHOW_MAPGEN_VISUALIZER {
                     newrunstate = self.mapgen_next_state.unwrap();
                 } else {
+                    ctx.set_active_console(0);
                     ctx.cls();
                     if self.mapgen_index < self.mapgen_history.len() {
                         camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx);
@@ -326,7 +334,7 @@ impl GameState for State {
                  *
                  * It is IF I also implement some sort of "see-ahead" mode
                  * for the player's turn where they get to pseudo-act in a way that visually
-                 * results in gameplay but which is undoable and not commited until they choose
+                 * results in gameplay but which is undoable and not committed until they choose
                  * to submit their final turn, which consists of the Commands in the CommandQueue,
                  * in the order they were added to the CommandQueue.*/
                 newrunstate = self.player_controller.process(&mut self.ecs);
@@ -591,10 +599,13 @@ impl GameState for State {
                             newrunstate = RunState::PreRun;
                             self.gui.rm_drawable(game_over.id());
                         }
-                        Some(Selection::Quit) => ::std::process::exit(0),
+                        Some(Selection::Quit) => {
+                            println!("QUIT selected in RunState::GameOver");
+                            ::std::process::exit(0);
+                        }
                         _ => {},
                     }
-                } else {
+                } else { //if no GameOver obj exists, instantiate one
                     let game_over = Arc::new(gui::GameOver::new(self.gui.user_input.clone()));
                     self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
 
@@ -604,6 +615,12 @@ impl GameState for State {
                 }
             }
             _ => {}
+        }
+
+        //draw the HUD
+        match newrunstate {
+            RunState::GameOver | RunState::MainMenu => {},
+            _ => { self.gui.draw_hud() }
         }
 
         {
@@ -638,7 +655,9 @@ fn main() -> BError {
     let context = BTermBuilder::simple80x50()
         .with_title("GoblinRL")
         //.with_font("../resources/unicode_16x16.png", 16, 16)
-        .with_fps_cap(60.0)
+        .with_fps_cap(30.0)
+        .with_font("vga8x16.png", 8, 16)
+        .with_sparse_console(80, 30, "vga8x16.png")
         .build()?;
 
     //context.with_post_scanlines(true);
@@ -721,7 +740,6 @@ fn main() -> BError {
     gs.ecs.register::<Info>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
-
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     gs.ecs.insert(Map::new(1, 64, 64));
@@ -730,10 +748,6 @@ fn main() -> BError {
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
-    gs.ecs.insert(gamelog::GameLog {
-        entries: vec!["A most stifling damp chokes the air,".to_string(),
-                      "the Wandering Waters of Ru'Iakh have become close.".to_string(),
-                     ]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
@@ -743,7 +757,15 @@ fn main() -> BError {
         backpack: Vec::new(),
         equipment: Vec::new(),
     });
-    gs.ecs.insert(UIColors { main: bracket_lib::prelude::WHITE, cursor: bracket_lib::prelude::MAGENTA });
+    gs.ecs.insert(UIColors { main: WHITE, cursor: MAGENTA });
+
+    gamelog::Logger::new()
+        .append("A most stifling damp chokes the air, the")
+        .color(KHAKI)
+        .append("Wandering Waters of Ru'Iakh")
+        .color(WHITE)
+        .append("have become close.")
+        .log();
 
     gs.generate_world_map(1);
 

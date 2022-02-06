@@ -5,7 +5,7 @@ use specs::prelude::*;
 use bracket_lib::prelude::{BTerm, VirtualKeyCode, Point};
 
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
+            Item, gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
             JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,};
 use crate::user_input::{UserInput, InputEvent};
 use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
@@ -241,8 +241,9 @@ fn try_next_level(ecs: &mut World) -> RunState {
     if map.tiles[player_idx] == TileType::StairsDown {
         return RunState::NextLevel;
     } else {
-        let mut gamelog = ecs.fetch_mut::<GameLog>();
-        gamelog.entries.push("There is no way down from here.".to_string());
+        gamelog::Logger::new()
+            .append("There is no way down from here.")
+            .log();
         return RunState::AwaitingInput;
     }
 }
@@ -253,7 +254,6 @@ fn get_item(ecs: &mut World) -> RunState {
     let player_entity = ecs.fetch::<Entity>();
     let items = ecs.read_storage::<Item>();
     let positions = ecs.read_storage::<Position>();
-    let mut gamelog = ecs.fetch_mut::<GameLog>();
 
     let mut target_item: Option<Entity> = None;
     for (item_entity, _item, position) in (&entities, &items, &positions).join() {
@@ -263,11 +263,15 @@ fn get_item(ecs: &mut World) -> RunState {
     }
 
     match target_item {
-        None => gamelog.entries.push("There is nothing here to pick up.".to_string()),
+        None => {
+            gamelog::Logger::new()
+                .append("There is nothing here to pick up.")
+                .log();
+        }
         Some(item) => {
             let mut pickup = ecs.write_storage::<PickUpIntent>();
             pickup.insert(*player_entity, PickUpIntent {item, desired_by: *player_entity})
-                .expect("Unable to insert WantToPickUp.");
+                .expect("Unable to insert PickUpIntent.");
         }
     }
 

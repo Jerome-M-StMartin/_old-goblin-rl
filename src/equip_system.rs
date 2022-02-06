@@ -1,12 +1,11 @@
 use specs::prelude::*;
 use super::{EquipIntent, UnequipIntent, InBackpack, Equippable, Equipped, Weapon, BasicAttack,
-            Resistances, Name, gamelog::GameLog, Creature, Position};
+            Resistances, Name, gamelog, Creature, Position};
 
 pub struct EquipSystem {}
 
 impl<'a> System<'a> for EquipSystem {
     type SystemData = ( Entities<'a>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, Equipped>,
                         WriteStorage<'a, EquipIntent>,
                         WriteStorage<'a, UnequipIntent>,
@@ -21,8 +20,10 @@ impl<'a> System<'a> for EquipSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut log, mut equipped, mut equip_intents, mut unequip_intents, mut in_backpack,
+        let (entities, mut equipped, mut equip_intents, mut unequip_intents, mut in_backpack,
             mut basic_attacks, mut resistances, mut positions, equippables, weapons, names, creature) = data;
+
+        let logger = gamelog::Logger::new();
 
         //Equipping Logic:
         //This join will iterate over all living creatures.
@@ -62,7 +63,7 @@ impl<'a> System<'a> for EquipSystem {
                 positions.remove(ent_to_equip);
                 equipped.insert(ent_to_equip, Equipped {owner: owner, slot: target_slot})
                         .expect("Unable to insert Equipped component.");
-                log.entries.push(format!("{} equipped {}.",
+                logger.append(format!("{} equipped {}.",
                         names.get(owner).unwrap().name, names.get(ent_to_equip).unwrap().name));
 
                 //if equipped entity has a Weapon component...
@@ -102,7 +103,7 @@ impl<'a> System<'a> for EquipSystem {
                         .expect("Unable to insert InBackpack component.");
                 }
                 
-                log.entries.push(format!("{} unequipped {}.",
+                logger.append(format!("{} unequipped {}.",
                         names.get(owner).unwrap().name, names.get(ent).unwrap().name));
 
                 //if unequipped entity has a Resistance component...
@@ -120,5 +121,6 @@ impl<'a> System<'a> for EquipSystem {
         
         unequip_intents.clear();
         equip_intents.clear();
+        logger.log();
     }
 }

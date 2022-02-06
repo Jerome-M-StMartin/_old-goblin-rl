@@ -1,5 +1,7 @@
 use super::super::Stats;
+use bracket_lib::prelude::*;
 
+/*
 fn test_textify() {
     let stats = Stats {
         max_hp: 8,
@@ -13,5 +15,6 @@ fn test_textify() {
         soul: 3,
     };
     let textblock: TextBlock = stats.as_textblock();
-    textblock.print(
-}
+    //textblock.print(
+}*/
+
