@@ -8,8 +8,7 @@ use std::collections::HashMap;
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
-//use bracket_lib::prelude::{GameState, Rltk, Point, VirtualKeyCode};
-use bracket_lib::prelude::{GameState, Point, VirtualKeyCode, BTerm, BError, BTermBuilder,
+use bracket_lib::prelude::{GameState, Point, BTerm, BError, BTermBuilder,
                            RandomNumberGenerator, WHITE, KHAKI, MAGENTA};
 
 use command::Commandable;

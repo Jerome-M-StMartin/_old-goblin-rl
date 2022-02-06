@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gamelog::GameLog};
+use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gamelog};
 use bracket_lib::prelude::{field_of_view, Point};
 
 pub struct VisibilitySystem {}
@@ -7,7 +7,6 @@ pub struct VisibilitySystem {}
 impl<'a> System<'a> for VisibilitySystem {
     type SystemData = ( WriteExpect<'a, Map>,
                         WriteExpect<'a, bracket_lib::prelude::RandomNumberGenerator>,
-                        WriteExpect<'a, GameLog>,
                         Entities<'a>,
                         WriteStorage<'a, Viewshed>,
                         WriteStorage<'a, Hidden>,
@@ -18,8 +17,10 @@ impl<'a> System<'a> for VisibilitySystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut map, mut rng, mut log, entities, mut viewshed, mut hidden_storage,
+        let (mut map, mut rng, entities, mut viewshed, mut hidden_storage,
              pos, player, names, blocks_vis) = data;
+
+        let logger = gamelog::Logger::new();
 
         map.view_blocked.clear();
         for (pos, _) in (&pos, &blocks_vis).join() {
@@ -65,7 +66,7 @@ impl<'a> System<'a> for VisibilitySystem {
                                 if rng.roll_dice(1, 50) == 1 {
                                     let name = names.get(*e);
                                     if let Some(name) = name {
-                                        log.entries.push(format!("{} spotted!", &name.name));
+                                        logger.append(format!("{} spotted!", &name.name));
                                     }
                                     hidden_storage.remove(*e);
                                 }
@@ -75,5 +76,7 @@ impl<'a> System<'a> for VisibilitySystem {
                 }
             }
         }
+
+        logger.log();
     }
 }

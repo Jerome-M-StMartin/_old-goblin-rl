@@ -8,7 +8,7 @@ use super::look_n_feel::{ColorOption, Dir};
 use super::observer::{Observable, Observer};
 use super::user_input::{InputEvent, UserInput};
 use bracket_lib::prelude::{to_cp437, BTerm, FontCharType, Point};
-use std::any::{Any, TypeId};
+use std::any::Any;
 use std::sync::{Arc, Mutex};
 
 //This struct is shared and should only have one instance, alias as Arc<Cursor>.

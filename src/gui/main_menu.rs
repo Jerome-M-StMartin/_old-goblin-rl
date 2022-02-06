@@ -8,7 +8,7 @@ use bracket_lib::prelude::{BTerm, Point};
 
 use super::look_n_feel::{ColorOption, Dir};
 use super::drawable::Drawable;
-use super::observer::{Observer, Observable};
+use super::observer::Observer;
 use super::command::{Command, Commandable, CommandQueue};
 use super::user_input::{InputEvent, UserInput};
 

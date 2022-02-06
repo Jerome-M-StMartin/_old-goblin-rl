@@ -1,12 +1,11 @@
 use specs::prelude::*;
-use super::{Position, JustMoved, EntryTrigger, Hidden, Map, Name, gamelog::GameLog, DamageOnUse,
+use super::{Position, JustMoved, EntryTrigger, Hidden, Map, Name, gamelog, DamageOnUse,
             DamageQueue, };
 
 pub struct TriggerSystem {}
 
 impl<'a> System<'a> for TriggerSystem {
     type SystemData = ( Entities<'a>,
-                        WriteExpect<'a, GameLog>,
                         ReadExpect<'a, Map>,
                         WriteStorage<'a, JustMoved>,
                         WriteStorage<'a, Hidden>,
@@ -18,8 +17,10 @@ impl<'a> System<'a> for TriggerSystem {
                       );
     
     fn run(&mut self, data: Self::SystemData) {
-       let (entities, mut log, map, mut moved_storage, mut hidden_storage, mut damage_queue,
+       let (entities, map, mut moved_storage, mut hidden_storage, mut damage_queue,
             mut triggers, positions, damage_on_use, names) = data;
+
+        let logger = gamelog::Logger::new();
 
        for (ent, pos, _ms) in (&entities, &positions, &mut moved_storage).join() {
             let idx = map.xy_idx(pos.x, pos.y);
@@ -31,7 +32,7 @@ impl<'a> System<'a> for TriggerSystem {
                         Some(trigger) => {
                             let name = names.get(*entity);
                             if let Some(name) = name {
-                                log.entries.push(format!("Triggered a {}!", &name.name));
+                                logger.append(format!("Triggered a {}!", &name.name));
                             }
 
                             let damage = damage_on_use.get(*entity);
@@ -53,5 +54,6 @@ impl<'a> System<'a> for TriggerSystem {
        }
 
        moved_storage.clear();
+       logger.log();
     }
 }
