@@ -5,7 +5,7 @@ use specs::prelude::*;
 use bracket_lib::prelude::{BTerm, VirtualKeyCode, Point};
 
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
+            Item, gui::gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
             JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,};
 use crate::user_input::{UserInput, InputEvent};
 use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::

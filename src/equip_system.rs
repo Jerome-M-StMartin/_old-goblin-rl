@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{EquipIntent, UnequipIntent, InBackpack, Equippable, Equipped, Weapon, BasicAttack,
-            Resistances, Name, gamelog, Creature, Position};
+            Resistances, Name, gui::gamelog, Creature, Position};
 
 pub struct EquipSystem {}
 

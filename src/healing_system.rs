@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use std::cmp::{min};
-use super::{Name, gamelog, Stats, Healing, Bleeding};
+use super::{Name, gui::gamelog, Stats, Healing, Bleeding};
 //use bracket_lib::prelude::{console};
 
 pub struct HealingSystem {}

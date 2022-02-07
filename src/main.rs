@@ -23,7 +23,6 @@ mod map_indexing_system;
 mod melee_combat_system;
 mod damage_system;
 mod gui;
-mod gamelog;
 mod spawner;
 mod inventory_system;
 mod equip_system;
@@ -217,7 +216,7 @@ impl State {
 
         // Notify the player and give them some health
         let player_entity = self.ecs.fetch::<Entity>();
-        gamelog::Logger::new()
+        gui::gamelog::Logger::new()
             .append("You descend to the next level and take a moment to rest.")
             .log();
         let mut stats_storage = self.ecs.write_storage::<Stats>();
@@ -758,7 +757,7 @@ fn main() -> BError {
     });
     gs.ecs.insert(UIColors { main: WHITE, cursor: MAGENTA });
 
-    gamelog::Logger::new()
+    gui::gamelog::Logger::new()
         .append("A most stifling damp chokes the air, the")
         .color(KHAKI)
         .append("Wandering Waters of Ru'Iakh")
@@ -767,6 +766,5 @@ fn main() -> BError {
         .log();
 
     gs.generate_world_map(1);
-
     bracket_lib::prelude::main_loop(context, gs)
 }

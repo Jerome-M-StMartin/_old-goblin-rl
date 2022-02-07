@@ -1,7 +1,3 @@
-/* Jerome M. St.Martin
- * 12/07/2020 - 5/18/2020
- * jeromemst.martin@gmail.com
- */
 use std::any::Any;
 
 use bracket_lib::prelude::{BTerm, Point};

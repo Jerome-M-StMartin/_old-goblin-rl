@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Position, JustMoved, EntryTrigger, Hidden, Map, Name, gamelog, DamageOnUse,
+use super::{Position, JustMoved, EntryTrigger, Hidden, Map, Name, gui::gamelog, DamageOnUse,
             DamageQueue, };
 
 pub struct TriggerSystem {}

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{PickUpIntent, Name, InBackpack, Position, gamelog, UseItemIntent, RunState,
+use super::{PickUpIntent, Name, InBackpack, Position, gui::gamelog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
             particle_system::ParticleBuilder, MagicMapper, Aflame, Equipped, UnequipIntent};
 //use bracket_lib::prelude::{console};

@@ -5,9 +5,7 @@
 #![allow(dead_code)]
 extern crate rand;
 extern crate serde;
-use std::sync::{Arc, Weak};
-use std::cell::RefCell;
-use std::collections::HashMap;
+use std::sync::Arc;
 use bracket_lib::prelude::BTerm;
 
 pub mod textify;
@@ -16,11 +14,12 @@ pub mod observer;
 pub mod main_menu;
 pub mod game_over;
 pub mod cursor;
-pub mod drawable;
+//pub mod drawable;
 pub mod widget;
+pub mod gamelog;
 
 use cursor::Cursor;
-use drawable::Drawable;
+//use drawable::Drawable;
 use super::user_input::UserInput;
 use super::user_input;
 use super::command;
@@ -34,19 +33,18 @@ pub struct GUI {
     pub user_input: Arc<UserInput>,
     pub cursor: Arc<Cursor>,
 
-    //DO THESE NEED TO BE Rc<> ??? I don't think so anymore, please verify.------------!
-    drawables: RefCell<HashMap<usize, Weak<dyn Drawable>>>, //all Drawable components.
-    to_draw: RefCell<Vec<usize>>, //these ecs entities need a .draw() call this tick
+    //drawables: RefCell<HashMap<usize, Weak<dyn Drawable>>>, //all Drawable components.
+    //to_draw: RefCell<Vec<usize>>, //these ecs entities need a .draw() call this tick
 }
 
 impl GUI {
     //creates, initializes, and returns the gui object
     pub fn new(user_input: Arc<UserInput>) -> Self {
         // --- Initialize ---
-        let drawables: HashMap<usize, Weak<dyn Drawable>> = HashMap::new();
-        let to_draw: Vec<usize> = Vec::new();
         let gui: Self;
         let arc_cursor: Arc<Cursor>;
+        //let drawables: HashMap<usize, Weak<dyn Drawable>> = HashMap::new();
+        //let to_draw: Vec<usize> = Vec::new();
         
         // - CURSOR - 
         if let Ok(guard) = user_input.id_gen.lock() {
@@ -59,8 +57,8 @@ impl GUI {
             gui = GUI {
                 user_input: user_input.clone(),
                 cursor: arc_cursor,
-                drawables: RefCell::new(drawables),
-                to_draw: RefCell::new(to_draw),
+                //drawables: RefCell::new(drawables),
+                //to_draw: RefCell::new(to_draw),
             };
         } else { panic!("Mutex on user_input.id_gen was poisoned.") };
 
@@ -71,7 +69,7 @@ impl GUI {
     pub fn tick(&mut self, ctx: &mut BTerm) {
         self.user_input.tick(ctx);
 
-        //draw all to_draw gui objs & remove dropped references
+        /*//draw all to_draw gui objs & remove dropped references
         let mut drawable_drops: Vec<usize> = Vec::new();
         let mut to_draw_drops: Vec<usize> = Vec::new();
         let mut idx = 0;
@@ -88,17 +86,24 @@ impl GUI {
             idx += 1;
         }
 
-        self.cursor.draw(ctx); //draw the cursor
-
         //lazy removal of dropped references
         for id in drawable_drops.iter() {
             self.drawables.borrow_mut().remove(id);
         }
         for idx in to_draw_drops.iter() {
             to_draw.remove(*idx);
-        }
+        }*/
+
+        self.cursor.draw(ctx); //draw the cursor
     }
 
+    //Not to be called in self::tick(), so as to allow finer control.
+    // HUD state is updated in tick(), but we need to ensure that we draw it at the end of the frame
+    // so it properly overlays all other rendered things.
+    pub fn draw_hud(&self) {
+        
+    }
+     /*
     pub fn add_drawable(&self, id: usize, to_add: Arc<dyn Drawable>, set_focus: bool) {
         self.drawables.borrow_mut().insert(id, Arc::downgrade(&to_add));
         self.to_draw.borrow_mut().push(id);
@@ -113,7 +118,5 @@ impl GUI {
         //id of this drawable is removed from to_draw lazily, also this drawable itself will be
         //lazily removed if and only if all non-Weak Rc references are dropped. Thus the purpose of
         //this function: to remove a drawable that must retain a strong Rc reference somewhere.
-    }
-
-    //pub fn add_hud_data(&self, new_hud_data: HudData) {}
+    }*/
 }

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{gamelog, ThrowIntent, Position, InBackpack, Equipped, Name, Weapon,
+use super::{gui::gamelog, ThrowIntent, Position, InBackpack, Equipped, Name, Weapon,
             DamageQueue, BasicAttack, Throwable, Map};
 
 pub struct ThrowSystem {}

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gamelog};
+use super::{Viewshed, Position, Map, Player, Name, Hidden, BlocksVisibility, gui::gamelog};
 use bracket_lib::prelude::{field_of_view, Point};
 
 pub struct VisibilitySystem {}

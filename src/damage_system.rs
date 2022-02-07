@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use std::cmp::max;
 use bracket_lib::prelude::RandomNumberGenerator;
-use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog,
+use super::{Stats, DamageQueue, DamageAtom, Player, Name, gui::gamelog,
             Resistances, RunState, Bleeding, particle_system::ParticleBuilder, Position};
 
 pub struct DamageSystem {}
