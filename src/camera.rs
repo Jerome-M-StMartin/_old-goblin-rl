@@ -39,7 +39,9 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
                     ctx.set(x, y, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY), RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('#'));
+                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY),
+                              RGB::named(bracket_lib::prelude::BLACK),
+                              bracket_lib::prelude::to_cp437('#'));
             }
             x += 1;
         }

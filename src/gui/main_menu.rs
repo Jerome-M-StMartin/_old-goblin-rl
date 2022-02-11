@@ -158,7 +158,7 @@ impl Observer for MainMenu {
 //===================================
 impl Commandable for MainMenu {
     fn send(&self, cmd: Command) {
-        self.cmd_queue.push(cmd)
+        self.cmd_queue.push(cmd);
     }
     
     fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {

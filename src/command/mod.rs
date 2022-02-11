@@ -65,7 +65,7 @@ impl CommandQueue {
     pub fn push(&self, cmd: Command) {
         if let Ok(mut queue_guard) = self.queue.lock() {
             queue_guard.push(cmd);
-        }
+        } else { panic!("Mutex poisoned in command::CommandQueue."); };
     }
 
     pub fn pop(&self) -> Option<Command> {
@@ -74,7 +74,7 @@ impl CommandQueue {
                 return queue_guard.pop();
             }
             
-        }
+        } else { panic!("Mutex poisoned in command::CommandQueue."); };
 
         None
     }
@@ -84,8 +84,7 @@ impl CommandQueue {
             if !queue_guard.is_empty() {
                 return Some(queue_guard.remove(0)); //O(n), but preserves order
             }
-            
-        }
+        } else { panic!("Mutex poisoned in command::CommandQueue."); };
 
         None
     }
@@ -93,7 +92,15 @@ impl CommandQueue {
     pub fn clear(&self) {
         if let Ok(mut queue_guard) = self.queue.lock() {
             queue_guard.clear()
-        }
+        } else { panic!("Mutex poisoned in command::CommandQueue."); };
+    }
+}
+
+impl Iterator for CommandQueue {
+    type Item = Command;
+
+    fn next(&self) -> Option<Self::Item> {
+        self.queue.pop()
     }
 }//-------------------------------------------------------
 

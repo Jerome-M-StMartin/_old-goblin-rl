@@ -4,23 +4,22 @@ use bracket_lib::prelude::BTerm;
 use super::Widget;
 
 lazy_static! {
-    // Each Vec represents one widget
     static ref WIDGET_STORAGE: Mutex<HashMap<String, Widget>> = Mutex::new(HashMap::new());
 }
 
 pub fn draw_widgets(ctx: &mut BTerm) {
     if let Ok(widget_map) = WIDGET_STORAGE.lock() {
         for widget in widget_map.values() {
-            widget.draw();
+            widget.draw(ctx);
         }
     } else {
         panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage.rs)")
     }
 }
 
-pub fn add<S: ToString>(name: S, widget: Widget) {
+pub fn add<S: ToString>(widget: Widget) {
     if let Ok(widget_map) = WIDGET_STORAGE.lock() {
-        widget_map.insert(name.to_string(), widget);
+        widget_map.insert(widget.name.to_string(), widget);
     } else {
         panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage.rs)")
     }
