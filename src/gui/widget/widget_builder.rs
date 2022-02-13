@@ -18,15 +18,10 @@ pub struct WidgetElement {
     color: RGB,
 }
 pub struct Widget {
-    //Required fields on init
     name: String,
     position: Point,
     dimensions: Point,
-
-    //Required after a few .with() calls
     elements: Box<Vec<WidgetElement>>, //to be drawn IN ORDER
-
-    //Optional fields
     border: Option<BoxType>,
 
     //Observer Pattern Fields
@@ -42,14 +37,13 @@ impl Widget {
     pub fn new<T: ToString>(name: T,
                             position: Point,
                             dimensions: Point,
-                            elements: Vec,
                             user_input: Arc<UserInput>) -> Self {
 
         Widget {
             name: name.to_string(),
             position,
             dimensions,
-            elements: Box::new(elements),
+            elements: Box::new(Vec::new()),
             border: None,
             observer_id: user_input.generate_id(),
             user_input,
@@ -96,9 +90,9 @@ impl Widget {
          * many widgets.
          */
         let (x, y, w, h) = (self.position.x + 1,
-                         self.position.y + 1,
-                         self.dimensions.x - 2,
-                         self.dimensions.y - 2);
+                            self.position.y + 1,
+                            self.dimensions.x - 2,
+                            self.dimensions.y - 2);
 
         //check pos/dim for validity
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
@@ -122,7 +116,7 @@ impl Widget {
 
         textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
         //TODO: draw border
-        textblock.print(&textbuilder).expect("Text too long. (Widget.draw())");
+        textblock.print(&textbuilder).expect("Text too long. Error in Widget.draw()");
         textblock.render_to_draw_batch(draw_batch);
         draw_batch.submit(0).expect("Batch error in Widget.draw()");
         render_draw_buffer(ctx).expect("Render error in Widget.draw()");

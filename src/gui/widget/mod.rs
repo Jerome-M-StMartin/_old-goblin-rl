@@ -3,6 +3,9 @@
 mod widget_builder;
 mod widget_storage;
 
+//-- Widgets --
+pub mod main_menu;
+// -- --
 pub use widget_builder::*;
 pub use widget_storage::*;
 
