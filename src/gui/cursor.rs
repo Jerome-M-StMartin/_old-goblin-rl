@@ -3,7 +3,6 @@
 //12/07/2020
 
 use super::command::{Command, Commandable, CommandQueue};
-use super::drawable::Drawable;
 use super::look_n_feel::{ColorOption, Dir};
 use super::observer::{Observable, Observer};
 use super::user_input::{InputEvent, UserInput};
@@ -63,7 +62,7 @@ impl Cursor {
     }
 }
 
-impl Drawable for Cursor {
+/*impl Drawable for Cursor {
     fn draw(&self, ctx: &mut BTerm) {
         if let Ok(guard) = self.glyph.lock() {
             if let Some(glyph) = *guard {
@@ -105,7 +104,7 @@ impl Drawable for Cursor {
         }
     }
     fn as_any(&self) -> &dyn Any { self }
-}
+}*/
 
 //==================================
 //==== Observer Pattern Stuff ======

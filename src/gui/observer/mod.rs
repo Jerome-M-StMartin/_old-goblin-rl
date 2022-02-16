@@ -31,6 +31,12 @@ impl IdGenerator {
     }
 }
 
+pub struct ObserverData {
+    id: usize,
+    observable: std::sync::Arc<dyn Observable>,
+
+}
+
 pub trait Observer : Send + Sync {
     //Each implementor of Observer must store a unique observer id,
     //so each Observable needs either: access to a shared IdGenerator,

@@ -1,12 +1,13 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use bracket_lib::prelude::*;
+use specs::World;
 
 use super::super::look_n_feel::Dir;
 use super::super::observer::Observer;
 use super::super::user_input::{UserInput, InputEvent};
 use super::super::command::{Command, Commandable, CommandQueue};                
-use super::super::super::{World, RunState};
+use super::super::super::RunState;
 
 pub enum BoxType { //determines if the widget border is drawn with '┓'(thick) or '┐'(thin).
     THIN,
@@ -21,13 +22,13 @@ pub struct Widget {
     name: String,
     position: Point,
     dimensions: Point,
-    elements: Box<Vec<WidgetElement>>, //to be drawn IN ORDER
+    elements: Vec<WidgetElement>, //to be drawn IN ORDER
     border: Option<BoxType>,
 
     //Observer Pattern Fields
     observer_id: usize,
     user_input: Arc<UserInput>,
-    focus_element_idx: Option<u8>,
+    selection: RwLock<Option<i8>>,
 
     //Command Pattern Fields
     cmd_queue: CommandQueue,
@@ -43,11 +44,11 @@ impl Widget {
             name: name.to_string(),
             position,
             dimensions,
-            elements: Box::new(Vec::new()),
+            elements: Vec::new(),
             border: None,
             observer_id: user_input.generate_id(),
             user_input,
-            focus_element_idx: None,
+            selection: None,
             cmd_queue: CommandQueue::new(),
         }
     }
@@ -106,7 +107,7 @@ impl Widget {
         let mut idx = 0;
         for element in self.elements.iter() {
             let mut color: RGB = WHITE;
-            if let Some(focus_idx) = self.focus_element_idx {
+            if let Some(focus_idx) = self.selection {
                 if focus_idx == idx { color = MAGENTA; };
             }
             textbuilder.color(color);
@@ -120,6 +121,19 @@ impl Widget {
         textblock.render_to_draw_batch(draw_batch);
         draw_batch.submit(0).expect("Batch error in Widget.draw()");
         render_draw_buffer(ctx).expect("Render error in Widget.draw()");
+    }
+
+    // Applies delta then clamps/wraps self.selection based on current state.
+    fn change_selection (&self, delta: i8) {
+        let max = self.elements.len - 1;
+        if let Ok(sel_guard) = self.selection.lock() {
+            if let Some(selection) = *sel_guard {
+                let new_selection = selection + delta;
+                if new_selection < 0 { self.selection = Some(max); return };
+                if new_selection > max { self.selection = Some(0); return };
+                self.selection = new_selection;
+            }
+        }
     }
 }
 
@@ -156,18 +170,19 @@ impl Commandable for Widget {
 
     fn process(&self, _ecs: &mut World) -> RunState {
         let mut runstate = RunState::AwaitingInput;
+        let clamp_max = self.elements.len - 1;
         for cmd in self.cmd_queue.iter() {
             match cmd {
                 Command::HJKL(dir) => {
                     match dir {
-                        Dir::UP => { self.focus_element_idx -= 1 },
-                        Dir::DOWN => { self.focus_element_idx += 1 },
+                        Dir::UP => { self.change_selection(-1); },
+                        Dir::DOWN => { self.change_selection(1); },
                         Dir::LEFT | Dir::RIGHT => {},
                     }
                 },
                 Command::Select => {
                     //TODO
-                    println!("'{}' Widget: Element {} selected.", self.name, self.focus_element_idx);
+                    println!("'{}' Widget: Element {} selected.", self.name, self.selection);
                 }
             }
         };
