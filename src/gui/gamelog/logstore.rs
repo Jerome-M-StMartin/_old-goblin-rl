@@ -1,13 +1,12 @@
 use std::sync::Mutex;
 use super::LogFragment;
-use bracket_lib::prelude::*;
+use bracket_lib::prelude::TextBuilder;
 
 lazy_static! {
     static ref LOG: Mutex<Vec<Vec<LogFragment>>> = Mutex::new(Vec::new());
 }
 
 pub fn append_fragment(fragment: LogFragment) {
-    //LOG.lock().unwrap().push(vec![fragment]);
     if let Ok(log) = LOG.lock() {
         log.push(vec![fragment]);
     }
