@@ -602,6 +602,7 @@ NumberVisitor	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ser
 OTHER	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/symbol.rs	/^pub const OTHER: Symbol = Symbol("other");$/;"	c
 Observable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub trait Observable : Send + Sync {$/;"	t
 Observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub trait Observer : Send + Sync {$/;"	t
+ObserverData	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub struct ObserverData {$/;"	s
 OccupiedEntry	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^pub struct OccupiedEntry<'a> {$/;"	s
 OccupiedEntry	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/entry.rs	/^pub struct OccupiedEntry<'a, 'b: 'a, T: 'a, D: 'a> {$/;"	s
 OccupiedEntryImpl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^type OccupiedEntryImpl<'a> = btree_map::OccupiedEntry<'a, String, Value>;$/;"	T
@@ -1514,6 +1515,7 @@ center	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/rect.rs	/^    pub f
 central_attractor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/dla.rs	/^    pub fn central_attractor() -> Box<DLABuilder> {$/;"	f
 change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
 change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
+change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn change_selection (&self, delta: i8) {$/;"	f
 channel	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/flagged.rs	/^    fn channel(&self) -> &EventChannel<ComponentEvent> {$/;"	f
 channel	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/track.rs	/^    fn channel(&self) -> &EventChannel<ComponentEvent>;$/;"	f
 channel	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/track.rs	/^    pub fn channel(&self) -> &EventChannel<ComponentEvent> {$/;"	f
@@ -1584,6 +1586,7 @@ component	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-d
 confusion_scroll	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {$/;"	f
 constant	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/prefab_builder/mod.rs	/^    pub fn constant(level : prefab_levels::PrefabLevel) -> Box<PrefabBuilder> {$/;"	f
 constrain	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/private/ser.rs	/^pub fn constrain<T: ?Sized>(t: &T) -> &T {$/;"	f
+construct	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/main_menu.rs	/^fn construct(user_input: Arc<UserInput>) -> Widget {$/;"	f
 contains	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/mod.rs	/^    pub fn contains(&self, e: Entity) -> bool {$/;"	f
 contains_key	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn contains_key<Q>(&self, key: &Q) -> bool$/;"	f
 contains_key	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    pub fn contains_key(&self, k: &Value) -> bool {$/;"	f

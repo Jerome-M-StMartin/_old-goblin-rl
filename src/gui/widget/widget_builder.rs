@@ -90,18 +90,19 @@ impl Widget {
          * to the context only once per tick, instead of multiple draws for the
          * many widgets.
          */
-        let (x, y, w, h) = (self.position.x + 1,
-                            self.position.y + 1,
-                            self.dimensions.x - 2,
-                            self.dimensions.y - 2);
+        let (x, y, w, h) = (self.position.x,
+                            self.position.y,
+                            self.dimensions.x,
+                            self.dimensions.y);
 
-        //check pos/dim for validity
+        //return if any part of widget is out of window bounds
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
-        if x > ctx.width || y > ctx.height || w > ctx.width || h > ctx.height { return; };
+        if x > ctx.width || y > ctx.height { return };
+        if w > (ctx.width - x) || h > (ctx.height - y) { return };
 
         let mut draw_batch = DrawBatch::new();
 
-        let mut textblock = TextBlock::new(x, y, w, h);
+        let mut textblock = TextBlock::new(x + 1, y + 1, w - 2, h - 2);
         let mut textbuilder = TextBuilder::empty();
 
         let mut idx = 0;
@@ -113,6 +114,7 @@ impl Widget {
             textbuilder.color(color);
             textbuilder.append(element);
             textbuilder.ln();
+            idx += 1;
         }
 
         textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
