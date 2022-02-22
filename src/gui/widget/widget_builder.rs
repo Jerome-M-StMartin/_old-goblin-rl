@@ -48,7 +48,7 @@ impl Widget {
             border: None,
             observer_id: user_input.generate_id(),
             user_input,
-            selection: None,
+            selection: RwLock::new(None),
             cmd_queue: CommandQueue::new(),
         }
     }
@@ -56,22 +56,23 @@ impl Widget {
     // --- BUILDER PATTERN ---
     pub fn with_border(mut self, box_type: BoxType) -> Self {
         self.border = Some(box_type);
+        self
     }
 
     pub fn with<T: ToString>(mut self, text: T) -> Self { //defaults color to WHITE
         self.elements.push(
             WidgetElement {
-                to_draw: Box::new(text.to_string()),
-                color: WHITE,
+                to_draw: text.to_string(),
+                color: RGB::named(WHITE),
             }
         );
         self
     }
 
-    pub fn with<T: ToString>(mut self, text: T, color: RGB) -> Self { //no default color, it must be specified
+    pub fn with_color<T: ToString>(mut self, text: T, color: RGB) -> Self { //no default color, it must be specified
         self.elements.push(
             WidgetElement {
-                to_draw: Box::new(text.to_string()),
+                to_draw: text.to_string(),
                 color,
             }
         );
@@ -79,11 +80,11 @@ impl Widget {
     }
 
     pub fn build(self) {
-        super::widget_storage::add(self.name)
+        super::widget_storage::add(self, self.name)
     }
     // --- END BUILDER PATTERN ---
 
-    pub fn draw(self, &mut ctx: BTerm) {
+    pub fn draw(self, ctx: &mut BTerm) {
         /*TODO:
          * Change to accept textbuilder (and maybe other structs) as argument,
          * such that all widgets can be drawn to a single buffer which is drawn
@@ -94,11 +95,12 @@ impl Widget {
                             self.position.y,
                             self.dimensions.x,
                             self.dimensions.y);
+        let (ctx_w, ctx_h) = ctx.get_char_size();
 
         //return if any part of widget is out of window bounds
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
-        if x > ctx.width || y > ctx.height { return };
-        if w > (ctx.width - x) || h > (ctx.height - y) { return };
+        if x > ctx_w as i32 || y > ctx_h as i32 { return };
+        if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
 
         let mut draw_batch = DrawBatch::new();
 
@@ -107,33 +109,35 @@ impl Widget {
 
         let mut idx = 0;
         for element in self.elements.iter() {
-            let mut color: RGB = WHITE;
-            if let Some(focus_idx) = self.selection {
-                if focus_idx == idx { color = MAGENTA; };
+            let mut color: RGB = RGB::named(WHITE);
+            if let Ok(selection) = self.selection.read() {
+                if let Some(focus_idx) = *selection {
+                    if focus_idx == idx { color = RGB::named(MAGENTA); };
+                }
             }
-            textbuilder.color(color);
-            textbuilder.append(element);
+            textbuilder.fg(color);
+            textbuilder.append(&element.to_draw);
             textbuilder.ln();
             idx += 1;
         }
 
         textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
         //TODO: draw border
-        textblock.print(&textbuilder).expect("Text too long. Error in Widget.draw()");
-        textblock.render_to_draw_batch(draw_batch);
+        textblock.print(&textbuilder);
+        textblock.render_to_draw_batch(&mut draw_batch);
         draw_batch.submit(0).expect("Batch error in Widget.draw()");
         render_draw_buffer(ctx).expect("Render error in Widget.draw()");
     }
 
     // Applies delta then clamps/wraps self.selection based on current state.
     fn change_selection (&self, delta: i8) {
-        let max = self.elements.len - 1;
-        if let Ok(sel_guard) = self.selection.lock() {
+        let max = self.elements.len() - 1;
+        if let Ok(sel_guard) = self.selection.write() {
             if let Some(selection) = *sel_guard {
                 let new_selection = selection + delta;
-                if new_selection < 0 { self.selection = Some(max); return };
-                if new_selection > max { self.selection = Some(0); return };
-                self.selection = new_selection;
+                if new_selection < 0 { selection = max as i8; return };
+                if new_selection as usize > max { selection = 0; return };
+                selection = new_selection;
             }
         }
     }
@@ -162,7 +166,7 @@ impl Observer for Widget {
 
     fn setup_cursor(&self) {}
 
-    fn name(&self) -> &str { self.name }
+    fn name(&self) -> &str { &self.name }
 }
 
 impl Commandable for Widget {
@@ -172,10 +176,10 @@ impl Commandable for Widget {
 
     fn process(&self, _ecs: &mut World) -> RunState {
         let mut runstate = RunState::AwaitingInput;
-        let clamp_max = self.elements.len - 1;
-        for cmd in self.cmd_queue.iter() {
+        let clamp_max = self.elements.len() - 1;
+        for cmd in self.cmd_queue.into_iter() {
             match cmd {
-                Command::HJKL(dir) => {
+                Command::Move{dir} => {
                     match dir {
                         Dir::UP => { self.change_selection(-1); },
                         Dir::DOWN => { self.change_selection(1); },
@@ -184,8 +188,9 @@ impl Commandable for Widget {
                 },
                 Command::Select => {
                     //TODO
-                    println!("'{}' Widget: Element {} selected.", self.name, self.selection);
+                    println!("'{}' Widget: Command::Select processed", self.name);
                 }
+                _ => {},
             }
         };
 

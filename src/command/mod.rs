@@ -96,13 +96,32 @@ impl CommandQueue {
     }
 }
 
-impl Iterator for CommandQueue {
+struct CommandQueueIterHelper {
+    iter: std::vec::IntoIter<Command>,
+}
+
+impl<'a> IntoIterator for &'a CommandQueue {
+    type Item = Command;
+    type IntoIter = CommandQueueIterHelper;
+
+    fn into_iter(self) -> Self::IntoIter {
+        if let Ok(q) = self.queue.lock() {
+            return CommandQueueIterHelper {
+                iter: q.into_iter(),
+            }
+        };
+        panic!("Mutex poisoned. (CommandQueue::IntoIterator)");
+    }
+}
+
+impl Iterator for CommandQueueIterHelper {
     type Item = Command;
 
-    fn next(&self) -> Option<Self::Item> {
-        self.queue.pop()
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
     }
-}//-------------------------------------------------------
+}
+//-------------------------------------------------------
 
 //Funtionality for undo-ability of Commands --------------
 pub struct CommandHistory {

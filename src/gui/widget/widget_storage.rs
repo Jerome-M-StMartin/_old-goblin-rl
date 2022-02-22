@@ -4,7 +4,7 @@ use bracket_lib::prelude::BTerm;
 use super::Widget;
 
 lazy_static! {
-    static ref WIDGET_STORAGE: Mutex<HashMap<String, Widget>> = Mutex::new(HashMap::new());
+    pub static ref WIDGET_STORAGE: Mutex<HashMap<String, Widget>> = Mutex::new(HashMap::new());
 }
 
 pub fn draw_widgets(ctx: &mut BTerm) {
@@ -17,9 +17,9 @@ pub fn draw_widgets(ctx: &mut BTerm) {
     }
 }
 
-pub fn add<S: ToString>(widget: Widget) {
+pub fn add(widget: Widget, name: String) {
     if let Ok(widget_map) = WIDGET_STORAGE.lock() {
-        widget_map.insert(widget.name.to_string(), widget);
+        widget_map.insert(name, widget);
     } else {
         panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage.rs)")
     }

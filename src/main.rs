@@ -59,7 +59,7 @@ use hunger_system::HungerSystem;
 use throw_system::ThrowSystem;
 use light_system::LightSystem;
 use trigger_system::TriggerSystem;
-use gui::drawable::Drawable;
+//use gui::drawable::Drawable;
 
 pub use components::*;
 pub use map::*;
@@ -96,7 +96,8 @@ pub struct State {
 
     //from-scratch gui crate
     gui: gui::GUI,
-    static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
+    //static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
+    widgets: gui::widget::WIDGET_STORAGE,
     pub tooltips_on: bool, //<-delete after UI integration
 
     //rltk-based map procgen state - to-be-removed
@@ -677,7 +678,7 @@ fn main() -> BError {
         user_input,
         player_controller: pc_arc.clone(),
         gui,
-        static_gui_objs: HashMap::new(),
+        widgets: gui::widget::WIDGET_STORAGE,
         tooltips_on: false,
 
         //mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }), OLD
