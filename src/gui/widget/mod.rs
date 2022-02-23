@@ -1,7 +1,7 @@
 //use std::any::Any;
 
 mod widget_builder;
-mod widget_storage;
+pub mod widget_storage;
 
 //-- Widgets --
 pub mod main_menu;

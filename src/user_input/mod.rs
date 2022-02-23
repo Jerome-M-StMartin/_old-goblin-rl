@@ -26,9 +26,10 @@ use gui::observer::{IdGenerator, Observable, Observer};
 //This struct should have only one instance; alias via Arc<>.
 pub struct UserInput {
     pub id_gen: Mutex<IdGenerator>,
-    observers: Mutex<Vec<Weak<dyn Observer>>>, //focus is at index 0
     pub input: RwLock<Option<InputEvent>>,
-    focus_id: Mutex<Option<usize>>, //focus is variable & is the only Observer that gets .update() calls from UserInput.
+    pub selection: RwLock<Option<u8>>, //allows Widgets to communicate user selection to back-end
+    observers: Mutex<Vec<Weak<dyn Observer>>>, //focus is at index 0
+    focus_id: Mutex<Option<usize>>, //focus is variable & only Observer that gets .update() calls
 }
 
 #[derive(Clone, Copy)]
@@ -59,7 +60,7 @@ impl UserInput {
         }
     }
 
-    fn transcribe_input(&self, ctx: &BTerm) -> bool { //use returned bool to control observer notification
+    fn transcribe_input(&self, ctx: &BTerm) -> bool { //use bool to control observer notification
         let mut new_input: Option<InputEvent> = None;
         if let Some(key) = ctx.key {
             match key {
@@ -99,7 +100,7 @@ impl UserInput {
 
     //Return next observer id after popping next_focus from observers vec and moving it to the
     //front. (observers[0] should always be the current focus). Popped observer is never re-added
-    //to observers vec if its Rc::upgrade fails, which is an easy lazy-removal implementation.
+    //to observers vec if its Arc::upgrade fails, which is an easy lazy-removal implementation.
     fn next_observer_id(&self) -> usize {
         let mut focus_id: usize = 0;
         //obtain lock on observer-vec Mutex
@@ -115,7 +116,7 @@ impl UserInput {
                     if let Ok(mut guard) = self.focus_id.lock() {
                         *guard = Some(focus_id);
                     }
-                    next_focus.setup_cursor();
+                    next_focus.become_focus();
                     observers.insert(0, Arc::downgrade(&next_focus));
                     println!("{}", next_focus.name());//----------------------------------------Debugging
                 }
@@ -150,6 +151,21 @@ impl UserInput {
                 }
             }
         }
+    }
+
+    pub fn set_selection(&self, new_selection: Option<u8>) {
+        if let Ok(selection) = self.selection.write() {
+            *selection = new_selection;
+            return
+        }
+        panic!("Mutex poisoned! (user_input.set_selection())");
+    }
+
+    pub fn get_focus_selection(&self) -> Option<u8> {
+        if let Ok(selection) = self.selection.read() {
+            return *selection
+        }
+        panic!("Mutex poisoned! (user_input.get_focus_selection())");
     }
 
     pub fn generate_id(&self) -> usize {
@@ -208,7 +224,7 @@ impl Observable for UserInput {
     }
 }
 
-/*DEPRECIATED - NO LONGER STORING ANYTHING IN THE 'PLAYER' COMPONENT
+/*DEPRECIATED - NO LONGER STORING DATA IN THE 'PLAYER' COMPONENT, IT IS ONLY AN ECS MARKER
  *
  * //Serde requires a Default method so it can populate the Player Component's
 //Arc<UserInput> field upon Deserialization. This is just to satisfy rust's

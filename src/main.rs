@@ -546,9 +546,29 @@ impl GameState for State {
             }*/
 
             RunState::MainMenu => {
-                use gui::Observer;
-                use gui::main_menu::{Selection, MainMenu};
+                use gui::widget::{main_menu, widget_storage, Selection};
 
+                //TODO in new Widget way
+                if let Some(main_menu) = widget_storage::get("main_menu") {
+                    match main_menu.get_selection() {
+                        Some(Selection::NewGame) => {
+                            newrunstate = RunState::PreRun;
+                            self.gui.rm_drawable(main_menu.id());
+                        }
+                        Some(Selection::LoadGame) => {
+                            saveload_system::load_game(&mut self.ecs);
+                            newrunstate = RunState::AwaitingInput;
+                            saveload_system::delete_save(); //death is permanent
+                            self.gui.rm_drawable(main_menu.id());
+                        },
+                        Some(Selection::Quit) => ::std::process::exit(0),
+                        _ => {},
+                    }
+                } else {
+                    main_menu::construct(self.gui.user_input.clone());
+                }
+
+                /*
                 //if a MainMenu object already exists then...
                 if let Some(dyn_main_menu) = self.static_gui_objs.get("main_menu") {
 
@@ -582,7 +602,7 @@ impl GameState for State {
                     let weak = Arc::downgrade(&main_menu.clone());
                     self.gui.user_input.add_observer(weak);
                     self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
-                }
+                }*/
             }
             
             RunState::GameOver => {

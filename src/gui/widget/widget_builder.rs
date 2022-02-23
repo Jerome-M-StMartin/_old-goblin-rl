@@ -28,7 +28,7 @@ pub struct Widget {
     //Observer Pattern Fields
     observer_id: usize,
     user_input: Arc<UserInput>,
-    selection: RwLock<Option<i8>>,
+    selection: RwLock<Option<u8>>,
 
     //Command Pattern Fields
     cmd_queue: CommandQueue,
@@ -134,10 +134,12 @@ impl Widget {
         let max = self.elements.len() - 1;
         if let Ok(sel_guard) = self.selection.write() {
             if let Some(selection) = *sel_guard {
-                let new_selection = selection + delta;
-                if new_selection < 0 { selection = max as i8; return };
+                let new_selection = selection as i8 + delta;
+                if new_selection < 0 { selection = max as u8; return };
                 if new_selection as usize > max { selection = 0; return };
-                selection = new_selection;
+                selection = new_selection as u8;
+            } else { //selection is None
+                *sel_guard = Some(0);
             }
         }
     }
@@ -164,7 +166,14 @@ impl Observer for Widget {
         }
     }
 
-    fn setup_cursor(&self) {}
+    //set-up for when this obj becomes what UserInput controls
+    fn become_focus(&self) {
+        if let Ok(sel_guard) = self.selection.write() {
+            *sel_guard = Some(0);
+            return
+        }
+        panic!("Mutex was poisoned! (gui::widget::widget_builder::become_focus()");
+    }
 
     fn name(&self) -> &str { &self.name }
 }
@@ -187,8 +196,12 @@ impl Commandable for Widget {
                     }
                 },
                 Command::Select => {
-                    //TODO
-                    println!("'{}' Widget: Command::Select processed", self.name);
+                    let selection;
+                    if let Ok(sel_guard) = self.selection.read() {
+                        selection = *sel_guard;
+                    } else { panic!("Mutex poisoned! (gui::widget_builder::process())"); }
+                        
+                    self.user_input.set_selection(selection);
                 }
                 _ => {},
             }

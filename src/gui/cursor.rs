@@ -128,8 +128,7 @@ impl Observer for Cursor {
             }
         }
     }
-    fn setup_cursor(&self) {
-        //self.set_glyph(to_cp437('*'));
+    fn become_focus(&self) {
         self.set_bg(ColorOption::FOCUS);
     }
     fn name(&self) -> &str {
