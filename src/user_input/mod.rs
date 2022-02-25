@@ -27,9 +27,9 @@ use gui::observer::{IdGenerator, Observable, Observer};
 pub struct UserInput {
     pub id_gen: Mutex<IdGenerator>,
     pub input: RwLock<Option<InputEvent>>,
-    pub selection: RwLock<Option<u8>>, //allows Widgets to communicate user selection to back-end
-    observers: Mutex<Vec<Weak<dyn Observer>>>, //focus is at index 0
+    selection: RwLock<Option<u8>>, //allows Widgets to communicate user selection to back-end
     focus_id: Mutex<Option<usize>>, //focus is variable & only Observer that gets .update() calls
+    observers: Mutex<Vec<Weak<dyn Observer>>>, //focus is at index 0
 }
 
 #[derive(Clone, Copy)]
@@ -48,9 +48,10 @@ impl UserInput {
     pub fn new() -> Self {
         UserInput {
             id_gen: Mutex::new(IdGenerator::new()),
-            observers: Mutex::new(Vec::new()),
-            input: RwLock::new(Option::None),
+            input: RwLock::new(None),
+            selection: RwLock::new(None),
             focus_id: Mutex::new(None),
+            observers: Mutex::new(Vec::new()),
         }
     }
 
@@ -153,7 +154,7 @@ impl UserInput {
         }
     }
 
-    pub fn set_selection(&self, new_selection: Option<u8>) {
+    pub fn set_focus_selection(&self, new_selection: Option<u8>) {
         if let Ok(selection) = self.selection.write() {
             *selection = new_selection;
             return
