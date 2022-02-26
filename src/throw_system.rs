@@ -23,7 +23,7 @@ impl<'a> System<'a> for ThrowSystem {
         let (entities, mut throw_intents, mut positions, mut in_backpack, mut basic_attacks,
              mut damage_queue, mut equipped_storage, throwables, weapons, names, map) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         for (ent, throw_intent) in (&entities, &mut throw_intents).join() {
 

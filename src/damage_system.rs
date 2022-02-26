@@ -22,7 +22,7 @@ impl<'a> System<'a> for DamageSystem {
              resistances, names, positions) = data;
         
         let mut to_bleed = Vec::<Entity>::new();
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         //Apply resistanes to dmg_queue and dmg_queue to stats.
         for (ent, name, pos, stats, d_q, res, bleeding) in

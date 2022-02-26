@@ -5,6 +5,7 @@ pub mod widget_storage;
 
 //-- Widgets --
 pub mod main_menu;
+pub mod game_over;
 // -- --
 pub use widget_builder::*;
 pub use widget_storage::*;

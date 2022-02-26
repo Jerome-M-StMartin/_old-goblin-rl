@@ -1,8 +1,9 @@
-use super::gui::look_n_feel::Dir;
-use specs::World;
-
 use std::sync::Mutex;
 
+use specs::World;
+
+use super::RunState;
+use super::gui::look_n_feel::Dir;
 //-----------------------------------------------------
 //---------------- COMMAND PATTERN --------------------
 //-------- polymorphism via ENUMS this time! ----------
@@ -47,7 +48,7 @@ pub enum Command {
 pub trait Commandable {
     //Implementors should have CommandQueue & CommandHistory fields.
     fn send(&self, command: Command); //store cmd in CommandQueue
-    fn process(&self, ecs: &mut World) -> super::RunState; //execute each command in CommandQueue
+    fn process(&self, ecs: &mut World, runstate: RunState) -> RunState; //execute each command in CommandQueue
     fn undo(&self) {} //Optional, requires CommandHistory field
 }
 
@@ -68,7 +69,7 @@ impl CommandQueue {
         } else { panic!("Mutex poisoned in command::CommandQueue."); };
     }
 
-    pub fn pop(&self) -> Option<Command> {
+    pub fn rm_last(&self) -> Option<Command> {
         if let Ok(mut queue_guard) = self.queue.lock() {
             if !queue_guard.is_empty() {
                 return queue_guard.pop();
@@ -79,7 +80,7 @@ impl CommandQueue {
         None
     }
 
-    pub fn pop_front(&self) -> Option<Command> {
+    pub fn pop(&self) -> Option<Command> { //use this for true Queue-like behaviour
         if let Ok(mut queue_guard) = self.queue.lock() {
             if !queue_guard.is_empty() {
                 return Some(queue_guard.remove(0)); //O(n), but preserves order
@@ -94,31 +95,28 @@ impl CommandQueue {
             queue_guard.clear()
         } else { panic!("Mutex poisoned in command::CommandQueue."); };
     }
-}
 
-struct CommandQueueIterHelper {
-    iter: std::vec::IntoIter<Command>,
-}
-
-impl<'a> IntoIterator for &'a CommandQueue {
-    type Item = Command;
-    type IntoIter = CommandQueueIterHelper;
-
-    fn into_iter(self) -> Self::IntoIter {
-        if let Ok(q) = self.queue.lock() {
-            return CommandQueueIterHelper {
-                iter: q.into_iter(),
+    pub fn iter(&self) -> CommandQueueIter<Command> {
+        if let Ok(queue_guard) = self.queue.lock() {
+            return CommandQueueIter {
+                guard: queue_guard,
             }
-        };
-        panic!("Mutex poisoned. (CommandQueue::IntoIterator)");
+        }
+        panic!("Mutex poisoned. (command::CommandQueue::into_iter())");
     }
 }
+//Foo == Command
+//Bar == CommandQueue
+struct CommandQueueIter<'a, Command> {
+    guard: std::sync::MutexGuard<'a, Vec<Command>>,
+}
 
-impl Iterator for CommandQueueIterHelper {
-    type Item = Command;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+impl<'a, 'b: 'a, Command: 'a> IntoIterator for &'b CommandQueueIter<'a, Command> {
+    type Item = &'a Command;
+    type IntoIter = std::slice::Iter<'a, Command>;
+    
+    fn into_iter(self) -> std::slice::Iter<'a, Command> {
+        self.guard.iter()
     }
 }
 //-------------------------------------------------------

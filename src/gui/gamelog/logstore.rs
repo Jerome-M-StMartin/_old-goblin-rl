@@ -7,7 +7,7 @@ lazy_static! {
 }
 
 pub fn append_fragment(fragment: LogFragment) {
-    if let Ok(log) = LOG.lock() {
+    if let Ok(mut log) = LOG.lock() {
         log.push(vec![fragment]);
     }
 }

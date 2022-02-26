@@ -11,10 +11,7 @@ use bracket_lib::prelude::BTerm;
 pub mod textify;
 pub mod look_n_feel;
 pub mod observer;
-pub mod main_menu;
-pub mod game_over;
 pub mod cursor;
-//pub mod drawable;
 pub mod widget;
 pub mod gamelog;
 
@@ -26,15 +23,10 @@ use super::command;
 
 pub use observer::Observable;
 pub use observer::Observer;
-pub use main_menu::MainMenu;
-pub use game_over::GameOver;
 
 pub struct GUI {
     pub user_input: Arc<UserInput>,
     pub cursor: Arc<Cursor>,
-
-    //drawables: RefCell<HashMap<usize, Weak<dyn Drawable>>>, //all Drawable components.
-    //to_draw: RefCell<Vec<usize>>, //these ecs entities need a .draw() call this tick
 }
 
 impl GUI {
@@ -43,8 +35,6 @@ impl GUI {
         // --- Initialize ---
         let gui: Self;
         let arc_cursor: Arc<Cursor>;
-        //let drawables: HashMap<usize, Weak<dyn Drawable>> = HashMap::new();
-        //let to_draw: Vec<usize> = Vec::new();
         
         // - CURSOR - 
         if let Ok(guard) = user_input.id_gen.lock() {
@@ -57,8 +47,6 @@ impl GUI {
             gui = GUI {
                 user_input: user_input.clone(),
                 cursor: arc_cursor,
-                //drawables: RefCell::new(drawables),
-                //to_draw: RefCell::new(to_draw),
             };
         } else { panic!("Mutex on user_input.id_gen was poisoned.") };
 
@@ -68,33 +56,6 @@ impl GUI {
     //call this function in the main bracket-lib game loop.
     pub fn tick(&mut self, ctx: &mut BTerm) {
         self.user_input.tick(ctx);
-
-        /*//draw all to_draw gui objs & remove dropped references
-        let mut drawable_drops: Vec<usize> = Vec::new();
-        let mut to_draw_drops: Vec<usize> = Vec::new();
-        let mut idx = 0;
-        let mut to_draw = self.to_draw.borrow_mut();
-        for id in to_draw.iter() {
-            if let Some(weak_drawable) = self.drawables.borrow().get(id) {
-                if let Some(drawable) = weak_drawable.upgrade() {
-                    drawable.draw(ctx);
-                } else { 
-                    drawable_drops.push(*id);
-                    to_draw_drops.push(idx);
-                }
-            }
-            idx += 1;
-        }
-
-        //lazy removal of dropped references
-        for id in drawable_drops.iter() {
-            self.drawables.borrow_mut().remove(id);
-        }
-        for idx in to_draw_drops.iter() {
-            to_draw.remove(*idx);
-        }*/
-
-        self.cursor.draw(ctx); //draw the cursor
     }
 
     //Not to be called in self::tick(), so as to allow finer control.
@@ -103,20 +64,4 @@ impl GUI {
     pub fn draw_hud(&self) {
         
     }
-     /*
-    pub fn add_drawable(&self, id: usize, to_add: Arc<dyn Drawable>, set_focus: bool) {
-        self.drawables.borrow_mut().insert(id, Arc::downgrade(&to_add));
-        self.to_draw.borrow_mut().push(id);
-
-        if set_focus {
-            self.user_input.set_focus(id);
-        }
-    }
-
-    pub fn rm_drawable(&self, id: usize) {
-        self.drawables.borrow_mut().remove(&id);
-        //id of this drawable is removed from to_draw lazily, also this drawable itself will be
-        //lazily removed if and only if all non-Weak Rc references are dropped. Thus the purpose of
-        //this function: to remove a drawable that must retain a strong Rc reference somewhere.
-    }*/
 }

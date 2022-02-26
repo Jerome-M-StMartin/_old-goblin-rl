@@ -44,7 +44,7 @@ pub trait Observer : Send + Sync {
     //Observables with separate IdGenerators.
     fn id(&self) -> usize;
     fn update(&self);
-    fn become_focus(&self);
+    fn become_focus(&self) { /*optional*/ }
     fn name(&self) -> &str; // for debugging
 }
 

@@ -155,7 +155,7 @@ impl UserInput {
     }
 
     pub fn set_focus_selection(&self, new_selection: Option<u8>) {
-        if let Ok(selection) = self.selection.write() {
+        if let Ok(mut selection) = self.selection.write() {
             *selection = new_selection;
             return
         }

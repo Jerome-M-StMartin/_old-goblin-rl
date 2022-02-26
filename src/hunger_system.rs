@@ -16,7 +16,7 @@ impl<'a> System<'a> for HungerSystem {
     fn run(&mut self, data : Self::SystemData) {
         let (entities, player, runstate, mut hunger_storage, mut damage_queues) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         for (entity, mut hunger) in (&entities, &mut hunger_storage).join() {
             let mut proceed = false;

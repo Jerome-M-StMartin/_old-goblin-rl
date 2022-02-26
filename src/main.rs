@@ -3,7 +3,6 @@ extern crate lazy_static;
 extern crate serde;
 
 use std::sync::Arc;
-use std::collections::HashMap;
 
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
@@ -97,7 +96,6 @@ pub struct State {
     //from-scratch gui crate
     gui: gui::GUI,
     //static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
-    widgets: gui::widget::WIDGET_STORAGE,
     pub tooltips_on: bool, //<-delete after UI integration
 
     //rltk-based map procgen state - to-be-removed
@@ -217,9 +215,9 @@ impl State {
 
         // Notify the player and give them some health
         let player_entity = self.ecs.fetch::<Entity>();
-        gui::gamelog::Logger::new()
-            .append("You descend to the next level and take a moment to rest.")
-            .log();
+        let mut logger = gui::gamelog::Logger::new();
+        logger.append("You descend to the next level and take a moment to rest.");
+        logger.log();
         let mut stats_storage = self.ecs.write_storage::<Stats>();
         let player_stats = stats_storage.get_mut(*player_entity);
         if let Some(stats) = player_stats {
@@ -336,7 +334,7 @@ impl GameState for State {
                  * results in gameplay but which is undoable and not committed until they choose
                  * to submit their final turn, which consists of the Commands in the CommandQueue,
                  * in the order they were added to the CommandQueue.*/
-                newrunstate = self.player_controller.process(&mut self.ecs);
+                newrunstate = self.player_controller.process(&mut self.ecs, RunState::AwaitingInput);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
@@ -546,91 +544,42 @@ impl GameState for State {
             }*/
 
             RunState::MainMenu => {
-                use gui::widget::{main_menu, widget_storage, Selection};
+                use gui::widget::{main_menu, widget_storage};
 
-                //TODO in new Widget way
-                if let Some(main_menu) = widget_storage::get("main_menu") {
-                    match main_menu.get_selection() {
-                        Some(Selection::NewGame) => {
+                if widget_storage::contains("MainMenu") {
+                    match self.user_input.get_focus_selection() {
+                        Some(0) => { //New Game
                             newrunstate = RunState::PreRun;
-                            self.gui.rm_drawable(main_menu.id());
+                            widget_storage::rm("main_menu");
                         }
-                        Some(Selection::LoadGame) => {
+                        Some(1) => { //Load Game
                             saveload_system::load_game(&mut self.ecs);
                             newrunstate = RunState::AwaitingInput;
                             saveload_system::delete_save(); //death is permanent
-                            self.gui.rm_drawable(main_menu.id());
+                            widget_storage::rm("main_menu");
                         },
-                        Some(Selection::Quit) => ::std::process::exit(0),
+                        Some(2) => ::std::process::exit(0), //Quit Game
                         _ => {},
                     }
                 } else {
                     main_menu::construct(self.gui.user_input.clone());
                 }
-
-                /*
-                //if a MainMenu object already exists then...
-                if let Some(dyn_main_menu) = self.static_gui_objs.get("main_menu") {
-
-                    //Grab MainMenu as dyn object and cast to concrete obj
-                    let main_menu = dyn_main_menu
-                                    .as_any()
-                                    .downcast_ref::<MainMenu>()
-                                    .unwrap();
-
-                    main_menu.process(&mut self.ecs);
-
-                    match main_menu.get_selection() {
-                        Some(Selection::NewGame) => {
-                            newrunstate = RunState::PreRun;
-                            self.gui.rm_drawable(main_menu.id());
-                        }
-                        Some(Selection::LoadGame) => {
-                            saveload_system::load_game(&mut self.ecs);
-                            newrunstate = RunState::AwaitingInput;
-                            saveload_system::delete_save(); //death is permanent; disables 'save scumming'.
-                            self.gui.rm_drawable(main_menu.id());
-                        },
-                        Some(Selection::Quit) => ::std::process::exit(0),
-                        _ => {},
-                    }
-
-                } else { //if a MainMenu object hasn't been created yet, create one.
-                    let main_menu = Arc::new(gui::MainMenu::new(self.gui.user_input.clone()));
-                    self.static_gui_objs.insert("main_menu".to_string(), main_menu.clone());
-
-                    let weak = Arc::downgrade(&main_menu.clone());
-                    self.gui.user_input.add_observer(weak);
-                    self.gui.add_drawable(main_menu.id(), main_menu.clone(), true);
-                }*/
             }
             
             RunState::GameOver => {
-                use gui::Observer;
-                use gui::game_over::{Selection, GameOver};
-    
-                if let Some(dyn_game_over) = self.static_gui_objs.get("game_over") {
+                use gui::widget::{game_over, widget_storage};
 
-                    let game_over = dyn_game_over.as_any().downcast_ref::<GameOver>().unwrap();
-                    game_over.process(&mut self.ecs);
-                    match game_over.get_selection() {
-                        Some(Selection::NewGame) => {
+                if widget_storage::contains("GameOver") {
+                    match self.user_input.get_focus_selection() {
+                        Some(0) => { //New Game
                             newrunstate = RunState::PreRun;
-                            self.gui.rm_drawable(game_over.id());
+                            widget_storage::rm("main_menu");
                         }
-                        Some(Selection::Quit) => {
-                            println!("QUIT selected in RunState::GameOver");
-                            ::std::process::exit(0);
-                        }
+                        Some(1) => ::std::process::exit(0), //Quit Game
                         _ => {},
                     }
-                } else { //if no GameOver obj exists, instantiate one
-                    let game_over = Arc::new(gui::GameOver::new(self.gui.user_input.clone()));
-                    self.static_gui_objs.insert("game_over".to_string(), game_over.clone());
-
-                    let weak = Arc::downgrade(&game_over.clone());
-                    self.gui.user_input.add_observer(weak);
-                    self.gui.add_drawable(game_over.id(), game_over.clone(), true);
+                } else {
+                    game_over::construct(self.gui.user_input.clone());
                 }
             }
             _ => {}
@@ -698,7 +647,6 @@ fn main() -> BError {
         user_input,
         player_controller: pc_arc.clone(),
         gui,
-        widgets: gui::widget::WIDGET_STORAGE,
         tooltips_on: false,
 
         //mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }), OLD
@@ -778,13 +726,13 @@ fn main() -> BError {
     });
     gs.ecs.insert(UIColors { main: WHITE, cursor: MAGENTA });
 
-    gui::gamelog::Logger::new()
-        .append("A most stifling damp chokes the air, the")
-        .color(KHAKI)
-        .append("Wandering Waters of Ru'Iakh")
-        .color(WHITE)
-        .append("have become close.")
-        .log();
+    let mut logger = gui::gamelog::Logger::new();
+    logger.append("A most stifling damp chokes the air, the");
+    logger.color(KHAKI);
+    logger.append("Wandering Waters of Ru'Iakh");
+    logger.color(WHITE);
+    logger.append("have become close.");
+    logger.log();
 
     gs.generate_world_map(1);
     bracket_lib::prelude::main_loop(context, gs)

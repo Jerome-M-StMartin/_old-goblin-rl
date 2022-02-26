@@ -20,7 +20,7 @@ impl<'a> System<'a> for TriggerSystem {
        let (entities, map, mut moved_storage, mut hidden_storage, mut damage_queue,
             mut triggers, positions, damage_on_use, names) = data;
 
-        let logger = gamelog::Logger::new();
+       let mut logger = gamelog::Logger::new();
 
        for (ent, pos, _ms) in (&entities, &positions, &mut moved_storage).join() {
             let idx = map.xy_idx(pos.x, pos.y);

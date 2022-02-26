@@ -23,7 +23,7 @@ impl<'a> System<'a> for EquipSystem {
         let (entities, mut equipped, mut equip_intents, mut unequip_intents, mut in_backpack,
             mut basic_attacks, mut resistances, mut positions, equippables, weapons, names, creature) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         //Equipping Logic:
         //This join will iterate over all living creatures.

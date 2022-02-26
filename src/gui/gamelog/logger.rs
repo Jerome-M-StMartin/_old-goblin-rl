@@ -16,19 +16,19 @@ impl Logger {
         }
     }
 
-    pub fn color(mut self, color: (u8, u8, u8)) -> Self {
+    pub fn color(&mut self, color: (u8, u8, u8)) {
         self.current_color = RGB::named(color);
-        self
+        //self
     }
 
-    pub fn append<T: ToString>(mut self, text : T) -> Self {
+    pub fn append<T: ToString>(&mut self, text : T) {
         self.fragments.push(
             LogFragment{
                 color : self.current_color,
                 text : text.to_string()
             }
         );
-        self
+        //self
     }
 
     pub fn log(self) {

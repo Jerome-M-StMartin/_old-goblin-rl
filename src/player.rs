@@ -57,7 +57,6 @@ impl Observer for PlayerController {
             }
         }
     }
-    fn setup_cursor(&self) {}
     fn name(&self) -> &str {
         &self.name
     }
@@ -73,11 +72,10 @@ impl Commandable for PlayerController {
 
     //Call from the main loop after user has commited to executing
     //the series of commands currently stored in the CommandQueue.
-    fn process(&self, ecs: &mut World) -> RunState {
-        let mut runstate: RunState = RunState::AwaitingInput;
-        let mut next: Option<Command> = self.cmd_queue.pop_front();
-        while next.is_some() {
-            match next.unwrap() {
+    fn process(&self, ecs: &mut World, runstate: RunState) -> RunState {
+        let mut runstate: RunState = runstate;
+        for cmd in &self.cmd_queue.iter() {
+            match cmd {
                 Command::Grab => {
                     get_item(ecs);
                 },
@@ -94,9 +92,9 @@ impl Commandable for PlayerController {
                 },
                 _ => {},
             };
-            next = self.cmd_queue.pop();
         }
 
+        self.cmd_queue.clear();
         runstate
     }
 
@@ -241,9 +239,9 @@ fn try_next_level(ecs: &mut World) -> RunState {
     if map.tiles[player_idx] == TileType::StairsDown {
         return RunState::NextLevel;
     } else {
-        gamelog::Logger::new()
-            .append("There is no way down from here.")
-            .log();
+        let mut logger = gamelog::Logger::new();
+        logger.append("There is no way down from here.");
+        logger.log();
         return RunState::AwaitingInput;
     }
 }
@@ -264,9 +262,9 @@ fn get_item(ecs: &mut World) -> RunState {
 
     match target_item {
         None => {
-            gamelog::Logger::new()
-                .append("There is nothing here to pick up.")
-                .log();
+            let mut logger = gamelog::Logger::new();
+            logger.append("There is nothing here to pick up.");
+            logger.log();
         }
         Some(item) => {
             let mut pickup = ecs.write_storage::<PickUpIntent>();

@@ -84,7 +84,7 @@ impl Widget {
     }
     // --- END BUILDER PATTERN ---
 
-    pub fn draw(self, ctx: &mut BTerm) {
+    pub fn draw(&mut self, ctx: &mut BTerm) {
         /*TODO:
          * Change to accept textbuilder (and maybe other structs) as argument,
          * such that all widgets can be drawn to a single buffer which is drawn
@@ -132,12 +132,12 @@ impl Widget {
     // Applies delta then clamps/wraps self.selection based on current state.
     fn change_selection (&self, delta: i8) {
         let max = self.elements.len() - 1;
-        if let Ok(sel_guard) = self.selection.write() {
+        if let Ok(mut sel_guard) = self.selection.write() {
             if let Some(selection) = *sel_guard {
                 let new_selection = selection as i8 + delta;
-                if new_selection < 0 { selection = max as u8; return };
-                if new_selection as usize > max { selection = 0; return };
-                selection = new_selection as u8;
+                if new_selection < 0 { *sel_guard = Some(max as u8); return };
+                if new_selection as usize > max { *sel_guard = Some(0); return };
+                *sel_guard = Some(new_selection as u8);
             } else { //selection is None
                 *sel_guard = Some(0);
             }
@@ -168,7 +168,7 @@ impl Observer for Widget {
 
     //set-up for when this obj becomes what UserInput controls
     fn become_focus(&self) {
-        if let Ok(sel_guard) = self.selection.write() {
+        if let Ok(mut sel_guard) = self.selection.write() {
             *sel_guard = Some(0);
             return
         }
@@ -183,10 +183,8 @@ impl Commandable for Widget {
         self.cmd_queue.push(cmd);
     }
 
-    fn process(&self, _ecs: &mut World) -> RunState {
-        let mut runstate = RunState::AwaitingInput;
-        let clamp_max = self.elements.len() - 1;
-        for cmd in self.cmd_queue.into_iter() {
+    fn process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
+        for cmd in &self.cmd_queue.iter() {
             match cmd {
                 Command::Move{dir} => {
                     match dir {
@@ -201,12 +199,13 @@ impl Commandable for Widget {
                         selection = *sel_guard;
                     } else { panic!("Mutex poisoned! (gui::widget_builder::process())"); }
                         
-                    self.user_input.set_selection(selection);
+                    self.user_input.set_focus_selection(selection);
                 }
                 _ => {},
             }
-        };
+        }
 
+        self.cmd_queue.clear();
         runstate
     }
 }

@@ -20,7 +20,7 @@ impl<'a> System<'a> for ItemCollectionSystem {
         let (player_entity, mut pickup_intents, mut positions, mut in_backpack,
              mut aflame_storage, names) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
              
         for intent in pickup_intents.join() {
             //If item is not already picked-up...(Is Some if item has position, else None).
@@ -71,7 +71,7 @@ impl<'a> System<'a> for ItemUseSystem {
              names, consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
              aoe, mut confusion,  magic_mapper) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         for (entity, use_intent) in (&entities, &use_item_intent).join() {
             let mut is_item_used = true;
@@ -236,7 +236,7 @@ impl<'a> System<'a> for ItemDropSystem {
         let (entities, player_entity, mut drop_intent, mut positions, mut backpack,
              mut unequip_intents, equipped_storage, names) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
         
         for (entity, drop_intent) in (&entities, &drop_intent).join() {
             let mut pos_to_drop: Position = Position {x: 0, y: 0};

@@ -2,12 +2,13 @@
 //Node Menu Project
 //12/07/2020
 
+use super::super::{RunState, World};
+
 use super::command::{Command, Commandable, CommandQueue};
 use super::look_n_feel::{ColorOption, Dir};
 use super::observer::{Observable, Observer};
 use super::user_input::{InputEvent, UserInput};
-use bracket_lib::prelude::{to_cp437, BTerm, FontCharType, Point};
-use std::any::Any;
+use bracket_lib::prelude::{to_cp437, FontCharType, Point};
 use std::sync::{Arc, Mutex};
 
 //This struct is shared and should only have one instance, alias as Arc<Cursor>.
@@ -38,6 +39,17 @@ impl Cursor {
             observer_id,
             to_observe,
             cmd_queue: CommandQueue::new(),
+        }
+    }
+
+    pub fn orth_move(&self, dir: Dir) {
+        if let Ok(mut pos) = self.pos.lock() {
+            match dir {
+                Dir::UP => { pos.y -= 1 },
+                Dir::DOWN => { pos.y += 1 },
+                Dir::LEFT => { pos.x -= 1 },
+                Dir::RIGHT => { pos.x += 1 },
+            }
         }
     }
 
@@ -145,17 +157,17 @@ impl Commandable for Cursor {
         self.cmd_queue.push(cmd)
     }
 
-    fn process(&self, _ctx: &mut super::super::World) -> super::super::RunState {
+    fn process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
         println!("cursor.process()");
-        let mut next: Option<Command> = self.cmd_queue.pop_front();
-        while next.is_some() {
-            match next.unwrap() {
-                Command::Move{dir} => { self.orth_move(dir); },
+        for cmd in &self.cmd_queue.iter() {
+            match cmd {
+                Command::Move{dir} => { self.orth_move(*dir); },
                 _ => {},
             }
-            next = self.cmd_queue.pop_front();
         }
-        super::super::RunState::GameOver
+
+        self.cmd_queue.clear();
+        runstate
     }
 }
 

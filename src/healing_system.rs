@@ -18,7 +18,7 @@ impl<'a> System<'a> for HealingSystem {
         let (entities, mut healing_storage, mut stats, mut bleeding_storage, names) = data;
 
         let mut remove_bleed = Vec::<Entity>::new();
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         for (ent, mut healing, mut stats, name, bleeding) in
             (&entities, &mut healing_storage, &mut stats, &names, (&bleeding_storage).maybe()).join() {

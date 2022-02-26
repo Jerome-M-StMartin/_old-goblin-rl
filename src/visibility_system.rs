@@ -20,7 +20,7 @@ impl<'a> System<'a> for VisibilitySystem {
         let (mut map, mut rng, entities, mut viewshed, mut hidden_storage,
              pos, player, names, blocks_vis) = data;
 
-        let logger = gamelog::Logger::new();
+        let mut logger = gamelog::Logger::new();
 
         map.view_blocked.clear();
         for (pos, _) in (&pos, &blocks_vis).join() {
