@@ -17,18 +17,9 @@ pub fn draw_all(ctx: &mut BTerm) {
     }
 }
 
-pub fn get(widget_name: &str) -> MutexGuard<'_, Option<&Widget>> {
-    //TODO
-    if let Ok(widget_map) = WIDGET_STORAGE.lock() {
-        return widget_map.get(widget_name)
-    } else {
-        panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage.rs)")
-    }
-}
-
-pub fn add(widget: Widget, name: String) {
+pub fn add(widget: Widget) {
     if let Ok(mut widget_map) = WIDGET_STORAGE.lock() {
-        widget_map.insert(name, widget);
+        widget_map.insert(widget.name(), widget);
     } else {
         panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage.rs)")
     }

@@ -105,9 +105,8 @@ impl CommandQueue {
         panic!("Mutex poisoned. (command::CommandQueue::into_iter())");
     }
 }
-//Foo == Command
-//Bar == CommandQueue
-struct CommandQueueIter<'a, Command> {
+
+pub struct CommandQueueIter<'a, Command> {
     guard: std::sync::MutexGuard<'a, Vec<Command>>,
 }
 

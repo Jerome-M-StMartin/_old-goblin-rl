@@ -80,11 +80,11 @@ impl Widget {
     }
 
     pub fn build(self) {
-        super::widget_storage::add(self, self.name)
+        super::widget_storage::add(self)
     }
     // --- END BUILDER PATTERN ---
 
-    pub fn draw(&mut self, ctx: &mut BTerm) {
+    pub fn draw(&self, ctx: &mut BTerm) {
         /*TODO:
          * Change to accept textbuilder (and maybe other structs) as argument,
          * such that all widgets can be drawn to a single buffer which is drawn
@@ -142,6 +142,10 @@ impl Widget {
                 *sel_guard = Some(0);
             }
         }
+    }
+
+    pub fn name(&self) -> String {
+        self.name.to_string()
     }
 }
 
