@@ -214,11 +214,16 @@ impl Observable for UserInput {
     }
 
     //Called by Observer trait objects who want to be notified by this Observable.
-    fn add_observer(&self, to_add: Weak<dyn Observer>) {
+    fn add_observer(&self, to_add: &Arc<dyn Observer>) {
+        if let Ok(mut guard) = self.observers.lock() {
+            guard.push(Arc::downgrade(to_add));
+        }
+    }
+    /*fn add_observer(&self, to_add: Weak<dyn Observer>) {
         if let Ok(mut guard) = self.observers.lock() {
             guard.push(to_add);
         }
-    }
+    }*/
 
     fn as_any(&self) -> &dyn Any {
         self

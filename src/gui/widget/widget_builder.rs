@@ -3,6 +3,8 @@ use std::sync::{Arc, RwLock};
 use bracket_lib::prelude::*;
 use specs::World;
 
+use crate::gui::Observable;
+
 use super::super::look_n_feel::Dir;
 use super::super::observer::Observer;
 use super::super::user_input::{UserInput, InputEvent};
@@ -40,7 +42,7 @@ impl Widget {
                             dimensions: Point,
                             user_input: Arc<UserInput>) -> Self {
 
-        Widget {
+        let widget = Widget {
             name: name.to_string(),
             position,
             dimensions,
@@ -50,7 +52,11 @@ impl Widget {
             user_input,
             selection: RwLock::new(None),
             cmd_queue: CommandQueue::new(),
-        }
+        };
+
+        let widget_as_any = widget.as_any();
+        user_input.add_observer(&Arc::new(widget_as_any));
+
     }
 
     // --- BUILDER PATTERN ---
@@ -103,9 +109,14 @@ impl Widget {
         if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
 
         let mut draw_batch = DrawBatch::new();
+        draw_batch.cls();
 
         let mut textblock = TextBlock::new(x + 1, y + 1, w - 2, h - 2);
         let mut textbuilder = TextBuilder::empty();
+        textbuilder.ln();
+        textbuilder.append("TEST"); //<------------------------------------------rm
+        textbuilder.ln();           //<------------------------------------------rm
+        println!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
 
         let mut idx = 0;
         for element in self.elements.iter() {

@@ -6,7 +6,7 @@
 
 use std::any::Any;
 use std::collections::HashSet;
-use std::sync::{Weak, Mutex};
+use std::sync::{Arc, Mutex};
 
 pub struct IdGenerator {
     used_ids: Mutex<HashSet<usize>>,
@@ -51,7 +51,7 @@ pub trait Observer : Send + Sync {
 pub trait Observable : Send + Sync {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
-    fn add_observer(&self, to_add: Weak<dyn Observer>);
+    fn add_observer(&self, to_add: &Arc<dyn Observer>);
     fn as_any(&self) -> &dyn Any;
 }
 

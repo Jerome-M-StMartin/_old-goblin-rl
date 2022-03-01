@@ -56,6 +56,7 @@ impl GUI {
     //call this function in the main bracket-lib game loop.
     pub fn tick(&mut self, ctx: &mut BTerm) {
         self.user_input.tick(ctx);
+        widget::widget_storage::draw_all(ctx);
     }
 
     //Not to be called in self::tick(), so as to allow finer control.
