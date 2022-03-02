@@ -30,11 +30,7 @@ use super::gui::look_n_feel::Dir;
  * Solution:
  * Do not allow Commandables to execute their own commands!
  * Instead, have them place Commands received via ::send() into a queue,
- * and process this queue in an ECS System!
- *
- * Immediately Obvious Challenges:
- * How will the System know how to process each Command in the context
- * of that Command's target Commandable?
+ * and process this queue via Commandable::process(&self, ecs: &mut World ... ) -> ...
  */
 
 pub enum Command {
@@ -48,7 +44,8 @@ pub enum Command {
 pub trait Commandable {
     //Implementors should have CommandQueue & CommandHistory fields.
     fn send(&self, command: Command); //store cmd in CommandQueue
-    fn process(&self, ecs: &mut World, runstate: RunState) -> RunState; //execute each command in CommandQueue
+    fn gui_process(&self) {}
+    fn ecs_process(&self, ecs: &mut World, runstate: RunState) -> RunState; //execute each command in CommandQueue
     fn undo(&self) {} //Optional, requires CommandHistory field
 }
 

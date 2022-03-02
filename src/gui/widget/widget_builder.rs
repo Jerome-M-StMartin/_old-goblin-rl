@@ -40,53 +40,48 @@ impl Widget {
     pub fn new<T: ToString>(name: T,
                             position: Point,
                             dimensions: Point,
-                            user_input: Arc<UserInput>) -> Self {
+                            user_input: &Arc<UserInput>) -> Self {
 
-        let widget = Widget {
+        Widget {
             name: name.to_string(),
             position,
             dimensions,
             elements: Vec::new(),
             border: None,
             observer_id: user_input.generate_id(),
-            user_input,
+            user_input: user_input.clone(),
             selection: RwLock::new(None),
             cmd_queue: CommandQueue::new(),
-        };
-
-        let widget_as_any = widget.as_any();
-        user_input.add_observer(&Arc::new(widget_as_any));
-
+        }
     }
 
-    // --- BUILDER PATTERN ---
-    pub fn with_border(mut self, box_type: BoxType) -> Self {
+    // --- BUILDER PATTERN --- (kinda not a true builder since each fn doesn't return Self)
+    pub fn with_border(&mut self, box_type: BoxType) {
         self.border = Some(box_type);
-        self
     }
 
-    pub fn with<T: ToString>(mut self, text: T) -> Self { //defaults color to WHITE
+    pub fn with<T: ToString>(&mut self, text: T) { //defaults color to WHITE
         self.elements.push(
             WidgetElement {
                 to_draw: text.to_string(),
                 color: RGB::named(WHITE),
             }
         );
-        self
     }
 
-    pub fn with_color<T: ToString>(mut self, text: T, color: RGB) -> Self { //no default color, it must be specified
+    pub fn with_color<T: ToString>(&mut self, text: T, color: RGB) { //no default color, it must be specified
         self.elements.push(
             WidgetElement {
                 to_draw: text.to_string(),
                 color,
             }
         );
-        self
     }
 
-    pub fn build(self) {
-        super::widget_storage::add(self)
+    pub fn build(self) { 
+        let arc_widget = Arc::new(self);
+        arc_widget.user_input.add_observer(&arc_widget);
+        super::widget_storage::add(arc_widget);
     }
     // --- END BUILDER PATTERN ---
 
@@ -102,21 +97,21 @@ impl Widget {
                             self.dimensions.x,
                             self.dimensions.y);
         let (ctx_w, ctx_h) = ctx.get_char_size();
-
+/*
         //return if any part of widget is out of window bounds
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
         if x > ctx_w as i32 || y > ctx_h as i32 { return };
         if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
-
+*/
         let mut draw_batch = DrawBatch::new();
         draw_batch.cls();
 
-        let mut textblock = TextBlock::new(x + 1, y + 1, w - 2, h - 2);
+        //println!("x: {}, y: {},\nw: {}, h: {},\nctx_w: {}, ctx_h: {}", x, y, w - 2, h - 2, ctx_w, ctx_h);
+
+        let mut textblock = TextBlock::new(0, 0, w - 1, h - 2);
+        //let mut textblock = TextBlock::new(x + 1, y + 1, w - 2, h - 2);
         let mut textbuilder = TextBuilder::empty();
-        textbuilder.ln();
-        textbuilder.append("TEST"); //<------------------------------------------rm
-        textbuilder.ln();           //<------------------------------------------rm
-        println!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
+        //println!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
 
         let mut idx = 0;
         for element in self.elements.iter() {
@@ -176,6 +171,7 @@ impl Observer for Widget {
 
                 if let Some(cmd) = cmd_option {
                     self.send(cmd);
+                    self.gui_process();
                 }
             }
         }
@@ -198,7 +194,7 @@ impl Commandable for Widget {
         self.cmd_queue.push(cmd);
     }
 
-    fn process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
+    fn gui_process(&self) {
         for cmd in &self.cmd_queue.iter() {
             match cmd {
                 Command::Move{dir} => {
@@ -221,6 +217,10 @@ impl Commandable for Widget {
         }
 
         self.cmd_queue.clear();
+    }
+
+    fn ecs_process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
+        //donothing
         runstate
     }
 }

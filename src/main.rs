@@ -64,8 +64,6 @@ pub use components::*;
 pub use map::*;
 pub use rect::Rect;
 
-use crate::gui::observer::Observable;
-
 const SHOW_MAPGEN_VISUALIZER: bool = false;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -334,7 +332,7 @@ impl GameState for State {
                  * results in gameplay but which is undoable and not committed until they choose
                  * to submit their final turn, which consists of the Commands in the CommandQueue,
                  * in the order they were added to the CommandQueue.*/
-                newrunstate = self.player_controller.process(&mut self.ecs, RunState::AwaitingInput);
+                newrunstate = self.player_controller.ecs_process(&mut self.ecs, RunState::AwaitingInput);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
@@ -550,19 +548,19 @@ impl GameState for State {
                     match self.user_input.get_focus_selection() {
                         Some(0) => { //New Game
                             newrunstate = RunState::PreRun;
-                            widget_storage::rm("main_menu");
+                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
                         }
                         Some(1) => { //Load Game
                             saveload_system::load_game(&mut self.ecs);
                             newrunstate = RunState::AwaitingInput;
                             saveload_system::delete_save(); //death is permanent
-                            widget_storage::rm("main_menu");
+                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
                         },
                         Some(2) => ::std::process::exit(0), //Quit Game
                         _ => {},
                     }
                 } else {
-                    main_menu::construct(self.gui.user_input.clone());
+                    main_menu::construct(&self.gui.user_input);
                 }
             }
             
@@ -573,13 +571,13 @@ impl GameState for State {
                     match self.user_input.get_focus_selection() {
                         Some(0) => { //New Game
                             newrunstate = RunState::PreRun;
-                            widget_storage::rm("main_menu");
+                            widget_storage::rm("GameOver").expect("widget_storage::rm('GameOver') failed.");
                         }
                         Some(1) => ::std::process::exit(0), //Quit Game
                         _ => {},
                     }
                 } else {
-                    game_over::construct(self.gui.user_input.clone());
+                    game_over::construct(&self.gui.user_input);
                 }
             }
             _ => {}
@@ -633,19 +631,15 @@ fn main() -> BError {
     //----------- initialization of State fields ------------
     let user_input = Arc::new(user_input::UserInput::new());
 
-    use gui::observer::Observer;
-    let player_controller = player::PlayerController::new(user_input.clone());
-    let pc_arc = Arc::new(player_controller);
-    let pc_trait_obj_arc: Arc<dyn Observer> = pc_arc.clone();
-    user_input.add_observer(Arc::downgrade(&pc_trait_obj_arc));
+    let player_controller = player::PlayerController::new(&user_input);
 
-    let gui = gui::GUI::new(user_input.clone());
+    let gui = gui::GUI::new(&user_input);
     //-------------------------------------------------------
 
     let mut gs = State {
         ecs: World::new(),
         user_input,
-        player_controller: pc_arc.clone(),
+        player_controller,
         gui,
         tooltips_on: false,
 

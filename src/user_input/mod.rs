@@ -214,11 +214,20 @@ impl Observable for UserInput {
     }
 
     //Called by Observer trait objects who want to be notified by this Observable.
-    fn add_observer(&self, to_add: &Arc<dyn Observer>) {
+    fn add_observer<T>(&self, to_add: &Arc<T>)
+        where T: 'static + Observer {
+        
+        let as_observer: Weak<T> = Arc::downgrade(to_add);
+        
+        if let Ok(mut guard) = self.observers.lock() {
+            guard.push(as_observer);
+        }
+    }
+    /*fn add_observer(&self, to_add: &Arc<dyn Observer>) {
         if let Ok(mut guard) = self.observers.lock() {
             guard.push(Arc::downgrade(to_add));
         }
-    }
+    }*/
     /*fn add_observer(&self, to_add: Weak<dyn Observer>) {
         if let Ok(mut guard) = self.observers.lock() {
             guard.push(to_add);

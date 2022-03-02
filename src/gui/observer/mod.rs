@@ -31,11 +31,11 @@ impl IdGenerator {
     }
 }
 
-pub struct ObserverData {
+//wtf was this for? i don't recall
+/*pub struct ObserverData {
     id: usize,
     observable: std::sync::Arc<dyn Observable>,
-
-}
+}*/
 
 pub trait Observer : Send + Sync {
     //Each implementor of Observer must store a unique observer id,
@@ -51,7 +51,8 @@ pub trait Observer : Send + Sync {
 pub trait Observable : Send + Sync {
     fn notify_observers(&self); //<-implement lazy removal of dropped observers in here.
     fn notify_focus(&self);
-    fn add_observer(&self, to_add: &Arc<dyn Observer>);
+    fn add_observer<T: 'static + Observer>(&self, to_add: &Arc<T>);
+    //fn add_observer(&self, to_add: &Arc<dyn Observer>);
     fn as_any(&self) -> &dyn Any;
 }
 

@@ -2,11 +2,12 @@ use std::cmp::{max, min};
 use std::sync::Arc;
 
 use specs::prelude::*;
-use bracket_lib::prelude::{BTerm, VirtualKeyCode, Point};
+use bracket_lib::prelude::Point;
 
+use crate::gui::{look_n_feel::Dir, Observer, Observable};
 use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
             Item, gui::gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
-            JustMoved, gui::look_n_feel::Dir, gui::observer::Observer,};
+            JustMoved,};
 use crate::user_input::{UserInput, InputEvent};
 use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
 
@@ -15,19 +16,24 @@ pub struct PlayerController {
     observer_id: usize,
     user_input: Arc<UserInput>,
     cmd_queue: CommandQueue,
-    cmd_hist: CommandHistory,
+    //cmd_hist: CommandHistory,
 }
 
 impl PlayerController {
-    pub fn new(user_input: Arc<UserInput>) -> Self {
+    pub fn new(user_input: &Arc<UserInput>) -> Arc<Self> {
         let observer_id: usize = user_input.generate_id();
-        PlayerController {
+        let pc = PlayerController {
             name: "PlayerController".to_string(),
             observer_id,
-            user_input,
+            user_input: user_input.clone(),
             cmd_queue: CommandQueue::new(),
-            cmd_hist: CommandHistory::new(),
-        }
+            //cmd_hist: CommandHistory::new(),
+        };
+
+        let arc_pc = Arc::new(pc);
+        user_input.add_observer(&arc_pc);
+
+        arc_pc
     }
 }
 
@@ -57,9 +63,7 @@ impl Observer for PlayerController {
             }
         }
     }
-    fn name(&self) -> &str {
-        &self.name
-    }
+    fn name(&self) -> &str { &self.name }
 }//----------------------------------------------------------------
 
 //-----------------------------------------------------------------
@@ -72,7 +76,7 @@ impl Commandable for PlayerController {
 
     //Call from the main loop after user has commited to executing
     //the series of commands currently stored in the CommandQueue.
-    fn process(&self, ecs: &mut World, runstate: RunState) -> RunState {
+    fn ecs_process(&self, ecs: &mut World, runstate: RunState) -> RunState {
         let mut runstate: RunState = runstate;
         for cmd in &self.cmd_queue.iter() {
             match cmd {
@@ -104,7 +108,7 @@ impl Commandable for PlayerController {
         while next.is_some() {
             match next.unwrap() {
                 Command::Grab => {},
-                Command::Move{dir} => {},
+                //Command::Move{dir} => {},
                 Command::Wait => {},
                 _ => {},
             }
@@ -114,7 +118,7 @@ impl Commandable for PlayerController {
     }
 }//----------------------------------------------------------------
 
-pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
+/*pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
     let new_runstate : RunState;
 
     //gui::enable_cursor_control(ecs, ctx);
@@ -174,7 +178,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
     };
     
     return new_runstate;
-}
+}*/
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();

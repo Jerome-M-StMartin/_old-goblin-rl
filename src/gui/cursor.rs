@@ -6,7 +6,7 @@ use super::super::{RunState, World};
 
 use super::command::{Command, Commandable, CommandQueue};
 use super::look_n_feel::{ColorOption, Dir};
-use super::observer::{Observable, Observer};
+use super::observer::Observer;
 use super::user_input::{InputEvent, UserInput};
 use bracket_lib::prelude::{to_cp437, FontCharType, Point};
 use std::sync::{Arc, Mutex};
@@ -22,20 +22,21 @@ pub struct Cursor {
     user_input: Arc<UserInput>,
 
     observer_id: usize,
-    to_observe: Arc<dyn Observable>,
+    to_observe: Arc<UserInput>,
+    //to_observe: Arc<dyn Observable>,
 
     cmd_queue: CommandQueue,
 }
 
 impl Cursor {
-    pub fn new(user_input: Arc<UserInput>, observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {
+    pub fn new(user_input: &Arc<UserInput>, observer_id: usize, to_observe: Arc<UserInput>) -> Cursor {
         Cursor {
             name: "gui::Cursor".to_string(),
             pos: Mutex::new(Point { x: 0, y: 0 }),
             glyph: Mutex::new(Some(to_cp437('>'))),
             color: Mutex::new(ColorOption::DEFAULT),
             bg: Mutex::new(ColorOption::FOCUS),
-            user_input,
+            user_input: user_input.clone(),
             observer_id,
             to_observe,
             cmd_queue: CommandQueue::new(),
@@ -157,8 +158,7 @@ impl Commandable for Cursor {
         self.cmd_queue.push(cmd)
     }
 
-    fn process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
-        println!("cursor.process()");
+    fn gui_process(&self) {
         for cmd in &self.cmd_queue.iter() {
             match cmd {
                 Command::Move{dir} => { self.orth_move(*dir); },
@@ -167,6 +167,10 @@ impl Commandable for Cursor {
         }
 
         self.cmd_queue.clear();
+    }
+
+    fn ecs_process(&self, _ecs: &mut World, runstate: RunState) -> RunState {
+        //donothing
         runstate
     }
 }

@@ -31,7 +31,7 @@ pub struct GUI {
 
 impl GUI {
     //creates, initializes, and returns the gui object
-    pub fn new(user_input: Arc<UserInput>) -> Self {
+    pub fn new(user_input: &Arc<UserInput>) -> Self {
         // --- Initialize ---
         let gui: Self;
         let arc_cursor: Arc<Cursor>;
@@ -39,10 +39,9 @@ impl GUI {
         // - CURSOR - 
         if let Ok(guard) = user_input.id_gen.lock() {
             let cursor_observer_id = guard.generate_observer_id();
-            let cursor = Cursor::new(user_input.clone(), cursor_observer_id, user_input.clone());
+            let cursor = Cursor::new(&user_input, cursor_observer_id, user_input.clone());
             arc_cursor = Arc::new(cursor);
-            let arc_cursor_as_observer: Arc<dyn Observer> = arc_cursor.clone();
-            user_input.add_observer(Arc::downgrade(&arc_cursor_as_observer));
+            user_input.add_observer(&arc_cursor);
         
             gui = GUI {
                 user_input: user_input.clone(),
