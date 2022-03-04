@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{gamelog::GameLog, ThrowIntent, Position, InBackpack, Equipped, Name, Weapon,
+use super::{gui::gamelog, ThrowIntent, Position, InBackpack, Equipped, Name, Weapon,
             DamageQueue, BasicAttack, Throwable, Map};
 
 pub struct ThrowSystem {}
@@ -7,7 +7,6 @@ pub struct ThrowSystem {}
 impl<'a> System<'a> for ThrowSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( Entities<'a>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, ThrowIntent>,
                         WriteStorage<'a, Position>,
                         WriteStorage<'a, InBackpack>,
@@ -21,8 +20,10 @@ impl<'a> System<'a> for ThrowSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut log, mut throw_intents, mut positions, mut in_backpack, mut basic_attacks,
+        let (entities, mut throw_intents, mut positions, mut in_backpack, mut basic_attacks,
              mut damage_queue, mut equipped_storage, throwables, weapons, names, map) = data;
+
+        let mut logger = gamelog::Logger::new();
 
         for (ent, throw_intent) in (&entities, &mut throw_intents).join() {
 
@@ -60,12 +61,12 @@ impl<'a> System<'a> for ThrowSystem {
                 }
 
                 if let Some(target_ent) = target_ent {
-                    log.entries.push(format!("{} threw a {} at {}.",
+                    logger.append(format!("{} threw a {} at {}.",
                             names.get(ent).unwrap().name,
                             names.get(throw_intent.item).unwrap().name,
                             names.get(target_ent).unwrap().name));
                 } else {
-                    log.entries.push(format!("{} threw a {}.",
+                    logger.append(format!("{} threw a {}.",
                             names.get(ent).unwrap().name,
                             names.get(throw_intent.item).unwrap().name));
                 }
@@ -73,5 +74,6 @@ impl<'a> System<'a> for ThrowSystem {
         }
 
         throw_intents.clear();
+        logger.log();
     }
 }

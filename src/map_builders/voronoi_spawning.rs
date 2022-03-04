@@ -1,11 +1,11 @@
 use super::{MetaMapBuilder, BuilderMap, TileType, spawner};
-use rltk::RandomNumberGenerator;
+use bracket_lib::prelude::RandomNumberGenerator;
 use std::collections::HashMap;
 
 pub struct VoronoiSpawning {}
 
 impl MetaMapBuilder for VoronoiSpawning {
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap)  {
+    fn build_map(&mut self, rng: &mut bracket_lib::prelude::RandomNumberGenerator, build_data : &mut BuilderMap)  {
         self.build(rng, build_data);
     }
 }
@@ -19,10 +19,10 @@ impl VoronoiSpawning {
     #[allow(clippy::map_entry)]
     fn build(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {
         let mut noise_areas : HashMap<i32, Vec<usize>> = HashMap::new();
-        let mut noise = rltk::FastNoise::seeded(rng.roll_dice(1, 65536) as u64);
-        noise.set_noise_type(rltk::NoiseType::Cellular);
+        let mut noise = bracket_lib::prelude::FastNoise::seeded(rng.roll_dice(1, 65536) as u64);
+        noise.set_noise_type(bracket_lib::prelude::NoiseType::Cellular);
         noise.set_frequency(0.08);
-        noise.set_cellular_distance_function(rltk::CellularDistanceFunction::Manhattan);
+        noise.set_cellular_distance_function(bracket_lib::prelude::CellularDistanceFunction::Manhattan);
 
         for y in 1 .. build_data.map.height-1 {
             for x in 1 .. build_data.map.width-1 {

@@ -1,4 +1,4 @@
-use rltk::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
+use bracket_lib::prelude::{ RGB, Rltk, Point, VirtualKeyCode, INPUT };
 use specs::prelude::*;
 use std::cmp::{max, min};
 use super::{ Map, Stats, Player, Name, Position, gamelog::GameLog, State, InBackpack,
@@ -42,13 +42,13 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
                 let num_options = menuable.options.len() as i8;
                 let height = num_options + 1; 
 
-                ctx.draw_box(1, 1, 14, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-                ctx.print_color(2, 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Context Menu");
+                ctx.draw_box(1, 1, 14, height, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
+                ctx.print_color(2, 1, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "Context Menu");
 
                 //Draw the menu options.
                 let mut y = 1;
                 for (_, s) in &menuable.options {
-                    ctx.print_color(3, y + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), s);
+                    ctx.print_color(3, y + 1, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), s);
                     y += 1;
                     
                 }
@@ -88,12 +88,12 @@ pub fn open_context_menu(ecs: &World, ctx: &mut Rltk, selection: i8, focus: i8) 
 
                 //Disallow menu use if target is too far from player for interaction.
                 if !is_adjacent_to_player(ecs, cursor.x, cursor.y) {
-                    ctx.print_color(3, height + 1, RGB::named(rltk::RED),
-                                                   RGB::named(rltk::BLACK), "TOO FAR AWAY");
+                    ctx.print_color(3, height + 1, RGB::named(bracket_lib::prelude::RED),
+                                                   RGB::named(bracket_lib::prelude::BLACK), "TOO FAR AWAY");
                     if result.0 != MenuResult::Cancel { result = (MenuResult::Continue, None, selection, focus); }
                 } else {
                     //Draw the curr-selction arrow.
-                    ctx.print_color(1, selection + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+                    ctx.print_color(1, selection + 2, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "->");
                 }
             } else { result = (MenuResult::Cancel, None, 0, 0); }
         } else { result = (MenuResult::Cancel, None, 0, 0); }
@@ -147,7 +147,7 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
     let mut box_bottom = 0;
     let mut y: i32;
     let mut selection_tracker = 0;
-    let mut curr_ent = *player_entity; //Only set to p_ent to aboid "possibly uninitualized" err.
+    let mut curr_ent = *player_entity; //Only set to p_ent to avoid "possibly uninitialized" err.
     let mut num_options = 0;
 
     if state.focus > 1 { state.focus = 0; }
@@ -161,9 +161,9 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             box_bottom = items_in_bkpk + 3;
             
             ctx.draw_box(x, box_top, menu_width, box_bottom,
-                RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));           
+                RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));           
             ctx.print_color(menu_width / 2, box_top,
-                RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Backpack");
+                RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "Backpack");
            
             let mut ent_chosen = false;
             for (ent, name, _in_pack) in (&entities, &names, &backpack).join()
@@ -189,9 +189,9 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
             box_bottom = items_equipped + 3;
 
             ctx.draw_box(x, box_top, menu_width, box_bottom,
-                RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+                RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
             ctx.print_color(menu_width / 2, box_top,
-                RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Equipment");
+                RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "Equipment");
 
             let mut ent_chosen = false;
             for (ent, name, _equipment) in (&entities, &names, &equipped).join()
@@ -214,16 +214,16 @@ pub fn open_player_menu(ecs: &World, ctx: &mut Rltk, mut state: PlayerMenuState)
     }
  
     ctx.print_color(x+2, box_top + box_bottom,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "TAB: Next Page");
+        RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "TAB: Next Page");
     ctx.print_color(x+18, box_top + box_bottom,
-        RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESC: Close");
+        RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "ESC: Close");
     
     if num_options > 0 {
         ctx.print_color(x, box_top + state.selection as i32 + 2,
-            RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+            RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "->");
     } else {
         ctx.print_color(x + 2, box_top + 2,
-            RGB::named(rltk::RED), RGB::named(rltk::BLACK), "Empty");
+            RGB::named(bracket_lib::prelude::RED), RGB::named(bracket_lib::prelude::BLACK), "Empty");
     }
 
     //Query player for choice.
@@ -302,11 +302,11 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
             let x = state.pos.0;
             let mut y = state.pos.1;
 
-            ctx.draw_box(x, y, 13, height, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+            ctx.draw_box(x, y, 13, height, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
 
             //Draw the menu options.
             for (_, s) in &menuable.options {
-                ctx.print_color(x + 2, y + 1, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), s);
+                ctx.print_color(x + 2, y + 1, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK), s);
                 y += 1;
                 
             }
@@ -340,7 +340,7 @@ fn open_submenu(ecs: &World, ctx: &mut Rltk, mut state: SubState) -> SubState {
 
             //Draw the curr-selction arrow.
             ctx.print_color(x, state.pos.1 + state.sub_selection as i32 + 1,
-                RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+                RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "->");
 
         } else { state.sub_mr = MenuResult::Cancel; }
     } else { state.sub_mr = MenuResult::Cancel; }
@@ -414,14 +414,14 @@ pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (Me
     let vs = viewsheds.get(*player_ent); 
     if let Some(viewshed) = vs {
         for idx in viewshed.visible_tiles.iter() {
-            let distance = rltk::DistanceAlg::Pythagoras.distance2d(*player_pos, *idx);
+            let distance = bracket_lib::prelude::DistanceAlg::Pythagoras.distance2d(*player_pos, *idx);
             if distance <= range as f32 {
                 let screen_x = idx.x - min_x;
                 let screen_y = idx.y - min_y;
                 if screen_x > 1 && screen_x < (max_x - min_x) - 1 &&
                                 screen_y > 1 && screen_y < (max_y - min_y) -1 {
                     
-                    ctx.set_bg(screen_x, screen_y, RGB::named(rltk::TEAL));
+                    ctx.set_bg(screen_x, screen_y, RGB::named(bracket_lib::prelude::TEAL));
                     targetable_cells.push(idx);
                 }
             }
@@ -438,9 +438,9 @@ pub fn target_selection_mode(ecs: &mut World, ctx: &mut Rltk, range: i32) -> (Me
     }
 
     if valid_target {
-        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::LIME_GREEN));
+        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(bracket_lib::prelude::LIME_GREEN));
     } else {
-        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::RED));
+        ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(bracket_lib::prelude::RED));
     }
 
     match ctx.key {
@@ -474,8 +474,8 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {
     let screen_w = max_x - min_x;
     let screen_h = max_y - min_y;
 
-    ctx.draw_box(0, screen_h - 7, screen_w - 1, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(2, screen_h - 7, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
+    ctx.draw_box(0, screen_h - 7, screen_w - 1, 6, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
+    ctx.print_color(2, screen_h - 7, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), &depth);
 
     draw_cursor(ecs, ctx);
     draw_stats(ecs, ctx, screen_h, depth.len() as i32);
@@ -495,7 +495,7 @@ fn draw_stats(ecs: &World, ctx: &mut Rltk, screen_h: i32, depth_len: i32) {
         let health = format!("[{}]", &hp_bar);
 
         ctx.print_color(depth_len + 3, screen_h - 7,
-                        RGB::named(rltk::RED), RGB::named(rltk::BLACK), &health);
+                        RGB::named(bracket_lib::prelude::RED), RGB::named(bracket_lib::prelude::BLACK), &health);
         /*
         let mut fp_bar = "".to_string();
         let mut mp_bar = "".to_string();
@@ -509,9 +509,9 @@ fn draw_stats(ecs: &World, ctx: &mut Rltk, screen_h: i32, depth_len: i32) {
         let mana = format!("[{}]", &mp_bar);
 
         ctx.print_color(depth_len + 6 + stats.max_hp, screen_h - 7,
-                        RGB::named(rltk::GREEN), RGB::named(rltk::BLACK), &fatigue);
+                        RGB::named(bracket_lib::prelude::GREEN), RGB::named(bracket_lib::prelude::BLACK), &fatigue);
         ctx.print_color(depth_len + 9 + stats.max_hp + stats.max_fp, screen_h - 7,
-                        RGB::named(rltk::BLUE), RGB::named(rltk::BLACK), &mana);*/
+                        RGB::named(bracket_lib::prelude::BLUE), RGB::named(bracket_lib::prelude::BLACK), &mana);*/
     }
 }
 
@@ -526,7 +526,7 @@ fn draw_log(ecs: &World, ctx: &mut Rltk, screen_h: i32) {
         
         ctx.print_color(2, y,
             RGB::from_u8(255 - (i * 20),255 - (i * 20),255 - (i * 20)),
-            RGB::named(rltk::BLACK), s);
+            RGB::named(bracket_lib::prelude::BLACK), s);
         y -= 1;
         i += 1;
     }
@@ -535,7 +535,7 @@ fn draw_log(ecs: &World, ctx: &mut Rltk, screen_h: i32) {
 fn draw_cursor(ecs: &World, ctx: &mut Rltk) {
     let cursor = ecs.fetch::<Cursor>();
     let (min_x, _, min_y, _) = camera::get_screen_bounds(ecs, ctx);
-    if cursor.active { ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(rltk::MAGENTA)); }
+    if cursor.active { ctx.set_bg(cursor.x - min_x, cursor.y - min_y, RGB::named(bracket_lib::prelude::MAGENTA)); }
 }
 
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
@@ -585,11 +585,11 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {
             let len = thing.2.len() as i32;
 
             if x >= half_width { 
-                ctx.print_color(x - (len + 2), y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), name);
-                ctx.print_color(x - 2, y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), "->");
+                ctx.print_color(x - (len + 2), y, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::GREY), name);
+                ctx.print_color(x - 2, y, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::GREY), "->");
             } else {
-                ctx.print_color(x + 1, y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), "<-");
-                ctx.print_color(x + 3, y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), name);
+                ctx.print_color(x + 1, y, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::GREY), "<-");
+                ctx.print_color(x + 3, y, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::GREY), name);
             } 
         }
     }
@@ -607,10 +607,10 @@ fn show_player_menu_controls(ctx: &mut Rltk) {
     //let x = ((ctx.width_pixels / 8) as i32 / 3);
     //let y = ((ctx.height_pixels / 8) as i32 / 3);
     let (x, y) = (0, 0);
-    ctx.draw_box(x, y, 45, 10, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(x + 1, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Menu Controls");
+    ctx.draw_box(x, y, 45, 10, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
+    ctx.print_color(x + 1, y, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "Menu Controls");
     ctx.print(x + 2, y + 2, "Arrow (  ) indicates current selection.");
-    ctx.print_color(x + 9, y + 2, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "->");
+    ctx.print_color(x + 9, y + 2, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "->");
     ctx.print(x + 2, y + 4, "Up/Down: Navigate Current Page");
     ctx.print(x + 2, y + 5, "Tab: Goto Next Page");
     ctx.print(x + 2, y + 6, "Esc/C: Exit Menu");
@@ -622,27 +622,27 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
     let save_exists = super::saveload_system::does_save_exist();
     let runstate = gs.ecs.fetch::<RunState>();
 
-    ctx.print_color_centered(15, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Wizard of the Old Tongue");
+    ctx.print_color_centered(15, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), "Wizard of the Old Tongue");
 
     if let RunState::MainMenu{ menu_selection : selection } = *runstate {
         if selection == MainMenuSelection::NewGame {
-            ctx.print_color_centered(24, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "New Game");
+            ctx.print_color_centered(24, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "New Game");
         } else {
-            ctx.print_color_centered(24, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), "New Game");
+            ctx.print_color_centered(24, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK), "New Game");
         }
         
         if save_exists {
             if selection == MainMenuSelection::LoadGame {
-                ctx.print_color_centered(25, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "Load Game");
+                ctx.print_color_centered(25, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "Load Game");
             } else {
-                ctx.print_color_centered(25, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), "Load Game");
+                ctx.print_color_centered(25, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK), "Load Game");
             }
         }
 
         if selection == MainMenuSelection::Quit {
-            ctx.print_color_centered(26, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK), "Quit");
+            ctx.print_color_centered(26, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK), "Quit");
         } else {
-            ctx.print_color_centered(26, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), "Quit");
+            ctx.print_color_centered(26, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK), "Quit");
         }
 
         match ctx.key {
@@ -688,23 +688,23 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
 
 pub fn game_over(ctx: &mut Rltk) -> MenuResult {
     ctx.cls();
-    ctx.print_color_centered(12, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(12, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "Your journey has come to its close.");
-    ctx.print_color_centered(16, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(16, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "Though history yields not the forgotten, ");
-    ctx.print_color_centered(18, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(18, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "it is born of their actions none-the-less.");
-    ctx.print_color_centered(22, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(22, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "A new journey awaits.");
-    ctx.print_color_centered(28, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color_centered(28, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "Will you tread once more upon The Foot of The Mountain?");
 
     let scale = ctx.get_scale(); //(f32, i32, i32) == (scale, center_x, center_y)
     let center_x = scale.1;
 
-    ctx.print_color(center_x - 5, 32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK),
+    ctx.print_color(center_x - 5, 32, RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK),
         "Be Reborn");
-    ctx.print_color(center_x - 7, 32, RGB::named(rltk::MAGENTA), RGB::named(rltk::BLACK),
+    ctx.print_color(center_x - 7, 32, RGB::named(bracket_lib::prelude::MAGENTA), RGB::named(bracket_lib::prelude::BLACK),
         "->");
 
     match ctx.key {

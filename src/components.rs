@@ -1,10 +1,12 @@
+use std::ops::{Add, Sub};
+
 use specs::prelude::*;
 use specs_derive::*;
-use rltk::RGB;
 use serde::{Serialize, Deserialize};
 use specs::saveload::{Marker, ConvertSaveload};
 use specs::error::NoError;
-use std::ops::{Add, Sub};
+
+use bracket_lib::prelude::{Point, FontCharType, RGB};
 
 //serialization helper code. Each component that contains an Entity must impl ConvertSaveload.
 pub struct SerializeMe;
@@ -17,6 +19,9 @@ pub struct SerializationHelper {
 
 //Does the Component macro know to use NullStorage?...
 //-------------Fieldless Components-----------------------
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Player {}
+
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Hostile {}
 
@@ -28,9 +33,6 @@ pub struct BlocksTile {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct BlocksVisibility {}
-
-#[derive(Component, Serialize, Deserialize, Clone)]
-pub struct Player {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Consumable {}
@@ -52,7 +54,7 @@ pub struct Hidden {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct JustMoved {}
-//--------------------------------------
+//--------------------------------------------------------
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Door { 
@@ -119,7 +121,7 @@ pub struct Stats { //creature component
 
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Renderable {
-    pub glyph: rltk::FontCharType,
+    pub glyph: FontCharType,
     pub fg: RGB,
     pub bg: RGB,
     pub render_order: i32
@@ -132,7 +134,7 @@ pub struct Particle {
 
 #[derive(Component, ConvertSaveload, Clone)]
 pub struct Viewshed {
-    pub visible_tiles: Vec<rltk::Point>,
+    pub visible_tiles: Vec<Point>,
     pub range: i32,
     pub dirty: bool
 }
@@ -384,13 +386,13 @@ pub struct PickUpIntent {
 #[derive(Component, Debug, ConvertSaveload)]
 pub struct UseItemIntent {
     pub item: Entity,
-    pub target: Option<rltk::Point>
+    pub target: Option<Point>
 }
 
 #[derive(Component, Debug, ConvertSaveload)]
 pub struct ThrowIntent {
     pub item: Entity,
-    pub target: Option<rltk::Point>,
+    pub target: Option<Point>,
 }
 
 #[derive(Component, Debug, ConvertSaveload)]
@@ -468,15 +470,6 @@ impl Default for Menuable {
     }
 }
 
-//--------------UI Drawable Components--------------------
-//This struct is not for in-diegesis/on-map rendering (which is done via Renderable component),
-//rather it is for UI element drawing only. If an entity has this component, that entity is able
-//to be represented in the UI in the form defined by the fields of this Drawable component.
-//All fields must be thread-safe readable, this data will be observed by the UI thread.
-pub struct Drawable {
-    
-}
-
 //--------------Behavior/AI Components-----------
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Behavior {
@@ -488,7 +481,7 @@ pub struct Behavior {
     //bits in the mask.
 }
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
-pub struct Home { pub home: rltk::Point }
+pub struct Home { pub home: Point }
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Fear { pub bit: u64 }

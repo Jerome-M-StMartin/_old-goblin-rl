@@ -1,4 +1,4 @@
-use rltk::{RGB, Rltk};
+use bracket_lib::prelude::{RGB, Rltk};
 use specs::prelude::*;
 use std::cmp::max;
 use super::{super::components::Info, MenuOption};
@@ -31,12 +31,12 @@ impl InfoBox {
 
     pub fn draw(&self, ctx: &mut Rltk) {
         ctx.draw_box(self.origin.0, self.origin.1, self.width, self.height,
-            RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
+            RGB::named(bracket_lib::prelude::WHITE), RGB::named(bracket_lib::prelude::BLACK));
     }
 
     pub fn draw_color(&self, ctx: &mut Rltk, color: (u8, u8, u8)) {
         ctx.draw_box(self.origin.0, self.origin.1, self.width, self.height,
-            RGB::named(color), RGB::named(rltk::BLACK));
+            RGB::named(color), RGB::named(bracket_lib::prelude::BLACK));
     }
 }
 
@@ -63,7 +63,7 @@ pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
                                       main_box.width - 2,
                                       main_box.height - (action_box.height + desc_box.height + 4));
 
-        main_box.draw_color(ctx, rltk::GREEN);
+        main_box.draw_color(ctx, bracket_lib::prelude::GREEN);
         action_box.draw(ctx);
         stat_box.draw(ctx);
         desc_box.draw(ctx);
@@ -80,7 +80,7 @@ pub fn show_infocard(ecs: &World, ctx: &mut Rltk, ent: Entity) {
 fn draw_name(ctx: &mut Rltk, name: &String, main_box: &InfoBox) {
     let center_x = main_box.origin.0 + (main_box.width / 2);
     ctx.print_color(center_x - (name.len() / 2) as u32, main_box.origin.1,
-                    RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), name);
+                    RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), name);
 }
 
 //fn fill_action_box(ctx: &mut Rltk, actions: &Vec<(Action, String)>, action_box: &InfoBox) {
@@ -94,7 +94,7 @@ fn fill_action_box(ctx: &mut Rltk, actions: &Vec<(MenuOption, String)>, action_b
 
     //print actions into action_box
     for a in actions.iter() {
-        ctx.print_color(print_x, print_y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &a.1);
+        ctx.print_color(print_x, print_y, RGB::named(bracket_lib::prelude::YELLOW), RGB::named(bracket_lib::prelude::BLACK), &a.1);
         print_y += 1;
         longest_action_name = max(longest_action_name, a.1.len());
         if print_y >= action_box.origin.1 + action_box.height - 1 { //start new column

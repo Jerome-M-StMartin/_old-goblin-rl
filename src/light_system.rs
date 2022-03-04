@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{Position, Map, Lightsource, Flammable, Aflame, Equipped, DamageQueue, DamageAtom};
-use rltk::{Point, field_of_view};
+use bracket_lib::prelude::{Point, field_of_view};
 
 pub struct LightSystem {}
 

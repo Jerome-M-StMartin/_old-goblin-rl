@@ -1,6 +1,6 @@
 use specs::prelude::*;
-use rltk::RGB;
-use super::{ Rltk, Particle, Position, Renderable, };
+use bracket_lib::prelude::RGB;
+use super::{ BTerm, Particle, Position, Renderable, };
 
 pub struct ParticleSpawnSystem {}
 
@@ -37,7 +37,7 @@ struct ParticleRequest {
     y: i32,
     fg: RGB,
     bg: RGB,
-    glyph: rltk::FontCharType,
+    glyph: bracket_lib::prelude::FontCharType,
     lifetime: f32
 }
 
@@ -51,7 +51,7 @@ impl ParticleBuilder {
         ParticleBuilder{ requests : Vec::new() }
     }
 
-    pub fn request(&mut self, x:i32, y:i32, fg: RGB, bg:RGB, glyph: rltk::FontCharType, lifetime: f32) {
+    pub fn request(&mut self, x:i32, y:i32, fg: RGB, bg:RGB, glyph: bracket_lib::prelude::FontCharType, lifetime: f32) {
         self.requests.push(
             ParticleRequest{
                 x, y, fg, bg, glyph, lifetime
@@ -60,7 +60,7 @@ impl ParticleBuilder {
     }
 }
 
-pub fn cull_dead_particles(ecs : &mut World, ctx : &Rltk) {
+pub fn cull_dead_particles(ecs : &mut World, ctx : &BTerm) {
     let mut dead_particles : Vec<Entity> = Vec::new();
     {
         // Age out particles

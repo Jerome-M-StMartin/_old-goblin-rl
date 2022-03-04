@@ -1,14 +1,127 @@
-use rltk::{VirtualKeyCode, Rltk, Point};
-use specs::prelude::*;
 use std::cmp::{max, min};
-use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gamelog::GameLog, PickUpIntent, TileType, Hostile, gui, Hunger,
-            HungerState, gui::PlayerMenuState, JustMoved, };
+use std::sync::Arc;
 
-pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
+use specs::prelude::*;
+use bracket_lib::prelude::Point;
+
+use crate::gui::{look_n_feel::Dir, Observer, Observable};
+use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
+            Item, gui::gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
+            JustMoved,};
+use crate::user_input::{UserInput, InputEvent};
+use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
+
+pub struct PlayerController {
+    name: String,
+    observer_id: usize,
+    user_input: Arc<UserInput>,
+    cmd_queue: CommandQueue,
+    //cmd_hist: CommandHistory,
+}
+
+impl PlayerController {
+    pub fn new(user_input: &Arc<UserInput>) -> Arc<Self> {
+        let observer_id: usize = user_input.generate_id();
+        let pc = PlayerController {
+            name: "PlayerController".to_string(),
+            observer_id,
+            user_input: user_input.clone(),
+            cmd_queue: CommandQueue::new(),
+            //cmd_hist: CommandHistory::new(),
+        };
+
+        let arc_pc = Arc::new(pc);
+        user_input.add_observer(&arc_pc);
+
+        arc_pc
+    }
+}
+
+//-----------------------------------------------------------------
+//------------ Observer Pattern for PlayerController --------------
+//-----------------------------------------------------------------
+/* Calls to self.Observer::update() by this Observer's Observable result in a call
+ * to self.Commandable::send(), a Command Pattern implementation.
+ * */
+impl Observer for PlayerController {
+    fn id(&self) -> usize {
+        self.observer_id
+    }
+    fn update(&self) {
+        if let Ok(input_event_guard) = self.user_input.input.read() {
+            if let Some(input_event) = *input_event_guard {
+                let cmd_option = match input_event {
+                    InputEvent::WASD(dir) => { Some(Command::Move { dir }) }//move
+                    InputEvent::ENTER => { Some(Command::Grab) }//context action
+                    InputEvent::SPACE => { Some(Command::Wait) }//wait
+                    _ => { None }
+                };
+
+                if let Some(cmd) = cmd_option {
+                    self.send(cmd);
+                }
+            }
+        }
+    }
+    fn name(&self) -> &str { &self.name }
+}//----------------------------------------------------------------
+
+//-----------------------------------------------------------------
+//------------- Command Pattern for PlayerController --------------
+//-----------------------------------------------------------------
+impl Commandable for PlayerController {
+    fn send(&self, command: Command) {
+        self.cmd_queue.push(command);
+    }
+
+    //Call from the main loop after user has commited to executing
+    //the series of commands currently stored in the CommandQueue.
+    fn ecs_process(&self, ecs: &mut World, runstate: RunState) -> RunState {
+        let mut runstate: RunState = runstate;
+        for cmd in &self.cmd_queue.iter() {
+            match cmd {
+                Command::Grab => {
+                    get_item(ecs);
+                },
+                Command::Move{dir} => {
+                    match dir {
+                        Dir::UP => { runstate = try_move_player(0, -1, ecs) },
+                        Dir::DOWN => { runstate = try_move_player(0, 1, ecs) },
+                        Dir::LEFT => { runstate = try_move_player(-1, 0, ecs) },
+                        Dir::RIGHT => { runstate = try_move_player(1, 0, ecs) },
+                    };
+                },
+                Command::Wait => {
+                    skip_turn(ecs);
+                },
+                _ => {},
+            };
+        }
+
+        self.cmd_queue.clear();
+        runstate
+    }
+
+    fn undo(&self) {
+        let mut next: Option<Command> = self.cmd_queue.pop();
+
+        while next.is_some() {
+            match next.unwrap() {
+                Command::Grab => {},
+                //Command::Move{dir} => {},
+                Command::Wait => {},
+                _ => {},
+            }
+
+            next = self.cmd_queue.pop();
+        }
+    }
+}//----------------------------------------------------------------
+
+/*pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
     let new_runstate : RunState;
 
-    gui::enable_cursor_control(ecs, ctx);
+    //gui::enable_cursor_control(ecs, ctx);
 
     new_runstate = match ctx.key {
         None => return RunState::AwaitingInput,
@@ -26,7 +139,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
 
             //open backpack/inventory
             VirtualKeyCode::B |
-            VirtualKeyCode::I => return RunState::ShowPlayerMenu { menu_state: PlayerMenuState::default() },
+            //VirtualKeyCode::I => return RunState::ShowPlayerMenu { menu_state: PlayerMenuState::default() },
 
             //use stairs
             VirtualKeyCode::Period => {
@@ -65,7 +178,7 @@ pub fn player_input(ecs: &mut World, ctx: &mut Rltk) -> RunState {
     };
     
     return new_runstate;
-}
+}*/
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
@@ -91,7 +204,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
             let target = stats.get(*potential_target);
             if let Some(_target) = target {
                 melee_intent.insert(entity, MeleeIntent{target: *potential_target})
-                .expect("Add target failed.");
+                .expect("Add target failed for bump attack.");
                 
                 return RunState::PlayerTurn; //cancel movement
             }
@@ -130,8 +243,9 @@ fn try_next_level(ecs: &mut World) -> RunState {
     if map.tiles[player_idx] == TileType::StairsDown {
         return RunState::NextLevel;
     } else {
-        let mut gamelog = ecs.fetch_mut::<GameLog>();
-        gamelog.entries.push("There is no way down from here.".to_string());
+        let mut logger = gamelog::Logger::new();
+        logger.append("There is no way down from here.");
+        logger.log();
         return RunState::AwaitingInput;
     }
 }
@@ -142,7 +256,6 @@ fn get_item(ecs: &mut World) -> RunState {
     let player_entity = ecs.fetch::<Entity>();
     let items = ecs.read_storage::<Item>();
     let positions = ecs.read_storage::<Position>();
-    let mut gamelog = ecs.fetch_mut::<GameLog>();
 
     let mut target_item: Option<Entity> = None;
     for (item_entity, _item, position) in (&entities, &items, &positions).join() {
@@ -152,11 +265,15 @@ fn get_item(ecs: &mut World) -> RunState {
     }
 
     match target_item {
-        None => gamelog.entries.push("There is nothing here to pick up.".to_string()),
+        None => {
+            let mut logger = gamelog::Logger::new();
+            logger.append("There is nothing here to pick up.");
+            logger.log();
+        }
         Some(item) => {
             let mut pickup = ecs.write_storage::<PickUpIntent>();
             pickup.insert(*player_entity, PickUpIntent {item, desired_by: *player_entity})
-                .expect("Unable to insert WantToPickUp.");
+                .expect("Unable to insert PickUpIntent.");
         }
     }
 

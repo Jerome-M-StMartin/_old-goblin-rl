@@ -1,4 +1,16 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate serde;
+
+use std::sync::Arc;
+
+use specs::prelude::*;
+use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
+
+use bracket_lib::prelude::{GameState, Point, BTerm, BError, BTermBuilder,
+                           RandomNumberGenerator, WHITE, KHAKI, MAGENTA};
+
+use command::Commandable;
 
 mod components;
 mod map;
@@ -10,7 +22,6 @@ mod map_indexing_system;
 mod melee_combat_system;
 mod damage_system;
 mod gui;
-mod gamelog;
 mod spawner;
 mod inventory_system;
 mod equip_system;
@@ -22,17 +33,15 @@ mod throw_system;
 mod light_system;
 mod trigger_system;
 
+pub mod command;
+pub mod user_input;
 pub mod particle_system;
 pub mod random_table;
 pub mod saveload_system;
 pub mod map_builders;
 pub mod camera;
-pub mod menu;
 
-use rltk::{GameState, Rltk, Point, VirtualKeyCode};
-use specs::prelude::*;
-use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
-use player::*;
+//use player::*;
 use visibility_system::VisibilitySystem;
 use hostile_ai_system::HostileAI;
 use map_indexing_system::MapIndexingSystem;
@@ -49,6 +58,7 @@ use hunger_system::HungerSystem;
 use throw_system::ThrowSystem;
 use light_system::LightSystem;
 use trigger_system::TriggerSystem;
+//use gui::drawable::Drawable;
 
 pub use components::*;
 pub use map::*;
@@ -62,21 +72,31 @@ pub enum RunState {
     GameOver,
     GameworldTurn,
     MagicMapReveal { row: i32 },
-    MainMenu { menu_selection: gui::MainMenuSelection },
+    //MainMenu { menu_selection: gui::MainMenuSelection }, //OLD
+    MainMenu,
     MapGeneration,
     NextLevel,
     PreRun,
     PlayerTurn,
-    ShowPlayerMenu { menu_state: gui::PlayerMenuState },
+    //ShowPlayerMenu { menu_state: gui::PlayerMenuState }, OLD
+    ShowPlayerMenu,
     ShowContextMenu { selection: i8, focus: i8 },
     ShowTargeting { range: i32, item: Entity },
     SaveGame,
 }
 
 pub struct State {
-    pub ecs: World,
-    pub tooltips_on: bool,
+    pub ecs: World, //specs World
 
+    user_input: Arc<user_input::UserInput>,
+    player_controller: Arc<player::PlayerController>,
+
+    //from-scratch gui crate
+    gui: gui::GUI,
+    //static_gui_objs: HashMap<String, Arc<dyn Drawable>>, //keeps Rc<things> alive that would otherwise only have Weak<> refs.
+    pub tooltips_on: bool, //<-delete after UI integration
+
+    //rltk-based map procgen state - to-be-removed
     mapgen_next_state: Option<RunState>,
     mapgen_history: Vec<Map>,
     mapgen_index: usize,
@@ -127,7 +147,7 @@ impl State {
         self.mapgen_index = 0;
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
-        let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
+        let mut rng = self.ecs.write_resource::<RandomNumberGenerator>();
         let mut builder = map_builders::random_builder(new_depth, &mut rng, 64, 64);
         builder.build_map(&mut rng);
         std::mem::drop(rng); //drops the borrow on rng & self
@@ -193,8 +213,9 @@ impl State {
 
         // Notify the player and give them some health
         let player_entity = self.ecs.fetch::<Entity>();
-        let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
-        gamelog.entries.push("You descend to the next level and take a moment to rest.".to_string());
+        let mut logger = gui::gamelog::Logger::new();
+        logger.append("You descend to the next level and take a moment to rest.");
+        logger.log();
         let mut stats_storage = self.ecs.write_storage::<Stats>();
         let player_stats = stats_storage.get_mut(*player_entity);
         if let Some(stats) = player_stats {
@@ -224,52 +245,61 @@ impl State {
 }
 
 impl GameState for State {
-    fn tick(&mut self, ctx: &mut Rltk) { 
+    fn tick(&mut self, ctx: &mut BTerm) { 
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
             newrunstate = *runstate;
-           
-            //reset cursor to inactive state
+            
             match *runstate {
                 RunState::AwaitingInput => {}
                 RunState::ShowTargeting {range: _, item: _} => {}
-                _ => {
+                _ => {//reset cursor to inactive state
                     let mut cursor = self.ecs.fetch_mut::<Cursor>();
                     cursor.active = false;
                 }
             }
         }
+        
+        //Clear both main-map and log consoles.
+        ctx.set_active_console(0);
+        ctx.cls();
+        ctx.set_active_console(1);
+        ctx.cls();
 
-        ctx.cls(); //clearscreen
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
+        self.gui.tick(ctx);
 
+        //First, figure out which screen/mode we're on/in. e.g Don't need to draw
+        //the map or HUD if we're in the Main Menu or Game Over screens/modes.
         match newrunstate {
-            RunState::MainMenu{..} => {}
+            RunState::MainMenu => {}
             RunState::GameOver => {}
             //RunState::MapGeneration => {}
             _ => {
                 
-                //draw_map(&self.ecs.fetch::<Map>(), ctx);
-                match ctx.key {
+                //draw_map(&self.ecs.fetch::<Map>(), ctx); //Was already commented out, don't remember why. (05/2021)
+                /*match ctx.key {
                     None => {}
                     Some(key) => match key {
                         VirtualKeyCode::T =>
                             self.tooltips_on = !self.tooltips_on,
                         _ => {}
                     }
-                }
+                }*/
 
                 camera::render_camera(&self.ecs, ctx);
-                gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
+                //gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
             }
         }
 
+        //Now match on the runstate again to handle all other runstate-speicific factors.
         match newrunstate {
             RunState::MapGeneration => {
                 if !SHOW_MAPGEN_VISUALIZER {
                     newrunstate = self.mapgen_next_state.unwrap();
                 } else {
+                    ctx.set_active_console(0);
                     ctx.cls();
                     if self.mapgen_index < self.mapgen_history.len() {
                         camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx);
@@ -290,7 +320,19 @@ impl GameState for State {
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
-                newrunstate = player_input(&mut self.ecs, ctx);
+                //newrunstate = player_input(&mut self.ecs, ctx); //OLD
+                
+                //TODO
+                /* PlayerController::process() currently loops through its entire
+                 * CommandQueue, executing them all sequentially PER CALL,
+                 * and I'm not yet sure if this is the behavior I want or not.
+                 *
+                 * It is IF I also implement some sort of "see-ahead" mode
+                 * for the player's turn where they get to pseudo-act in a way that visually
+                 * results in gameplay but which is undoable and not committed until they choose
+                 * to submit their final turn, which consists of the Commands in the CommandQueue,
+                 * in the order they were added to the CommandQueue.*/
+                newrunstate = self.player_controller.ecs_process(&mut self.ecs, RunState::AwaitingInput);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
@@ -305,12 +347,7 @@ impl GameState for State {
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
-            /*THIS IS FOR INFOCARD.RS TESTING PURPOSES
-             * RunState::ShowContextMenu { selection, focus } => {
-                let player = self.ecs.fetch::<Entity>();
-                gui::show_infocard(&self.ecs, ctx, *player);
-            }*/
-            RunState::ShowContextMenu { selection, focus } => {
+            /*RunState::ShowContextMenu { selection, focus } => {
                 let result = gui::open_context_menu(&self.ecs, ctx, selection, focus);
 
                 match result.0 {
@@ -383,17 +420,8 @@ impl GameState for State {
                         }
                     }
                 }
-            }
-            //menu as module version - incomplete
-            /*RunState::ShowPlayerMenu { menu_state } => {
-                let node_menu_origin: (i32, i32) = (1, 1);
-                if let Some(m_state) = menu_state.unwrap() {
-                    menu::show_menu(&self.ecs, ctx, node_menu_origin, m_state);
-                } else {
-                    menu::show_menu(&self.ecs, ctx, node_menu_origin, None);
-                }
             }*/
-            RunState::ShowPlayerMenu { menu_state } => {
+            /*RunState::ShowPlayerMenu { menu_state } => {
                 let out = gui::open_player_menu(&self.ecs, ctx, menu_state);
 
                 match out.mr {
@@ -465,8 +493,8 @@ impl GameState for State {
                         }
                     }
                 }
-            }
-            RunState::ShowTargeting {range, item} => {
+            }*/
+            /*RunState::ShowTargeting {range, item} => {
                 let result = gui::target_selection_mode(&mut self.ecs, ctx, range);
                 let useable_storage = self.ecs.read_storage::<Useable>();
                 let throwable_storage = self.ecs.read_storage::<Throwable>();
@@ -488,7 +516,8 @@ impl GameState for State {
                         }
                     }
                 }
-            }
+            }*/
+
             RunState::MagicMapReveal { row } => {
                 let mut map = self.ecs.fetch_mut::<Map>();
                 for x in 0..map.width {
@@ -501,45 +530,65 @@ impl GameState for State {
                     newrunstate = RunState::MagicMapReveal{ row: row + 1 };
                 }
             }
+
             RunState::NextLevel => {
                 self.goto_next_level();
                 newrunstate = RunState::PreRun;
             }
-            RunState::SaveGame => {
+
+            /*RunState::SaveGame => {
                 saveload_system::save_game(&mut self.ecs); 
                 newrunstate = RunState::MainMenu {menu_selection: gui::MainMenuSelection::LoadGame};
-            }
-            RunState::MainMenu{..} => {
-                let result = gui::main_menu(self, ctx);
-                match result {
-                    gui::MainMenuResult::NoSelection {selected} =>
-                        newrunstate = RunState::MainMenu {menu_selection: selected},
-                    gui::MainMenuResult::Selected {selected} => {
-                        match selected {
-                            gui::MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
-                            gui::MainMenuSelection::LoadGame => {
-                                saveload_system::load_game(&mut self.ecs);
-                                newrunstate = RunState::AwaitingInput;
-                                saveload_system::delete_save();
-                            }
-                            gui::MainMenuSelection::Quit => {::std::process::exit(0);}
+            }*/
+
+            RunState::MainMenu => {
+                use gui::widget::{main_menu, widget_storage};
+
+                if widget_storage::contains("MainMenu") {
+                    match self.user_input.get_focus_selection() {
+                        Some(0) => { //New Game
+                            println!("Some(0)");
+                            newrunstate = RunState::PreRun;
+                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
                         }
+                        Some(1) => { //Load Game
+                            saveload_system::load_game(&mut self.ecs);
+                            newrunstate = RunState::AwaitingInput;
+                            saveload_system::delete_save(); //death is permanent
+                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
+                        },
+                        Some(2) => ::std::process::exit(0), //Quit Game
+                        _ => {println!("None");},
                     }
+                } else {
+                    main_menu::construct(&self.gui.user_input);
                 }
             }
+            
             RunState::GameOver => {
-                let result = gui::game_over(ctx);
-                match result {
-                    gui::MenuResult::Continue => {}
-                    gui::MenuResult::Cancel => {}
-                    gui::MenuResult::Selected => {
-                        self.game_over_cleanup();
-                        newrunstate = RunState::MainMenu { menu_selection: gui::MainMenuSelection::NewGame };
+                use gui::widget::{game_over, widget_storage};
+
+                if widget_storage::contains("GameOver") {
+                    match self.user_input.get_focus_selection() {
+                        Some(0) => { //New Game
+                            newrunstate = RunState::PreRun;
+                            widget_storage::rm("GameOver").expect("widget_storage::rm('GameOver') failed.");
+                        }
+                        Some(1) => ::std::process::exit(0), //Quit Game
+                        _ => {},
                     }
+                } else {
+                    game_over::construct(&self.gui.user_input);
                 }
             }
+            _ => {}
         }
 
+        //draw the HUD
+        match newrunstate {
+            RunState::GameOver | RunState::MainMenu => {},
+            _ => { self.gui.draw_hud() }
+        }
 
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
@@ -550,7 +599,8 @@ impl GameState for State {
     }
 }
 
-struct Cursor { 
+//Needs to be more obviously differentiated from GUI::Cursor. -------------------------- !!!
+struct Cursor {
     pub x: i32, 
     pub y: i32,
     pub active: bool
@@ -563,24 +613,39 @@ struct Inventory {
     pub equipment: Vec<Option<Entity>>,
 }
 
-struct UIColors {
+struct UIColors { //-----------------needs to be replaced by gui::look_n_feel::ColorOptions
     pub main: (u8, u8, u8),
     pub cursor: (u8, u8, u8),
 }
 
-fn main() -> rltk::BError {
-    use rltk::RltkBuilder;
-    let context = RltkBuilder::simple80x50()
-        .with_title("Wizard of the Old Tongue")
+fn main() -> BError {
+    let context = BTermBuilder::simple80x50()
+        .with_title("GoblinRL")
+        //.with_font("../resources/unicode_16x16.png", 16, 16)
+        .with_fps_cap(30.0)
+        .with_font("vga8x16.png", 8, 16)
+        .with_sparse_console(80, 30, "vga8x16.png")
         .build()?;
 
     //context.with_post_scanlines(true);
 
+    //----------- initialization of State fields ------------
+    let user_input = Arc::new(user_input::UserInput::new());
+
+    let player_controller = player::PlayerController::new(&user_input);
+
+    let gui = gui::GUI::new(&user_input);
+    //-------------------------------------------------------
+
     let mut gs = State {
         ecs: World::new(),
+        user_input,
+        player_controller,
+        gui,
         tooltips_on: false,
 
-        mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }),
+        //mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }), OLD
+        mapgen_next_state : Some(RunState::MainMenu),
         mapgen_index : 0,
         mapgen_history: Vec::new(),
         mapgen_timer: 0.0
@@ -597,7 +662,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<MeleeIntent>();
     gs.ecs.register::<DamageOnUse>();
     gs.ecs.register::<DamageQueue>();
-    gs.ecs.register::<Item>();
     gs.ecs.register::<Item>();
     gs.ecs.register::<PickUpIntent>();
     gs.ecs.register::<InBackpack>();
@@ -638,17 +702,14 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Info>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
-
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0));
-    gs.ecs.insert(rltk::RandomNumberGenerator::new());
+    gs.ecs.insert(RandomNumberGenerator::new());
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
-    gs.ecs.insert(gamelog::GameLog {
-        entries: vec!["The Wandering Wood Moves With One's Peripheral Gaze".to_string()]});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
  
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
@@ -658,9 +719,16 @@ fn main() -> rltk::BError {
         backpack: Vec::new(),
         equipment: Vec::new(),
     });
-    gs.ecs.insert(UIColors { main: rltk::WHITE, cursor: rltk::MAGENTA });
+    gs.ecs.insert(UIColors { main: WHITE, cursor: MAGENTA });
+
+    let mut logger = gui::gamelog::Logger::new();
+    logger.append("A most stifling damp chokes the air, the");
+    logger.color(KHAKI);
+    logger.append("Wandering Waters of Ru'Iakh");
+    logger.color(WHITE);
+    logger.append("have become close.");
+    logger.log();
 
     gs.generate_world_map(1);
-
-    rltk::main_loop(context, gs)
+    bracket_lib::prelude::main_loop(context, gs)
 }

@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use std::cmp::max;
-use rltk::RandomNumberGenerator;
-use super::{Stats, DamageQueue, DamageAtom, Player, Name, gamelog::GameLog,
+use bracket_lib::prelude::RandomNumberGenerator;
+use super::{Stats, DamageQueue, DamageAtom, Player, Name, gui::gamelog,
             Resistances, RunState, Bleeding, particle_system::ParticleBuilder, Position};
 
 pub struct DamageSystem {}
@@ -9,7 +9,6 @@ pub struct DamageSystem {}
 impl<'a> System<'a> for DamageSystem {
     type SystemData = ( Entities<'a>,
                         WriteExpect<'a, ParticleBuilder>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, Stats>,
                         WriteStorage<'a, DamageQueue>,
                         WriteStorage<'a, Bleeding>,
@@ -19,10 +18,11 @@ impl<'a> System<'a> for DamageSystem {
                       );
 
     fn run (&mut self, data: Self::SystemData) {
-        let (entities, mut particle_builder, mut log, mut stats, mut damage_queues, mut bleeding_storage,
+        let (entities, mut particle_builder, mut stats, mut damage_queues, mut bleeding_storage,
              resistances, names, positions) = data;
         
         let mut to_bleed = Vec::<Entity>::new();
+        let mut logger = gamelog::Logger::new();
 
         //Apply resistanes to dmg_queue and dmg_queue to stats.
         for (ent, name, pos, stats, d_q, res, bleeding) in
@@ -35,11 +35,14 @@ impl<'a> System<'a> for DamageSystem {
                     let d_atom = &d_q.queue[i];
                     match d_atom {
                         DamageAtom::Bludgeon(val) => {
-                            d_q.queue[i] = DamageAtom::Bludgeon(val - resistance.bludgeon.value()); },
+                            d_q.queue[i] = DamageAtom::Bludgeon(val - resistance.bludgeon.value());
+                        },
                         DamageAtom::Pierce(val) => {
-                            d_q.queue[i] = DamageAtom::Pierce(val - resistance.pierce.value()); },
+                            d_q.queue[i] = DamageAtom::Pierce(val - resistance.pierce.value());
+                        },
                         DamageAtom::Slash(val) => {
-                            d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value()); },
+                            d_q.queue[i] = DamageAtom::Slash(val - resistance.pierce.value());
+                        },
                         DamageAtom::Thermal(val) => {
                             d_q.queue[i] = DamageAtom::Thermal(val - resistance.thermal.value());
                         }
@@ -74,29 +77,32 @@ impl<'a> System<'a> for DamageSystem {
                 
                 if !is_bleeding && bleed_roll(dmg) { 
                     to_bleed.push(ent);
-                    log.entries.push(format!("{} is bleeding.", &name.name));
+                    logger.append(format!("{} is bleeding.", &name.name));
+                        
                 }
             }
            
             if hp_dmg > 0 {
                 stats.hp = max(0, stats.hp - hp_dmg);
-                log.entries.push(format!("{} suffers {} damage.", &name.name, hp_dmg));
-                
+                logger.append(format!("{} suffers {} damage.", &name.name, hp_dmg));
+
                 //spawn particle
-                particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::ORANGE),
-                    rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                particle_builder.request(pos.x, pos.y, bracket_lib::prelude::RGB::named(bracket_lib::prelude::ORANGE),
+                    bracket_lib::prelude::RGB::named(bracket_lib::prelude::BLACK), bracket_lib::prelude::to_cp437('‼'), 200.0);
             }
             if fp_dmg > 0 {
                 stats.fp = max(0, stats.fp - fp_dmg);
-                log.entries.push(format!("{} suffers {} fatigue.", &name.name, fp_dmg));
+                logger.append(format!("{} suffers {} fatigue.", &name.name, fp_dmg));
             }
+
         }
 
         for e in to_bleed.iter() {
             bleeding_storage.insert(*e, Bleeding{}).expect("Unable to insert Bleeding component.");
         }
 
-        damage_queues.clear()
+        damage_queues.clear();
+        logger.log();
     }
 }
 
@@ -108,7 +114,7 @@ pub fn delete_the_dead(ecs: &mut World) {
         let players = ecs.read_storage::<Player>();
         let entities = ecs.entities();
         let names = ecs.read_storage::<Name>();
-        let mut log = ecs.write_resource::<GameLog>();
+        let mut logger = gamelog::Logger::new();
 
         for (entity, stats) in (&entities, &stats).join() {
             if stats.hp < 1 {
@@ -117,7 +123,7 @@ pub fn delete_the_dead(ecs: &mut World) {
                     None => {
                         let corpse_name = names.get(entity);
                         if let Some(corpse_name) = corpse_name {
-                            log.entries.push(format!("{} has died.", &corpse_name.name));
+                            logger.append(format!("{} has died.", &corpse_name.name));
                         }
                         dead.push(entity)
                     }
@@ -128,6 +134,7 @@ pub fn delete_the_dead(ecs: &mut World) {
                 }
             }
         }
+        logger.log();
     }
 
     for victim in dead {

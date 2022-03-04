@@ -1,15 +1,14 @@
 use specs::prelude::*;
-use super::{PickUpIntent, Name, InBackpack, Position, gamelog::GameLog, UseItemIntent, RunState,
+use super::{PickUpIntent, Name, InBackpack, Position, gui::gamelog, UseItemIntent, RunState,
             DropItemIntent, Consumable, Healing, Heals, DamageOnUse, DamageQueue, Map, AoE, Confusion,
             particle_system::ParticleBuilder, MagicMapper, Aflame, Equipped, UnequipIntent};
-//use rltk::{console};
+//use bracket_lib::prelude::{console};
 
 pub struct ItemCollectionSystem {}
 
 impl<'a> System<'a> for ItemCollectionSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( ReadExpect<'a, Entity>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, PickUpIntent>,
                         WriteStorage<'a, Position>,
                         WriteStorage<'a, InBackpack>,
@@ -18,9 +17,11 @@ impl<'a> System<'a> for ItemCollectionSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, mut pickup_intents, mut positions, mut in_backpack,
+        let (player_entity, mut pickup_intents, mut positions, mut in_backpack,
              mut aflame_storage, names) = data;
 
+        let mut logger = gamelog::Logger::new();
+             
         for intent in pickup_intents.join() {
             //If item is not already picked-up...(Is Some if item has position, else None).
             if let Some(_) = positions.remove(intent.item) {
@@ -33,13 +34,14 @@ impl<'a> System<'a> for ItemCollectionSystem {
                 }
 
                 if intent.desired_by == *player_entity {
-                    gamelog.entries.push(format!("{} placed into inventory.", 
+                    logger.append(format!("{} placed into inventory.", 
                             names.get(intent.item).unwrap().name));
                 }
             }
         }
 
         pickup_intents.clear();
+        logger.log();
     }
 }
 
@@ -50,7 +52,6 @@ impl<'a> System<'a> for ItemUseSystem {
     type SystemData = ( ReadExpect<'a, Entity>,
                         WriteExpect<'a, RunState>,
                         WriteExpect<'a, ParticleBuilder>,
-                        WriteExpect<'a, GameLog>,
                         ReadExpect<'a, Map>,
                         Entities<'a>,
                         WriteStorage<'a, UseItemIntent>,
@@ -66,9 +67,11 @@ impl<'a> System<'a> for ItemUseSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut runstate, mut particle_builder, mut gamelog, map, entities, mut use_item_intent,
+        let (player_entity, mut runstate, mut particle_builder, map, entities, mut use_item_intent,
              names, consumables, mut healing_storage, heals_storage, inflicts_damage, mut damage_queue,
              aoe, mut confusion,  magic_mapper) = data;
+
+        let mut logger = gamelog::Logger::new();
 
         for (entity, use_intent) in (&entities, &use_item_intent).join() {
             let mut is_item_used = true;
@@ -87,7 +90,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             }
                         }
                         Some(area_effect) => { //AoE
-                            let mut blast_tiles = rltk::field_of_view(target, area_effect.radius, &*map);
+                            let mut blast_tiles = bracket_lib::prelude::field_of_view(target, area_effect.radius, &*map);
                             blast_tiles.retain(|p| p.x > 0 &&
                                                    p.x < map.width - 1 &&
                                                    p.y > 0 &&
@@ -100,8 +103,8 @@ impl<'a> System<'a> for ItemUseSystem {
 
                                 //spawn particles
                                 particle_builder.request(tile_idx.x, tile_idx.y,
-                                    rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK),
-                                    rltk::to_cp437('░'), 200.0);
+                                    bracket_lib::prelude::RGB::named(bracket_lib::prelude::ORANGE), bracket_lib::prelude::RGB::named(bracket_lib::prelude::BLACK),
+                                    bracket_lib::prelude::to_cp437('░'), 200.0);
                             }
                         }
                             
@@ -135,8 +138,7 @@ impl<'a> System<'a> for ItemUseSystem {
                         if entity == *player_entity {
                             let mob_name = names.get(*mob).unwrap();
                             let item_name = names.get(use_intent.item).unwrap();
-                            gamelog.entries.push(format!("Used {} on {}.",
-                                    item_name.name, mob_name.name));
+                            logger.append(format!("Used {} on {}.", item_name.name, mob_name.name));
                         }
 
                         is_item_used = true;
@@ -177,7 +179,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             if entity == *player_entity {
                                 let mob_name = names.get(*mob).unwrap();
                                 let item_name = names.get(use_intent.item).unwrap();
-                                gamelog.entries.push(format!("Used {} on {}, they are confused!",
+                                logger.append(format!("Used {} on {}, they are confused!",
                                         item_name.name, mob_name.name));
                             }
                         }
@@ -195,7 +197,7 @@ impl<'a> System<'a> for ItemUseSystem {
                 Some(_) => {
                     *runstate = RunState::MagicMapReveal{ row: 0 };
                     is_item_used = true;
-                    gamelog.entries.push("The Witness is within you.".to_string());
+                    logger.append("The Witness is within you.".to_string());
                 }
             }
        
@@ -212,6 +214,7 @@ impl<'a> System<'a> for ItemUseSystem {
         }
 
         use_item_intent.clear();
+        logger.log();
     }
 }
 
@@ -221,7 +224,6 @@ impl<'a> System<'a> for ItemDropSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( Entities<'a>,
                         ReadExpect<'a, Entity>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, DropItemIntent>,
                         WriteStorage<'a, Position>,
                         WriteStorage<'a, InBackpack>,
@@ -231,8 +233,10 @@ impl<'a> System<'a> for ItemDropSystem {
                       );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, player_entity, mut gamelog, mut drop_intent, mut positions, mut backpack,
+        let (entities, player_entity, mut drop_intent, mut positions, mut backpack,
              mut unequip_intents, equipped_storage, names) = data;
+
+        let mut logger = gamelog::Logger::new();
         
         for (entity, drop_intent) in (&entities, &drop_intent).join() {
             let mut pos_to_drop: Position = Position {x: 0, y: 0};
@@ -251,10 +255,11 @@ impl<'a> System<'a> for ItemDropSystem {
             }
 
             if entity == *player_entity {
-                gamelog.entries.push(format!("{} dropped.", names.get(drop_intent.item).unwrap().name));
+                logger.append(format!("{} dropped.", names.get(drop_intent.item).unwrap().name));
             }
         }
 
         drop_intent.clear();
+        logger.log();
     }
 }

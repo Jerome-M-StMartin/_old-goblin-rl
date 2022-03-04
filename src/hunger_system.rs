@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Hunger, RunState, HungerState, DamageQueue, gamelog::GameLog, DamageAtom};
+use super::{Hunger, RunState, HungerState, DamageQueue, gui::gamelog, DamageAtom};
 
 pub struct HungerSystem {}
 
@@ -9,13 +9,14 @@ impl<'a> System<'a> for HungerSystem {
                         Entities<'a>,
                         ReadExpect<'a, Entity>, // The player
                         ReadExpect<'a, RunState>,
-                        WriteExpect<'a, GameLog>,
                         WriteStorage<'a, Hunger>,
                         WriteStorage<'a, DamageQueue>,
                       );
 
     fn run(&mut self, data : Self::SystemData) {
-        let (entities, player, runstate, mut log, mut hunger_storage, mut damage_queues) = data;
+        let (entities, player, runstate, mut hunger_storage, mut damage_queues) = data;
+
+        let mut logger = gamelog::Logger::new();
 
         for (entity, mut hunger) in (&entities, &mut hunger_storage).join() {
             let mut proceed = false;
@@ -38,26 +39,26 @@ impl<'a> System<'a> for HungerSystem {
                             hunger.state = HungerState::Hungry;
                             hunger.clock = 500;
                             if entity == *player {
-                                log.entries.push("Your belly grumbles.".to_string());
+                                logger.append("Your belly grumbles.");
                             }
                         }
                         HungerState::Hungry => {
                             hunger.state = HungerState::Famished;
                             hunger.clock = 700;
                             if entity == *player {
-                                log.entries.push("You are famished!".to_string());
+                                logger.append("You are famished!");
                             }
                         }
                         HungerState::Famished => {
                             hunger.state = HungerState::Starving;
                             hunger.clock = 1000;
                             if entity == *player {
-                                log.entries.push("You are starving.".to_string());
+                                logger.append("You are starving.");
                             }
                         }
                         HungerState::Starving => {
                             if entity == *player {
-                                log.entries.push("You are starving to death.".to_string());
+                                logger.append("You are starving to death.");
                             }
                             DamageQueue::queue_damage(&mut damage_queues, entity, DamageAtom::Starvation);  
                         }
@@ -65,5 +66,7 @@ impl<'a> System<'a> for HungerSystem {
                 }
             }
         }
+
+        logger.log();
     }
 }
