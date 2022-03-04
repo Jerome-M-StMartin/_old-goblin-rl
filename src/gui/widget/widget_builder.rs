@@ -166,6 +166,7 @@ impl Observer for Widget {
                 let cmd_option = match input_event {
                     InputEvent::WASD(dir) |
                     InputEvent::HJKL(dir) => { Some(Command::Move{dir}) },
+                    InputEvent::ENTER => { Some(Command::Select) },
                     _ => { None },
                 };
 
