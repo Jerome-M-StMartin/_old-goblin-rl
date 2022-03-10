@@ -62,6 +62,13 @@ impl UserInput {
     }
 
     fn transcribe_input(&self, ctx: &BTerm) -> bool { //use bool to control observer notification
+        
+        //Clear past selection, if any.
+        if let Ok(mut selection) = self.selection.write() {
+            *selection = None;
+        } else { panic!("RwLock poisoned! (user_input::transcribe_input"); }
+
+        //Read user input
         let mut new_input: Option<InputEvent> = None;
         if let Some(key) = ctx.key {
             match key {
@@ -119,7 +126,7 @@ impl UserInput {
                     }
                     next_focus.become_focus();
                     observers.insert(0, Arc::downgrade(&next_focus));
-                    println!("{}", next_focus.name());//----------------------------------------Debugging
+                    println!("Next focus: {}", next_focus.name());//----------------------------------------Debugging
                 }
             }
         }
@@ -132,26 +139,29 @@ impl UserInput {
         let mut idx = 0;
 
         //obtain lock on observer-vec'
-        if let Ok(mut guard) = self.observers.lock() {
+        if let Ok(mut observers) = self.observers.lock() {
             //iterate over each observer
-            for observer_weak in guard.clone().iter() {
+            for observer_weak in observers.iter() {
                 if let Some(observer) = observer_weak.upgrade() {
 
                     //check if it's the target
                     if observer.id() == observer_id {
-                        let new_focus = guard.swap_remove(idx); //O(1) but not in-place
-                        guard.insert(0, new_focus);
+                        let new_focus = observers.swap_remove(idx); //O(1) but not in-place
+                        //let new_focus = observers.remove(idx);
+                        observers.insert(0, new_focus);
                         
                         //obtain a Mutex lock & set new focus
-                        if let Ok(mut guard) = self.focus_id.lock() {
-                            *guard = Some(observer_id);
-                        }
+                        if let Ok(mut focus) = self.focus_id.lock() {
+                            *focus = Some(observer_id);
+                        } else { panic!("Mutex poisoned! (UserInput::set_focus())"); }
+
+                        observer.become_focus();
                         break;
                     }
                     idx += 1;
                 }
             }
-        }
+        } else { panic!("Mutex poisioned! (UserInput::set_focus())"); }
     }
 
     pub fn set_focus_selection(&self, new_selection: Option<u8>) {
@@ -197,6 +207,7 @@ impl Observable for UserInput {
             if !to_remove.is_empty() {
                 for idx in to_remove.into_iter() {
                     observers.swap_remove(idx); //swap_remove() does not preserve order but is O(1).
+                    //observers.remove(idx);
                 }
             }
    
@@ -205,11 +216,30 @@ impl Observable for UserInput {
     }
 
     fn notify_focus(&self) {
-        if let Ok(guard) = &self.observers.lock() {
-            let weak_focus = guard[0].clone();
+        let mut try_again: bool = false;
+        if let Ok(mut observers) = self.observers.lock() {
+            let weak_focus = observers[0].clone();
+
             if let Some(focus) = weak_focus.upgrade() {
                 focus.update();
+               
+            } else if !observers.is_empty() { //upgrade failed, so rm this observer and re-call this fn
+                //lazily delete the dropped observer pointer
+                observers.remove(0);
+                try_again = true;
             }
+        } else { panic!("Mutex poisoned! (UserInput::notify_focus())"); }
+
+        if try_again { 
+            //re-set focus to self.focus_id, if it's Some
+            if let Ok(focus_id) = self.focus_id.lock() {
+                if let Some(id) = *focus_id {
+                    self.set_focus(id);
+                }
+            }
+
+            //re-call this fn
+            self.notify_focus();
         }
     }
 

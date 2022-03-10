@@ -547,7 +547,6 @@ impl GameState for State {
                 if widget_storage::contains("MainMenu") {
                     match self.user_input.get_focus_selection() {
                         Some(0) => { //New Game
-                            println!("Some(0)");
                             newrunstate = RunState::PreRun;
                             widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
                         }
@@ -558,10 +557,11 @@ impl GameState for State {
                             widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
                         },
                         Some(2) => ::std::process::exit(0), //Quit Game
-                        _ => {println!("None");},
+                        _ => {},
                     }
                 } else {
-                    main_menu::construct(&self.gui.user_input);
+                    let id: usize = main_menu::construct(ctx, &self.gui.user_input);
+                    self.user_input.set_focus(id);
                 }
             }
             
@@ -571,6 +571,7 @@ impl GameState for State {
                 if widget_storage::contains("GameOver") {
                     match self.user_input.get_focus_selection() {
                         Some(0) => { //New Game
+                            self.game_over_cleanup();
                             newrunstate = RunState::PreRun;
                             widget_storage::rm("GameOver").expect("widget_storage::rm('GameOver') failed.");
                         }
@@ -578,7 +579,8 @@ impl GameState for State {
                         _ => {},
                     }
                 } else {
-                    game_over::construct(&self.gui.user_input);
+                    let id: usize = game_over::construct(ctx, &self.gui.user_input);
+                    self.user_input.set_focus(id);
                 }
             }
             _ => {}

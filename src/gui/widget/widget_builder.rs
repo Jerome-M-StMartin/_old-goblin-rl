@@ -78,10 +78,14 @@ impl Widget {
         );
     }
 
-    pub fn build(self) { 
+    pub fn build(self) -> usize { 
+        let id: usize = self.observer_id;
+
         let arc_widget = Arc::new(self);
         arc_widget.user_input.add_observer(&arc_widget);
         super::widget_storage::add(arc_widget);
+
+        return id;
     }
     // --- END BUILDER PATTERN ---
 
@@ -97,19 +101,18 @@ impl Widget {
                             self.dimensions.x,
                             self.dimensions.y);
         let (ctx_w, ctx_h) = ctx.get_char_size();
-/*
+
         //return if any part of widget is out of window bounds
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
         if x > ctx_w as i32 || y > ctx_h as i32 { return };
         if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
-*/
+
         let mut draw_batch = DrawBatch::new();
         draw_batch.cls();
 
         //println!("x: {}, y: {},\nw: {}, h: {},\nctx_w: {}, ctx_h: {}", x, y, w - 2, h - 2, ctx_w, ctx_h);
 
-        let mut textblock = TextBlock::new(0, 0, w - 1, h - 2);
-        //let mut textblock = TextBlock::new(x + 1, y + 1, w - 2, h - 2);
+        let mut textblock = TextBlock::new(x + 1, y + 1, w - 1, h - 2);
         let mut textbuilder = TextBuilder::empty();
         //println!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
 
