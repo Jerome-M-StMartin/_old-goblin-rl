@@ -126,7 +126,7 @@ impl UserInput {
                     }
                     next_focus.become_focus();
                     observers.insert(0, Arc::downgrade(&next_focus));
-                    println!("Next focus: {}", next_focus.name());//----------------------------------------Debugging
+                    dbg!("Next focus: {}", next_focus.name());//----------------------------------------Debugging
                 }
             }
         }

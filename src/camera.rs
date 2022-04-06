@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{BTerm, Map, TileType, Position, Renderable, Hidden};
-use bracket_lib::prelude::{Point, RGB};
+use bracket_lib::prelude::{BLACK, ColorPair, DrawBatch, GREY, Point, RGB};
 
 const SHOW_BOUNDARIES : bool = true;
 
@@ -25,7 +25,10 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
     
     let map_width = map.width - 1;
     let map_height = map.height - 1;
+
+    let mut draw_batch = DrawBatch::new();
    
+    //This first 0(n^2) loop renders the entity-less map/level/setting.
     //(x,y) are SCREEN coords, (tx,ty) are MAP/TILE coords.
     let mut y = 0;
     for ty in min_y..max_y {
@@ -35,23 +38,37 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
                 
                 let idx = map.xy_idx(tx, ty);
                 if map.revealed_tiles[idx] {
+
                     let (glyph, fg, bg) = get_tile_glyph(idx, &*map);
-                    ctx.set(x, y, fg, bg, glyph);
+                    draw_batch.set(
+                        Point::new(x, y),
+                        ColorPair::new(fg, bg),
+                        glyph,
+                    );
+                    //ctx.set(x, y, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY),
+                draw_batch.set(
+                    Point::new(x, y),
+                    ColorPair::new(GREY, BLACK),
+                    bracket_lib::prelude::to_cp437('#'),
+                );
+                /*ctx.set(x, y, RGB::named(bracket_lib::prelude::GREY),
                               RGB::named(bracket_lib::prelude::BLACK),
                               bracket_lib::prelude::to_cp437('#'));
+                */
             }
             x += 1;
         }
         y += 1;
     }
     
+
+    //This second loop renders the ECS Entities which exist on some tile of the map,
+    //but only if they are within view-distance of the player.
     let positions = ecs.read_storage::<Position>();
     let renderables = ecs.read_storage::<Renderable>();
     let hidden = ecs.read_storage::<Hidden>();
-    //let map = ecs.fetch::<Map>();
 
     let mut data = (&positions, &renderables, !&hidden).join().collect::<Vec<_>>();
     data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
@@ -63,9 +80,20 @@ pub fn render_camera(ecs: &World, ctx : &mut BTerm) {
             if entity_screen_x > 0 && entity_screen_x < map_width &&
                         entity_screen_y > 0 && entity_screen_y < map_height {
 
-                ctx.set(entity_screen_x, entity_screen_y, render.fg, render.bg, render.glyph);
+                //ctx.set(entity_screen_x, entity_screen_y, render.fg, render.bg, render.glyph);
+                draw_batch.set(
+                    Point::new(entity_screen_x, entity_screen_y),
+                    ColorPair::new(render.fg, render.bg),
+                    render.glyph,
+                );
             }
         }
+    }
+
+    //Submit the DrawBatch! If this fails, it won't panic but will print out some gobldygook.
+    match draw_batch.submit(0) {
+        Ok(_) => {},
+        Err(e) => println!("DrawBatch.submit(0) failed in camera.rs.\nError: {}", e),
     }
 }
 

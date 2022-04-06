@@ -8,7 +8,8 @@ use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
 use bracket_lib::prelude::{GameState, Point, BTerm, BError, BTermBuilder,
-                           RandomNumberGenerator, WHITE, KHAKI, MAGENTA};
+                           RandomNumberGenerator, WHITE, KHAKI, MAGENTA,
+                           embedded_resource, link_resource, EMBED};
 
 use command::Commandable;
 
@@ -289,7 +290,7 @@ impl GameState for State {
                 }*/
 
                 camera::render_camera(&self.ecs, ctx);
-                //gui::draw_ui(&self.ecs, ctx, self.tooltips_on);
+                ctx.set_active_font(0, true);
             }
         }
 
@@ -586,12 +587,6 @@ impl GameState for State {
             _ => {}
         }
 
-        //draw the HUD
-        match newrunstate {
-            RunState::GameOver | RunState::MainMenu => {},
-            _ => { self.gui.draw_hud() }
-        }
-
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
             *runwriter = newrunstate;
@@ -620,11 +615,20 @@ struct UIColors { //-----------------needs to be replaced by gui::look_n_feel::C
     pub cursor: (u8, u8, u8),
 }
 
+//embedded_resource!(TILE_FONT, "../resources/unicode_16x16.png"); //bracket-lib should doc this
+embedded_resource!(TILE_FONT, "../resources/terminal8x8.jpg");
+
 fn main() -> BError {
-    let context = BTermBuilder::simple80x50()
+
+    //link_resource!(TILE_FONT, "resources/unicode_16x16.png");
+    link_resource!(TILE_FONT, "resources/terminal8x8.jpg");
+
+    //let context = BTermBuilder::simple80x50()
+    let context = BTermBuilder::simple(80, 50)?
         .with_title("GoblinRL")
-        //.with_font("../resources/unicode_16x16.png", 16, 16)
         .with_fps_cap(30.0)
+        //.with_font("unicode_16x16.png", 16, 16) //to use, de-comment embed/link_resource macros
+        .with_font("terminal8x8.jpg", 8, 8)
         .with_font("vga8x16.png", 8, 16)
         .with_sparse_console(80, 30, "vga8x16.png")
         .build()?;

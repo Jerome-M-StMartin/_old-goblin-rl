@@ -6,7 +6,7 @@
 extern crate rand;
 extern crate serde;
 use std::sync::Arc;
-use bracket_lib::prelude::BTerm;
+use bracket_lib::prelude::{BTerm, DrawBatch, render_draw_buffer};
 
 pub mod textify;
 pub mod look_n_feel;
@@ -55,13 +55,9 @@ impl GUI {
     //call this function in the main bracket-lib game loop.
     pub fn tick(&mut self, ctx: &mut BTerm) {
         self.user_input.tick(ctx);
-        widget::widget_storage::draw_all(ctx);
-    }
 
-    //Not to be called in self::tick(), so as to allow finer control.
-    // HUD state is updated in tick(), but we need to ensure that we draw it at the end of the frame
-    // so it properly overlays all other rendered things.
-    pub fn draw_hud(&self) {
-        
+        let mut draw_batch = DrawBatch::new(); //pass mutable borrows of this to each Widget.draw() call.
+        widget::widget_storage::draw_all(ctx, &mut draw_batch);
+        render_draw_buffer(ctx).expect("Render error in GUI::tick()");
     }
 }

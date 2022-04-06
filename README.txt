@@ -15,7 +15,7 @@ widget_builder.rs implements all three, Observor, Commandable, and Builder.
 
 ============================================================================
 
-Alpha Title: Wizard of the Old Tongue
+Alpha Title: GoblinRL
 Alt. Titles: ????:?? / ??????RL
 
 Description: A roguelike, written in Rust, based on the work of those who

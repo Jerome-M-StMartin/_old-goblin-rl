@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 
-use bracket_lib::prelude::*;
+use bracket_lib::prelude::{BTerm, DrawBatch, Point, RGB, WHITE, MAGENTA,
+                           TextBlock, TextBuilder};
 use specs::World;
 
 use crate::gui::Observable;
@@ -20,6 +21,12 @@ pub struct WidgetElement {
     to_draw: String,
     color: RGB,
 }
+impl WidgetElement {
+    pub fn new(s: String, c: RGB) -> WidgetElement {
+        WidgetElement { to_draw: s, color: c }
+    }
+}
+
 pub struct Widget {
     name: String,
     position: Point,
@@ -78,6 +85,10 @@ impl Widget {
         );
     }
 
+    pub fn with_these(&mut self, mut these: Vec<WidgetElement>) {
+        self.elements.append(&mut these);
+    }
+
     pub fn build(self) -> usize { 
         let id: usize = self.observer_id;
 
@@ -89,7 +100,7 @@ impl Widget {
     }
     // --- END BUILDER PATTERN ---
 
-    pub fn draw(&self, ctx: &mut BTerm) {
+    pub fn draw(&self, ctx: &mut BTerm, draw_batch: &mut DrawBatch) {
         /*TODO:
          * Change to accept textbuilder (and maybe other structs) as argument,
          * such that all widgets can be drawn to a single buffer which is drawn
@@ -102,13 +113,12 @@ impl Widget {
                             self.dimensions.y);
         let (ctx_w, ctx_h) = ctx.get_char_size();
 
-        //return if any part of widget is out of window bounds
+        //if any part of widget is out of window bounds, return
         if x < 0 || y < 0 || w < 0 || h < 0 { return };
         if x > ctx_w as i32 || y > ctx_h as i32 { return };
         if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
 
-        let mut draw_batch = DrawBatch::new();
-        draw_batch.cls();
+        //draw_batch.cls();
 
         //println!("x: {}, y: {},\nw: {}, h: {},\nctx_w: {}, ctx_h: {}", x, y, w - 2, h - 2, ctx_w, ctx_h);
 
@@ -133,9 +143,9 @@ impl Widget {
         textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
         //TODO: draw border
         textblock.print(&textbuilder);
-        textblock.render_to_draw_batch(&mut draw_batch);
+        textblock.render_to_draw_batch(draw_batch);
         draw_batch.submit(0).expect("Batch error in Widget.draw()");
-        render_draw_buffer(ctx).expect("Render error in Widget.draw()");
+        //render_draw_buffer(ctx).expect("Render error in Widget.draw()");
     }
 
     // Applies delta then clamps/wraps self.selection based on current state.

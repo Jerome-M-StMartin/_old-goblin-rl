@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Mutex, Arc};
-use bracket_lib::prelude::BTerm;
+use bracket_lib::prelude::{BTerm, DrawBatch};
 
 use super::Widget;
 
@@ -8,10 +8,10 @@ lazy_static! {
     pub static ref WIDGET_STORAGE: Mutex<HashMap<String, Arc<Widget>>> = Mutex::new(HashMap::new());
 }
 
-pub fn draw_all(ctx: &mut BTerm) { //calls Commandable::process() and Widget::draw() on all widgets.
+pub fn draw_all(ctx: &mut BTerm, draw_batch: &mut DrawBatch) { //calls Commandable::process() and Widget::draw() on all widgets.
     if let Ok(widget_map) = WIDGET_STORAGE.lock() {
         for widget in widget_map.values() {
-            widget.draw(ctx);
+            widget.draw(ctx, draw_batch);
         }
     } else {
         panic!("WIDGET_STORAGE Mutex was poisoned! (gui::widget::widget_storage::draw_all())")
