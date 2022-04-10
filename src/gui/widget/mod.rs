@@ -1,22 +1,31 @@
-//use std::any::Any;
+use std::sync::Mutex;
+use std::collections::HashMap;
 
 mod widget_builder;
 pub mod widget_storage;
+pub mod widgets;
 
-//-- Widgets --
-pub mod main_menu;
-pub mod game_over;
-// -- --
 pub use widget_builder::*;
 pub use widget_storage::*;
+pub use widgets::*;
 
-/*replaces gui::Drawable
+lazy_static! {
+    // Holds returns from Widgetable::as_widget_elements(), as defined by the below trait.
+    pub static ref WIDGET_DATA: Mutex<HashMap<String, Vec<WidgetElement>>> = Mutex::new(HashMap::new());
+}
+
+pub fn store_widget_data<T: ToString>(key: T, val: Vec<WidgetElement>) {
+    if let Ok(mut map) = WIDGET_DATA.lock() {
+        map.insert(key.to_string(), val);
+    } else { panic!("Mutex poisoned in gui::widget::mod.rs"); }
+}
+
+/* Widgetable replaces gui::Drawable :
 * Anything that can be represented by/in a Widget must implement this trait.
-* In doing so, each dyn WidgetData tells the GUI exactly how it is to be drawn
-* within its representing Widget.
-*/
+* In doing so, each dyn Widgetable tells the GUI exactly how it is to be drawn
+* within its representing Widget. */
 
-pub trait WidgetData {
+pub trait Widgetable {
     //The order of elements in this Vec determines the order in which they will be drawn.
     fn as_widget_elements(&self) -> Vec<WidgetElement>;
 }
@@ -24,7 +33,7 @@ pub trait WidgetData {
 use bracket_lib::prelude::{RGB, RED, GREEN, BLUE};
 use super::super::components::Stats;
 use std::cmp::max;
-impl WidgetData for Stats {
+impl Widgetable for Stats {
 
     fn as_widget_elements(&self) -> Vec<WidgetElement> {
         let mut result = Vec::new();
@@ -32,7 +41,8 @@ impl WidgetData for Stats {
 
         let mut s = "".to_string();
         for i in 0..max {
-            if i < self.hp { s.push('♡'); }
+            //if i < self.hp { s.push('♡'); }
+            if i < self.hp { s.push('+'); }
             else if i < self.max_hp { s.push('∅'); }
         }
 
@@ -48,7 +58,8 @@ impl WidgetData for Stats {
         s.clear();
 
         for i in 0..max {
-            if i < self.mp { s.push('⏾'); }
+            //if i < self.mp { s.push('⏾'); }
+            if i < self.mp { s.push('*'); }
             else if i < self.max_mp { s.push('∅'); }
         }
 

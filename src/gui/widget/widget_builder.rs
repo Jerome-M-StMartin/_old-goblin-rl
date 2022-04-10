@@ -17,6 +17,7 @@ pub enum BoxType { //determines if the widget border is drawn with '┓'(thick) 
     THICK,
 }
 
+#[derive(Debug, Clone)]
 pub struct WidgetElement {
     to_draw: String,
     color: RGB,
@@ -31,7 +32,7 @@ pub struct Widget {
     name: String,
     position: Point,
     dimensions: Point,
-    elements: Vec<WidgetElement>, //to be drawn IN ORDER
+    pub elements: RwLock<Vec<WidgetElement>>, //to be drawn IN ORDER
     border: Option<BoxType>,
 
     //Observer Pattern Fields
@@ -53,7 +54,7 @@ impl Widget {
             name: name.to_string(),
             position,
             dimensions,
-            elements: Vec::new(),
+            elements: RwLock::new(Vec::new()),
             border: None,
             observer_id: user_input.generate_id(),
             user_input: user_input.clone(),
@@ -68,25 +69,31 @@ impl Widget {
     }
 
     pub fn with<T: ToString>(&mut self, text: T) { //defaults color to WHITE
-        self.elements.push(
-            WidgetElement {
-                to_draw: text.to_string(),
-                color: RGB::named(WHITE),
-            }
-        );
+        if let Ok(mut elements) = self.elements.write() {
+            elements.push(
+                WidgetElement {
+                    to_draw: text.to_string(),
+                    color: RGB::named(WHITE),
+                }
+            );
+        }
     }
 
     pub fn with_color<T: ToString>(&mut self, text: T, color: RGB) { //no default color, it must be specified
-        self.elements.push(
-            WidgetElement {
-                to_draw: text.to_string(),
-                color,
-            }
-        );
+        if let Ok(mut elements) = self.elements.write() {
+            elements.push(
+                WidgetElement {
+                    to_draw: text.to_string(),
+                    color,
+                }
+            );
+        }
     }
 
-    pub fn with_these(&mut self, mut these: Vec<WidgetElement>) {
-        self.elements.append(&mut these);
+    pub fn with_these(&mut self, these: &mut Vec<WidgetElement>) {
+        if let Ok(mut elements) = self.elements.write() {
+            elements.append(these);
+        }
     }
 
     pub fn build(self) -> usize { 
@@ -124,33 +131,39 @@ impl Widget {
 
         let mut textblock = TextBlock::new(x + 1, y + 1, w - 1, h - 2);
         let mut textbuilder = TextBuilder::empty();
-        //println!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
+        //dbg!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
 
-        let mut idx = 0;
-        for element in self.elements.iter() {
-            let mut color: RGB = RGB::named(WHITE);
-            if let Ok(selection) = self.selection.read() {
-                if let Some(focus_idx) = *selection {
-                    if focus_idx == idx { color = RGB::named(MAGENTA); };
+        if let Ok(elements) = self.elements.read() {
+            let mut idx = 0;
+            for element in elements.iter() {
+                let mut color: RGB = RGB::named(WHITE);
+                if let Ok(selection) = self.selection.read() {
+                    if let Some(focus_idx) = *selection {
+                        if focus_idx == idx { color = RGB::named(MAGENTA); };
+                    }
                 }
+                textbuilder.fg(color);
+                textbuilder.append(&element.to_draw);
+                textbuilder.ln();
+                idx += 1;
             }
-            textbuilder.fg(color);
-            textbuilder.append(&element.to_draw);
-            textbuilder.ln();
-            idx += 1;
         }
 
         textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
         //TODO: draw border
         textblock.print(&textbuilder);
         textblock.render_to_draw_batch(draw_batch);
-        draw_batch.submit(0).expect("Batch error in Widget.draw()");
+        draw_batch.submit(1000).expect("Batch error in Widget.draw()");
         //render_draw_buffer(ctx).expect("Render error in Widget.draw()");
     }
 
     // Applies delta then clamps/wraps self.selection based on current state.
     fn change_selection (&self, delta: i8) {
-        let max = self.elements.len() - 1;
+        let max;
+        if let Ok(elements) = self.elements.read() {
+            max = elements.len() - 1;
+        } else { panic!("Mutex poisoned in gui::widget::widget_builder.rs"); }
+
         if let Ok(mut sel_guard) = self.selection.write() {
             if let Some(selection) = *sel_guard {
                 let new_selection = selection as i8 + delta;

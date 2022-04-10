@@ -263,10 +263,11 @@ impl GameState for State {
         }
         
         //Clear both main-map and log consoles.
+        //ctx.set_active_console(1);
+        //ctx.cls();
         ctx.set_active_console(0);
         ctx.cls();
-        ctx.set_active_console(1);
-        ctx.cls();
+
 
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
         self.gui.tick(ctx);
@@ -318,6 +319,19 @@ impl GameState for State {
             RunState::PreRun => {
                 self.run_systems();
                 self.ecs.maintain();
+                self.gui.init_widgets();
+
+                //Temporary, for testing WIDGET_DATA updating and
+                //  drawing all widgets in WIDGET_STORAGE. ------
+                use gui::widget::*;
+                let player_ent = self.ecs.fetch::<Entity>();
+                let stats_storage = self.ecs.read_storage::<Stats>();
+                let player_stats = stats_storage.get(*player_ent);
+                let widget_elements = player_stats.unwrap().as_widget_elements();
+                store_widget_data("PlayerStats", widget_elements);
+                //-----------------------------------------------
+
+
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
@@ -629,8 +643,8 @@ fn main() -> BError {
         .with_fps_cap(30.0)
         //.with_font("unicode_16x16.png", 16, 16) //to use, de-comment embed/link_resource macros
         .with_font("terminal8x8.jpg", 8, 8)
-        .with_font("vga8x16.png", 8, 16)
-        .with_sparse_console(80, 30, "vga8x16.png")
+        //.with_font("vga8x16.png", 8, 16)
+        //.with_sparse_console(80, 30, "vga8x16.png")
         .build()?;
 
     //context.with_post_scanlines(true);
@@ -708,16 +722,16 @@ fn main() -> BError {
     gs.ecs.register::<Info>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
-    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
+    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
     gs.ecs.insert(Map::new(1, 64, 64));
-    gs.ecs.insert(Point::new(0, 0));
+    gs.ecs.insert(Point::new(0, 0)); //<-what is this, Player Entity location? idk
     gs.ecs.insert(RandomNumberGenerator::new());
-    let player_entity = spawner::player(&mut gs.ecs, 0, 0);
-    gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
- 
+    let player_entity = spawner::player(&mut gs.ecs, 0, 0);
+    gs.ecs.insert(player_entity);
+
     gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
     gs.ecs.insert(Inventory { 
         hands: (None, None),

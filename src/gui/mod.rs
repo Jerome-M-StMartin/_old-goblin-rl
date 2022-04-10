@@ -52,9 +52,16 @@ impl GUI {
         gui
     }
 
+    pub fn init_widgets(&self) {
+        widget::widgets::player_stats::construct(&self.user_input);
+    }
+
     //call this function in the main bracket-lib game loop.
     pub fn tick(&mut self, ctx: &mut BTerm) {
         self.user_input.tick(ctx);
+        
+        widget::widget_storage::update_all();
+        //println!("{:?}", widget::WIDGET_DATA.lock().unwrap().get("PlayerStats").unwrap()[0]);
 
         let mut draw_batch = DrawBatch::new(); //pass mutable borrows of this to each Widget.draw() call.
         widget::widget_storage::draw_all(ctx, &mut draw_batch);
