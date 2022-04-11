@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
-use bracket_lib::prelude::{BTerm, DrawBatch, Point, RGB, WHITE, MAGENTA,
-                           TextBlock, TextBuilder};
+use bracket_lib::prelude::{BTerm, DrawBatch, Point, RGB,  RGBA, WHITE, MAGENTA,
+                           TextBlock, TextBuilder, Rect, ColorPair};
 use specs::World;
 
 use crate::gui::Observable;
@@ -107,13 +107,10 @@ impl Widget {
     }
     // --- END BUILDER PATTERN ---
 
+    //Mutates passed-in DrawBatch, which is drawn only once at the end,
+    //in gui::tick().
     pub fn draw(&self, ctx: &mut BTerm, draw_batch: &mut DrawBatch) {
-        /*TODO:
-         * Change to accept textbuilder (and maybe other structs) as argument,
-         * such that all widgets can be drawn to a single buffer which is drawn
-         * to the context only once per tick, instead of multiple draws for the
-         * many widgets.
-         */
+        
         let (x, y, w, h) = (self.position.x,
                             self.position.y,
                             self.dimensions.x,
@@ -125,18 +122,13 @@ impl Widget {
         if x > ctx_w as i32 || y > ctx_h as i32 { return };
         if w > (ctx_w as i32 - x) || h > (ctx_h as i32 - y) { return };
 
-        //draw_batch.cls();
-
-        //println!("x: {}, y: {},\nw: {}, h: {},\nctx_w: {}, ctx_h: {}", x, y, w - 2, h - 2, ctx_w, ctx_h);
-
         let mut textblock = TextBlock::new(x + 1, y + 1, w - 1, h - 2);
         let mut textbuilder = TextBuilder::empty();
-        //dbg!("Calling: .draw() on {}", self.name()); //<------------------------------------------rm
 
         if let Ok(elements) = self.elements.read() {
             let mut idx = 0;
             for element in elements.iter() {
-                let mut color: RGB = RGB::named(WHITE);
+                let mut color: RGB = element.color;
                 if let Ok(selection) = self.selection.read() {
                     if let Some(focus_idx) = *selection {
                         if focus_idx == idx { color = RGB::named(MAGENTA); };
@@ -149,12 +141,16 @@ impl Widget {
             }
         }
 
-        textbuilder.reset(); //unnecessary until I pass-by-&mut the textbuilder to this fn
-        //TODO: draw border
         textblock.print(&textbuilder);
         textblock.render_to_draw_batch(draw_batch);
+        draw_batch.draw_hollow_box(Rect { x1: x, x2: x + w - 1,
+                                          y1: y, y2: y + h - 1,
+                                   },
+                                   ColorPair {
+                                       fg: RGBA::named(WHITE),
+                                       bg: RGBA::named((0,0,0)),
+                                   });
         draw_batch.submit(1000).expect("Batch error in Widget.draw()");
-        //render_draw_buffer(ctx).expect("Render error in Widget.draw()");
     }
 
     // Applies delta then clamps/wraps self.selection based on current state.

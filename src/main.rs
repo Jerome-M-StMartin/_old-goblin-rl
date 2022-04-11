@@ -290,6 +290,15 @@ impl GameState for State {
                     }
                 }*/
 
+                //Updates widget data (Updates VIEW from MVC architecture perspective). ---
+                use gui::widget::*;
+                let player_ent = self.ecs.fetch::<Entity>();
+                let stats_storage = self.ecs.read_storage::<Stats>();
+                let player_stats = stats_storage.get(*player_ent);
+                let widget_elements = player_stats.unwrap().as_widget_elements();
+                store_widget_data("PlayerStats", widget_elements);
+                //-------------------------------------------------------------------------
+                
                 camera::render_camera(&self.ecs, ctx);
                 ctx.set_active_font(0, true);
             }
@@ -320,17 +329,6 @@ impl GameState for State {
                 self.run_systems();
                 self.ecs.maintain();
                 self.gui.init_widgets();
-
-                //Temporary, for testing WIDGET_DATA updating and
-                //  drawing all widgets in WIDGET_STORAGE. ------
-                use gui::widget::*;
-                let player_ent = self.ecs.fetch::<Entity>();
-                let stats_storage = self.ecs.read_storage::<Stats>();
-                let player_stats = stats_storage.get(*player_ent);
-                let widget_elements = player_stats.unwrap().as_widget_elements();
-                store_widget_data("PlayerStats", widget_elements);
-                //-----------------------------------------------
-
 
                 newrunstate = RunState::AwaitingInput;
             }
