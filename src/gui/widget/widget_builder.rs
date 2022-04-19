@@ -141,6 +141,7 @@ impl Widget {
             }
         }
 
+
         textblock.print(&textbuilder);
         textblock.render_to_draw_batch(draw_batch);
         draw_batch.draw_hollow_box(Rect { x1: x, x2: x + w - 1,

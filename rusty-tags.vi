@@ -102,6 +102,7 @@ Command	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/m
 CommandHistory	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^pub struct CommandHistory {$/;"	s
 CommandHistory	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^pub struct CommandHistory<T> {$/;"	s
 CommandQueue	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^pub struct CommandQueue {$/;"	s
+CommandQueueIter	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^pub struct CommandQueueIter<'a, Command> {$/;"	s
 Commandable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^pub trait Commandable {$/;"	t
 Commandable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^pub trait Commandable<T> {$/;"	t
 Comp	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/drain.rs	/^        struct Comp;$/;"	s
@@ -344,7 +345,7 @@ GAP_SIZE	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7
 GEN_ASCII_STR_CHARSET	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/other.rs	/^        const GEN_ASCII_STR_CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\\$/;"	c
 GETTER	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/symbol.rs	/^pub const GETTER: Symbol = Symbol("getter");$/;"	c
 GUI	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^pub struct GUI {$/;"	s
-GameOver	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^pub struct GameOver {$/;"	s
+GameOver	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^pub struct GameOver {$/;"	s
 Gamma	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/gamma.rs	/^pub struct Gamma {$/;"	s
 GammaLargeShape	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/gamma.rs	/^struct GammaLargeShape {$/;"	s
 GammaRepr	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/gamma.rs	/^enum GammaRepr {$/;"	g
@@ -413,6 +414,7 @@ IntoIter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_ya
 IntoIter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    type IntoIter = Iter<'a>;$/;"	T
 IntoIter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    type IntoIter = IterMut<'a>;$/;"	T
 IntoIter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^pub struct IntoIter {$/;"	s
+IntoIter	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    type IntoIter = std::slice::Iter<'a, Command>;$/;"	T
 IntoIterImpl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^type IntoIterImpl = btree_map::IntoIter<String, Value>;$/;"	T
 IntoIterImpl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^type IntoIterImpl = indexmap::map::IntoIter<String, Value>;$/;"	T
 InvalidType	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/de.rs	/^    struct InvalidType<'a> {$/;"	s
@@ -440,7 +442,7 @@ Item	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1
 Item	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/join/par_join.rs	/^    type Item = J::Type;$/;"	T
 Item	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    type Item = Entity;$/;"	T
 Item	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    type Item = Entity;$/;"	T
-Item	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    type Item = Command;$/;"	T
+Item	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    type Item = &'a Command;$/;"	T
 Item	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/components.rs	/^pub struct Item {}$/;"	s
 ItemCollectionSystem	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/inventory_system.rs	/^pub struct ItemCollectionSystem {}$/;"	s
 ItemDropSystem	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/inventory_system.rs	/^pub struct ItemDropSystem {}$/;"	s
@@ -499,7 +501,7 @@ MAX_TWO_B	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1
 MIN_ROOM_SIZE	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/bsp_interior.rs	/^const MIN_ROOM_SIZE : i32 = 8;$/;"	c
 MIN_SIZE	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/simple_map.rs	/^        const MIN_SIZE : i32 = 6;$/;"	c
 MagicMapper	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/components.rs	/^pub struct MagicMapper {}$/;"	s
-MainMenu	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^pub struct MainMenu {$/;"	s
+MainMenu	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^pub struct MainMenu {$/;"	s
 MainMenuResult	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^pub enum MainMenuResult {$/;"	g
 MainMenuSelection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^pub enum MainMenuSelection { NewGame, LoadGame, Quit }$/;"	g
 Map	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^pub struct Map<K, V> {$/;"	s
@@ -602,7 +604,6 @@ NumberVisitor	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ser
 OTHER	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/symbol.rs	/^pub const OTHER: Symbol = Symbol("other");$/;"	c
 Observable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub trait Observable : Send + Sync {$/;"	t
 Observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub trait Observer : Send + Sync {$/;"	t
-ObserverData	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^pub struct ObserverData {$/;"	s
 OccupiedEntry	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^pub struct OccupiedEntry<'a> {$/;"	s
 OccupiedEntry	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/entry.rs	/^pub struct OccupiedEntry<'a, 'b: 'a, T: 'a, D: 'a> {$/;"	s
 OccupiedEntryImpl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^type OccupiedEntryImpl<'a> = btree_map::OccupiedEntry<'a, String, Value>;$/;"	T
@@ -763,8 +764,8 @@ Seed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/s
 Seed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/std.rs	/^    type Seed = <Rng as SeedableRng>::Seed;$/;"	T
 SeedStructVariant	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/value.rs	/^    struct SeedStructVariant<V> {$/;"	s
 SeedTupleVariant	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/value.rs	/^    struct SeedTupleVariant<V> {$/;"	s
-Selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^pub enum Selection { NewGame, Quit }$/;"	g
-Selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^pub enum Selection { NewGame, LoadGame, Quit }$/;"	g
+Selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^pub enum Selection { NewGame, Quit }$/;"	g
+Selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^pub enum Selection { NewGame, LoadGame, Quit }$/;"	g
 SeqAccess	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/mod.rs	/^pub trait SeqAccess<'de> {$/;"	t
 SeqAccess	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^struct SeqAccess<'a, R: 'a> {$/;"	s
 SeqAccess	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/de.rs	/^struct SeqAccess<'a: 'r, 'r> {$/;"	s
@@ -1235,6 +1236,7 @@ WeightedIndex	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ran
 WideningMultiply	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs	/^pub trait WideningMultiply<RHS = Self> {$/;"	t
 Widget	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^pub struct Widget {$/;"	s
 WidgetElement	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^pub struct WidgetElement {$/;"	s
+Widgetable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^pub trait Widgetable {$/;"	t
 WindowHintedIterator	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/mod.rs	/^    struct WindowHintedIterator<I: ExactSizeIterator + Iterator + Clone> {$/;"	s
 WorldExt	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/world_ext.rs	/^pub trait WorldExt {$/;"	t
 Write	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/io/core.rs	/^pub trait Write {$/;"	t
@@ -1291,13 +1293,12 @@ _private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.
 actually_private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/lib.rs	/^mod actually_private {$/;"	m
 add	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/changeset.rs	/^    pub fn add(&mut self, entity: Entity, value: T)$/;"	f
 add	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/components.rs	/^    fn add(self, other: Self) -> Self {$/;"	f
-add	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn add<S: ToString>(widget: Widget) {$/;"	f
+add	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn add(widget: Arc<Widget>) {$/;"	f
 add	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/random_table.rs	/^    pub fn add<S:ToString>(mut self, name : S, weight: i32) -> RandomTable {$/;"	f
-add_drawable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn add_drawable(&self, id: usize, to_add: Arc<dyn Drawable>, set_focus: bool) {$/;"	f
 add_element	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    pub fn add_element(&mut self, new_element: Arc<dyn Drawable>) {$/;"	f
-add_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn add_observer(&self, to_add: Weak<dyn Observer>);$/;"	f
 add_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn add_observer(to_add: Box<dyn Observer>, to_notify: &mut Vec<Box<dyn Observer>>) {$/;"	f
-add_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    fn add_observer(&self, to_add: Weak<dyn Observer>) {$/;"	f
+add_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn add_observer<T: 'static + Observer>(&self, to_add: &Arc<T>);$/;"	f
+add_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    fn add_observer<T>(&self, to_add: &Arc<T>)$/;"	f
 add_resource	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/world_ext.rs	/^    fn add_resource<T: Resource>(&mut self, res: T) {$/;"	f
 add_resource	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/world_ext.rs	/^    fn add_resource<T: Resource>(&mut self, res: T);$/;"	f
 add_subrects	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/bsp_dungeon.rs	/^    fn add_subrects(&mut self, rect : Rect) {$/;"	f
@@ -1326,7 +1327,7 @@ and	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/
 any	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs	/^    fn any(self) -> bool {$/;"	f
 any	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs	/^    fn any(self) -> bool;$/;"	f
 append	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn append(&mut self, other: &mut Self) {$/;"	f
-append	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logger.rs	/^    pub fn append<T: ToString>(mut self, text : T) -> Self {$/;"	f
+append	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logger.rs	/^    pub fn append<T: ToString>(&mut self, text : T) {$/;"	f
 append_entry	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logstore.rs	/^pub fn append_entry(fragments: Vec<LogFragment>) {$/;"	f
 append_fragment	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logstore.rs	/^pub fn append_fragment(fragment: LogFragment) {$/;"	f
 apply_horizontal_tunnel	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/common.rs	/^pub fn apply_horizontal_tunnel(map : &mut Map, x1:i32, x2:i32, y:i32) -> Vec<usize> {$/;"	f
@@ -1342,14 +1343,13 @@ array_impl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0
 array_impls	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/impls.rs	/^macro_rules! array_impls {$/;"	d
 array_impls	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/ser/impls.rs	/^macro_rules! array_impls {$/;"	d
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    fn as_any(&self) -> &dyn Any;$/;"	f
+as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn as_any(&self) -> &dyn Any { self }$/;"	f
+as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn as_any(&self) -> &dyn Any { self }$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn as_any(&self) -> &dyn Any { self }$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/mod.rs	/^    fn as_any(&self) -> &dyn Any;$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn as_any(&self) -> &dyn Any {$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn as_any(&self) -> &dyn Any {$/;"	f
-as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn as_any(&self) -> &dyn Any { self }$/;"	f
-as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn as_any(&self) -> &dyn Any { self }$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn as_any(&self) -> &dyn Any;$/;"	f
-as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^    fn as_any(&self) -> &dyn Any;$/;"	f
 as_any	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    fn as_any(&self) -> &dyn Any {$/;"	f
 as_array	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/mod.rs	/^    pub fn as_array(&self) -> Option<&Vec<Value>> {$/;"	f
 as_array_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/mod.rs	/^    pub fn as_array_mut(&mut self) -> Option<&mut Vec<Value>> {$/;"	f
@@ -1397,6 +1397,7 @@ as_u64	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml
 as_u64	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/value/mod.rs	/^    pub fn as_u64(&self) -> Option<u64> {$/;"	f
 as_usize	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/index.rs	/^    fn as_usize(self) -> usize {$/;"	f
 as_usize	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/index.rs	/^    fn as_usize(self) -> usize;$/;"	f
+as_widget_elements	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^    fn as_widget_elements(&self) -> Vec<WidgetElement> {$/;"	f
 as_widget_elements	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^    fn as_widget_elements(&self) -> Vec<WidgetElement>;$/;"	f
 assert_almost_eq	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/unit_circle.rs	/^    macro_rules! assert_almost_eq {$/;"	d
 assert_almost_eq	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/unit_sphere.rs	/^    macro_rules! assert_almost_eq {$/;"	d
@@ -1412,6 +1413,9 @@ bad_type	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.
 barrier_scroll	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn barrier_scroll(ecs: &mut World, x: i32, y: i32) {$/;"	f
 basic_drain	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/drain.rs	/^    fn basic_drain() {$/;"	f
 bear_trap	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn bear_trap(ecs: &mut World, x: i32, y: i32) {$/;"	f
+become_focus	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn become_focus(&self) {$/;"	f
+become_focus	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn become_focus(&self) { \/*optional*\/ }$/;"	f
+become_focus	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn become_focus(&self) {$/;"	f
 begin_array	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    fn begin_array<W>(&mut self, writer: &mut W) -> io::Result<()>$/;"	f
 begin_array_value	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>$/;"	f
 begin_object	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    fn begin_object<W>(&mut self, writer: &mut W) -> io::Result<()>$/;"	f
@@ -1442,7 +1446,7 @@ build	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.
 build	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/lazy.rs	/^    fn build(self) -> Entity {$/;"	f
 build	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn build(mut self) -> Entity {$/;"	f
 build	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn build(self) -> Entity;$/;"	f
-build	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn build(self) {$/;"	f
+build	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn build(self) -> usize { $/;"	f
 build	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/area_starting_points.rs	/^    fn build(&mut self, _rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {$/;"	f
 build	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/bsp_dungeon.rs	/^    fn build(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {$/;"	f
 build	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/bsp_interior.rs	/^    fn build(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {$/;"	f
@@ -1513,8 +1517,8 @@ cause	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.
 cautious	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/private/size_hint.rs	/^pub fn cautious(hint: Option<usize>) -> usize {$/;"	f
 center	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/rect.rs	/^    pub fn center(&self) -> (i32, i32) {$/;"	f
 central_attractor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/dla.rs	/^    pub fn central_attractor() -> Box<DLABuilder> {$/;"	f
-change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
-change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
+change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
+change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn change_selection(&self, direction: Dir) {$/;"	f
 change_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn change_selection (&self, delta: i8) {$/;"	f
 channel	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/flagged.rs	/^    fn channel(&self) -> &EventChannel<ComponentEvent> {$/;"	f
 channel	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/track.rs	/^    fn channel(&self) -> &EventChannel<ComponentEvent>;$/;"	f
@@ -1579,15 +1583,18 @@ collect_str	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde
 collect_str	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    fn collect_str<T>(self, value: &T) -> Result<()>$/;"	f
 collect_str	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/ser.rs	/^    fn collect_str<T: ?Sized>(self, value: &T) -> Result<String>$/;"	f
 collect_str	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/ser.rs	/^    fn collect_str<T: ?Sized>(self, value: &T) -> Result<Value>$/;"	f
-color	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logger.rs	/^    pub fn color(mut self, color: (u8, u8, u8)) -> Self {$/;"	f
+color	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logger.rs	/^    pub fn color(&mut self, color: (u8, u8, u8)) {$/;"	f
 column	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/error.rs	/^    pub fn column(&self) -> usize {$/;"	f
 column	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/error.rs	/^    pub fn column(&self) -> usize {$/;"	f
 component	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-derive-0.4.1/src/lib.rs	/^pub fn component(input: TokenStream) -> TokenStream {$/;"	f
 confusion_scroll	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {$/;"	f
 constant	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/prefab_builder/mod.rs	/^    pub fn constant(level : prefab_levels::PrefabLevel) -> Box<PrefabBuilder> {$/;"	f
 constrain	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/private/ser.rs	/^pub fn constrain<T: ?Sized>(t: &T) -> &T {$/;"	f
-construct	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/main_menu.rs	/^fn construct(user_input: Arc<UserInput>) -> Widget {$/;"	f
+construct	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widgets/game_over.rs	/^pub fn construct(ctx: &BTerm, user_input: &Arc<UserInput>) -> usize {$/;"	f
+construct	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widgets/main_menu.rs	/^pub fn construct(ctx: &BTerm, user_input: &Arc<UserInput>) -> usize {$/;"	f
+construct	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widgets/player_stats.rs	/^pub fn construct(user_input: &Arc<UserInput>) -> usize {$/;"	f
 contains	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/mod.rs	/^    pub fn contains(&self, e: Entity) -> bool {$/;"	f
+contains	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn contains(widget_name: &str) -> bool {$/;"	f
 contains_key	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn contains_key<Q>(&self, key: &Q) -> bool$/;"	f
 contains_key	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    pub fn contains_key(&self, k: &Value) -> bool {$/;"	f
 content	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/private/de.rs	/^mod content {$/;"	m
@@ -1998,24 +2005,23 @@ door_possible	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders
 doors	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/door_placement.rs	/^    fn doors(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {$/;"	f
 drain	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/mod.rs	/^    pub fn drain(&mut self) -> Drain<T> {$/;"	f
 draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/infocard.rs	/^    pub fn draw(&self, ctx: &mut Rltk) {$/;"	f
+draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
+draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
 draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
 draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/mod.rs	/^    fn draw(&self, ctx: &mut BTerm);$/;"	f
 draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
 draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
-draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
-draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn draw(&self, ctx: &mut BTerm) {$/;"	f
-draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn draw(self, &mut ctx: BTerm) {$/;"	f
+draw	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn draw(&self, ctx: &mut BTerm, draw_batch: &mut DrawBatch) {$/;"	f
+draw_all	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn draw_all(ctx: &mut BTerm, draw_batch: &mut DrawBatch) { \/\/calls Commandable::process() and Widget::draw() on all widgets.$/;"	f
 draw_color	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/infocard.rs	/^    pub fn draw_color(&self, ctx: &mut Rltk, color: (u8, u8, u8)) {$/;"	f
 draw_corridor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/common.rs	/^pub fn draw_corridor(map: &mut Map, x1:i32, y1:i32, x2:i32, y2:i32) -> Vec<usize> {$/;"	f
 draw_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^fn draw_cursor(ecs: &World, ctx: &mut Rltk) {$/;"	f
-draw_hud	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn draw_hud(&self) {$/;"	f
 draw_log	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^fn draw_log(ecs: &World, ctx: &mut Rltk, screen_h: i32) {$/;"	f
 draw_name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/infocard.rs	/^fn draw_name(ctx: &mut Rltk, name: &String, main_box: &InfoBox) {$/;"	f
 draw_node_menu	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/mod.rs	/^fn draw_node_menu(ecs: &World, ctx: &mut Rltk, pos: (i32, i32), state: Option<MenuState>) \/*-> MenuState*\/ {$/;"	f
 draw_stats	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^fn draw_stats(ecs: &World, ctx: &mut Rltk, screen_h: i32, depth_len: i32) {$/;"	f
 draw_tooltips	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^fn draw_tooltips(ecs: &World, ctx: &mut Rltk, global: bool) {$/;"	f
 draw_ui	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/gui.rs	/^pub fn draw_ui(ecs: &World, ctx: &mut Rltk, tooltips: bool) {$/;"	f
-draw_widgets	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn draw_widgets(ctx: &mut BTerm) {$/;"	f
 drive_unindexed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/join/par_join.rs	/^    fn drive_unindexed<C>(self, consumer: C) -> C::Result$/;"	f
 drop	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/ctxt.rs	/^    fn drop(&mut self) {$/;"	f
 drop	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/mod.rs	/^    fn drop(&mut self) {$/;"	f
@@ -2029,6 +2035,10 @@ drop	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1
 dummy_test_clear	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/tests.rs	/^    fn dummy_test_clear() {$/;"	f
 duplicate_field	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/mod.rs	/^            fn duplicate_field(field: &'static str) -> Self {$/;"	f
 eat_char	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^    fn eat_char(&mut self) {$/;"	f
+ecs_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn ecs_process(&self, ecs: &mut World, runstate: RunState) -> RunState; \/\/execute each command in CommandQueue$/;"	f
+ecs_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn ecs_process(&self, _ecs: &mut World, runstate: RunState) -> RunState {$/;"	f
+ecs_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn ecs_process(&self, _ecs: &mut World, runstate: RunState) -> RunState {$/;"	f
+ecs_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn ecs_process(&self, ecs: &mut World, runstate: RunState) -> RunState {$/;"	f
 effective_style	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/de.rs	/^fn effective_style(variant: &Variant) -> Style {$/;"	f
 effective_style	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/ser.rs	/^fn effective_style(variant: &Variant) -> Style {$/;"	f
 emit_event	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/flagged.rs	/^    fn emit_event(&self) -> bool {$/;"	f
@@ -2363,6 +2373,7 @@ get	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/
 get	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    unsafe fn get(v: &mut &'a EntitiesRes, idx: Index) -> Entity {$/;"	f
 get_available_exits	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map.rs	/^    fn get_available_exits(&self, idx:usize) -> SmallVec<[(usize, f32); 10]> {$/;"	f
 get_available_neighbors	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/maze.rs	/^    fn get_available_neighbors(&self) -> Vec<usize> {$/;"	f
+get_focus_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    pub fn get_focus_selection(&self) -> Option<u8> {$/;"	f
 get_fork_counter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/adapter/reseeding.rs	/^    pub fn get_fork_counter() -> usize {$/;"	f
 get_item	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^fn get_item(ecs: &mut World) -> RunState {$/;"	f
 get_lit_str	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^fn get_lit_str<'a>(cx: &Ctxt, attr_name: Symbol, lit: &'a syn::Lit) -> Result<&'a syn::LitStr, ()> {$/;"	f
@@ -2390,8 +2401,8 @@ get_random_rect	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builde
 get_random_sub_rect	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/bsp_dungeon.rs	/^    fn get_random_sub_rect(&self, rect : Rect, rng : &mut RandomNumberGenerator) -> Rect {$/;"	f
 get_renames	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^fn get_renames<'a>($/;"	f
 get_screen_bounds	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/camera.rs	/^pub fn get_screen_bounds(ecs: &World, ctx: &mut BTerm) -> (i32,i32,i32,i32) {$/;"	f
-get_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    pub fn get_selection(&self) -> Option<Selection> {$/;"	f
-get_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    pub fn get_selection(&self) -> Option<Selection> {$/;"	f
+get_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    pub fn get_selection(&self) -> Option<Selection> {$/;"	f
+get_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    pub fn get_selection(&self) -> Option<Selection> {$/;"	f
 get_ser_and_de	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^fn get_ser_and_de<'a, 'b, T, F>($/;"	f
 get_serde_meta_items	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^pub fn get_serde_meta_items(cx: &Ctxt, attr: &syn::Attribute) -> Result<Vec<syn::NestedMeta>, ()> {$/;"	f
 get_tile_glyph	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/camera.rs	/^fn get_tile_glyph(idx: usize, map: &Map) -> (bracket_lib::prelude::FontCharType, RGB, RGB) {$/;"	f
@@ -2405,6 +2416,9 @@ goblin	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn gob
 goto_next_level	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/main.rs	/^    fn goto_next_level(&mut self) {$/;"	f
 gt_mask	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs	/^            fn gt_mask(self, other: Self) -> Self::Mask {$/;"	f
 gt_mask	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/utils.rs	/^    fn gt_mask(self, other: Self) -> Self::Mask;$/;"	f
+gui_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn gui_process(&self) {}$/;"	f
+gui_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn gui_process(&self) {$/;"	f
+gui_process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn gui_process(&self) {$/;"	f
 has_flatten	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    pub fn has_flatten(&self) -> bool {$/;"	f
 has_getter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/ast.rs	/^    pub fn has_getter(&self) -> bool {$/;"	f
 hash	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/number.rs	/^    fn hash<H: Hasher>(&self, state: &mut H) {$/;"	f
@@ -2427,11 +2441,11 @@ id	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/s
 id	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/saveload/uuid.rs	/^    fn id(&self) -> Uuid {$/;"	f
 id	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    pub fn id(self) -> Index {$/;"	f
 id	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    pub fn id(self) -> i32 {$/;"	f
+id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn id(&self) -> usize { self.observer_id }$/;"	f
+id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn id(&self) -> usize { self.observer_id }$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn id(&self) -> usize {$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn id(&self) -> usize {$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn id(&self) -> usize {$/;"	f
-id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn id(&self) -> usize { self.observer_id }$/;"	f
-id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn id(&self) -> usize { self.observer_id }$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn id(&self) -> usize;$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn id(&self) -> usize {$/;"	f
 id	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn id(&self) -> usize {$/;"	f
@@ -2485,6 +2499,7 @@ index_or_insert	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/s
 index_or_insert	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/value/index.rs	/^    fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value {$/;"	f
 index_or_insert	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/value/index.rs	/^    fn index_or_insert<'v>(&self, v: &'v mut Value) -> &'v mut Value;$/;"	f
 info	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/lib.rs	/^macro_rules! info { ($($x:tt)*) => ($/;"	d
+init_widgets	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn init_widgets(&self) {$/;"	f
 initialize	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1.4.0/src/lib.rs	/^            fn initialize(lazy: &Self) {$/;"	f
 initialize	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1.4.0/src/lib.rs	/^    fn initialize(lazy: &Self);$/;"	f
 initialize	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1.4.0/src/lib.rs	/^pub fn initialize<T: LazyStatic>(lazy: &T) {$/;"	f
@@ -2531,6 +2546,7 @@ into_iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.
 into_iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^    pub fn into_iter<T>(self) -> StreamDeserializer<'de, R, T>$/;"	f
 into_iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    fn into_iter(self) -> Self::IntoIter {$/;"	f
 into_iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    fn into_iter(self) -> Self::IntoIter {$/;"	f
+into_iter	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn into_iter(self) -> std::slice::Iter<'a, Command> {$/;"	f
 into_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn into_mut(self) -> &'a mut Value {$/;"	f
 into_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/entry.rs	/^    pub fn into_mut(self) -> &'a mut T {$/;"	f
 into_vec	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/index.rs	/^    pub fn into_vec(self) -> Vec<usize> {$/;"	f
@@ -2624,6 +2640,7 @@ is_unconstrained	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/
 iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/index.rs	/^    pub fn iter(&self) -> IndexVecIter<'_> {$/;"	f
 iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn iter(&self) -> Iter {$/;"	f
 iter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    pub fn iter(&self) -> Iter {$/;"	f
+iter	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn iter(&self) -> CommandQueueIter<Command> {$/;"	f
 iter_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn iter_mut(&mut self) -> IterMut {$/;"	f
 iter_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    pub fn iter_mut(&mut self) -> IterMut {$/;"	f
 iterator_len_hint	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/ser/mod.rs	/^fn iterator_len_hint<I>(iter: &I) -> Option<usize>$/;"	f
@@ -2705,21 +2722,22 @@ missing_field	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ser
 modify	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/components.rs	/^    pub fn modify(storage: &mut WriteStorage<BasicAttack>, target: Entity, delta: DamageAtom) {$/;"	f
 move_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn move_cursor(&self, direction: Dir) {$/;"	f
 move_last	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/seq/mod.rs	/^        fn move_last(slice: &mut [usize], pos: usize) {$/;"	f
+move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn move_to(&self, _pos: Point) {$/;"	f
+move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn move_to(&self, _pos: Point) {$/;"	f
 move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn move_to(&self, pos: Point) {$/;"	f
 move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/mod.rs	/^    fn move_to(&self, pos: Point);$/;"	f
 move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn move_to(&self, pos: Point) {$/;"	f
 move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn move_to(&self, pos: Point) {$/;"	f
-move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn move_to(&self, _pos: Point) {$/;"	f
-move_to	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn move_to(&self, _pos: Point) {$/;"	f
 mut_if	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/ser.rs	/^fn mut_if(is_mut: bool) -> Option<TokenStream> {$/;"	f
 mutable_resource_join	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/join/mod.rs	/^macro_rules! mutable_resource_join {$/;"	d
 name	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    pub fn name(&self) -> &Name {$/;"	f
+name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
+name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
 name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn name(&self) -> &str {$/;"	f
-name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
-name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
 name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn name(&self) -> &str; \/\/ for debugging$/;"	f
-name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn name(&self) -> &str { self.name }$/;"	f
-name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn name(&self) -> &str {$/;"	f
+name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
+name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn name(&self) -> String {$/;"	f
+name	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn name(&self) -> &str { &self.name }$/;"	f
 needs_deserialize_bound	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/de.rs	/^fn needs_deserialize_bound(field: &attr::Field, variant: Option<&attr::Variant>) -> bool {$/;"	f
 needs_serialize_bound	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/ser.rs	/^fn needs_serialize_bound(field: &attr::Field, variant: Option<&attr::Variant>) -> bool {$/;"	f
 new	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/bernoulli.rs	/^    pub fn new(p: f64) -> Result<Bernoulli, BernoulliError> {$/;"	f
@@ -2816,16 +2834,17 @@ new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/infocard.rs	
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/_old/menu/mod.rs	/^    fn new(origin: (i32, i32), width: u8, depth: u8) -> Menu {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn new() -> Self {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    pub fn new() -> Self {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    pub fn new(observer_id: usize, to_observe: Rc<dyn Observable>) -> Cursor {$/;"	f
-new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    pub fn new(user_input: Arc<UserInput>, observer_id: usize, to_observe: Arc<dyn Observable>) -> Cursor {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    pub fn new(user_input: &Arc<UserInput>, observer_id: usize, to_observe: Arc<UserInput>) -> Cursor {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    pub fn new($/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    pub fn new(direction: Dir) -> Self {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    pub fn new(pos: Point,$/;"	f
-new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logger.rs	/^    pub fn new() -> Self {$/;"	f
-new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
-new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn new(user_input: &Arc<UserInput>) -> Self {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    pub fn new() -> Self {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn new(s: String, c: RGB) -> WidgetElement {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn new<T: ToString>(name: T,$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map.rs	/^    pub fn new(new_depth: i32, width: i32, height: i32) -> Map {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/area_starting_points.rs	/^    pub fn new(x : XStart, y : YStart) -> Box<AreaStartingPosition> {$/;"	f
@@ -2858,7 +2877,7 @@ new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/simple_ma
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/voronoi.rs	/^    pub fn new() -> Box<VoronoiCellBuilder> {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/voronoi_spawning.rs	/^    pub fn new() -> Box<VoronoiSpawning> {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/particle_system.rs	/^    pub fn new() -> ParticleBuilder {$/;"	f
-new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    pub fn new(user_input: Arc<UserInput>) -> Self {$/;"	f
+new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    pub fn new(user_input: &Arc<UserInput>) -> Arc<Self> {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/random_table.rs	/^    pub fn new() -> RandomTable {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/random_table.rs	/^    pub fn new<S:ToString>(name: S, weight: i32) -> RandomEntry {$/;"	f
 new	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/rect.rs	/^    pub fn new(x:i32, y:i32, w:i32, h:i32) -> Rect {$/;"	f
@@ -2903,7 +2922,6 @@ next	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0
 next	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/join/mod.rs	/^    fn next(&mut self) -> Option<J::Type> {$/;"	f
 next	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    fn next(&mut self) -> Option<Entity> {$/;"	f
 next	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn next(&mut self) -> Option<Entity> {$/;"	f
-next	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn next(&self) -> Option<Self::Item> {$/;"	f
 next_back	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^            fn next_back(&mut self) -> Option<Self::Item> {$/;"	f
 next_char	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^    fn next_char(&mut self) -> Result<Option<u8>> {$/;"	f
 next_char_or_null	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^    fn next_char_or_null(&mut self) -> Result<u8> {$/;"	f
@@ -2999,12 +3017,13 @@ or_insert	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0
 or_insert_with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn or_insert_with<F>(self, default: F) -> &'a mut Value$/;"	f
 or_insert_with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/entry.rs	/^    pub fn or_insert_with<F>(self, default: F) -> &'a mut T$/;"	f
 orc	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn orc(ecs: &mut World, x: i32, y: i32) { hostile(ecs, x, y, bracket_lib::prelude::to_cp437('o'), "Orc"); }$/;"	f
+orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn orth_move(&self, _direction: Dir) {$/;"	f
+orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn orth_move(&self, _direction: Dir) {$/;"	f
 orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn orth_move(&self, direction: Dir) {$/;"	f
+orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    pub fn orth_move(&self, dir: Dir) {$/;"	f
 orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/mod.rs	/^    fn orth_move(&self, direction: Dir);$/;"	f
 orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn orth_move(&self, direction: Dir) {$/;"	f
 orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn orth_move(&self, direction: Dir) {$/;"	f
-orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn orth_move(&self, _direction: Dir) {$/;"	f
-orth_move	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn orth_move(&self, _direction: Dir) {$/;"	f
 other	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    pub fn other(&self) -> bool {$/;"	f
 overflow	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/de.rs	/^macro_rules! overflow {$/;"	d
 paint	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/common.rs	/^pub fn paint(map: &mut Map, mode: Symmetry, brush_size: i32, x: i32, y:i32) {$/;"	f
@@ -3060,16 +3079,14 @@ peek_position	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ser
 peek_position	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    fn peek_position(&self) -> Position;$/;"	f
 place_lifetime	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/de.rs	/^fn place_lifetime() -> syn::LifetimeDef {$/;"	f
 player	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^pub fn player(ecs: &mut World, x: i32, y: i32) -> Entity {$/;"	f
-player_input	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {$/;"	f
 pointer	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/mod.rs	/^    pub fn pointer(&self, pointer: &str) -> Option<&Value> {$/;"	f
 pointer_mut	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/mod.rs	/^    pub fn pointer_mut(&mut self, pointer: &str) -> Option<&mut Value> {$/;"	f
 pop	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    fn pop(&mut self) -> Option<Index> {$/;"	f
 pop	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn pop(&mut self) -> Option<Command> {$/;"	f
-pop	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn pop(&self) -> Option<Command> {$/;"	f
+pop	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn pop(&self) -> Option<Command> { \/\/use this for true Queue-like behaviour$/;"	f
 pop	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    pub fn pop(&self) -> Result<Arc<dyn Command<T>>, &str> {$/;"	f
 pop_atomic	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    fn pop_atomic(&self) -> Option<Index> {$/;"	f
 pop_big	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/weighted/alias_method.rs	/^            fn pop_big(&mut self) -> u32 {$/;"	f
-pop_front	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn pop_front(&self) -> Option<Command> {$/;"	f
 pop_small	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/weighted/alias_method.rs	/^            fn pop_small(&mut self) -> u32 {$/;"	f
 populate_blocked	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map.rs	/^    pub fn populate_blocked(&mut self) {$/;"	f
 position	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    fn position(&self) -> Position {$/;"	f
@@ -3094,12 +3111,8 @@ private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0
 private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^mod private {$/;"	m
 private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/value/index.rs	/^mod private {$/;"	m
 private	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/value/index.rs	/^mod private {$/;"	m
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn process(&self, ecs: &mut World) -> super::RunState; \/\/execute each command in CommandQueue$/;"	f
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn process(&self, _ctx: &mut super::super::World) -> super::super::RunState {$/;"	f
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {$/;"	f
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {$/;"	f
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn process(&self, _ecs: &mut World) -> RunState {$/;"	f
-process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn process(&self, ecs: &mut World) -> RunState {$/;"	f
+process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {$/;"	f
+process	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn process(&self, _ecs: &mut super::super::World) -> super::super::RunState {$/;"	f
 push	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn push(&mut self, cmd: Command) {$/;"	f
 push	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn push(&self, cmd: Command) {$/;"	f
 push	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    pub fn push(&self, cmd: impl Command<T> + 'static) {$/;"	f
@@ -3132,7 +3145,8 @@ ref	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1
 ref	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1.4.0/src/lib.rs	/^    static ref HASHMAP: HashMap<u32, &'static str> = {$/;"	c
 ref	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-1.4.0/src/lib.rs	/^    static ref NUMBER: u32 = times_two(21);$/;"	c
 ref	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/gamelog/logstore.rs	/^    static ref LOG: Mutex<Vec<Vec<LogFragment>>> = Mutex::new(Vec::new());$/;"	c
-ref	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^    static ref WIDGET_STORAGE: Mutex<HashMap<String, Widget>> = Mutex::new(HashMap::new());$/;"	c
+ref	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^    pub static ref WIDGET_DATA: Mutex<HashMap<String, Vec<WidgetElement>>> = Mutex::new(HashMap::new());$/;"	c
+ref	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^    pub static ref WIDGET_STORAGE: Mutex<HashMap<String, Arc<Widget>>> = Mutex::new(HashMap::new());$/;"	c
 register	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/world_ext.rs	/^    fn register<T: Component>(&mut self)$/;"	f
 register_fork_handler	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/adapter/reseeding.rs	/^    pub fn register_fork_handler() {$/;"	f
 register_fork_handler	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/rngs/adapter/reseeding.rs	/^    pub fn register_fork_handler() {}$/;"	f
@@ -3182,8 +3196,8 @@ retrieve_entity_internal	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299d
 retrieve_entity_internal	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/saveload/uuid.rs	/^    fn retrieve_entity_internal(&self, id: Uuid) -> Option<Entity> {$/;"	f
 reverse_me	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    fn reverse_me(&mut self) {} \/\/override if this command is being sent to a Commandable with a CommandHistory.$/;"	f
 rex_level	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/prefab_builder/mod.rs	/^    pub fn rex_level(template : &'static str) -> Box<PrefabBuilder> {$/;"	f
-rm	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn rm(widget_name: &str) -> Result<Widget, String> {$/;"	f
-rm_drawable	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/mod.rs	/^    pub fn rm_drawable(&self, id: usize) {$/;"	f
+rm	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn rm(widget_name: &str) -> Result<Arc<Widget>, String> {$/;"	f
+rm_last	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    pub fn rm_last(&self) -> Option<Command> {$/;"	f
 rm_observer	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn rm_observer(&self, to_remove: &Box<dyn Observer>, to_notify: &mut Vec<Box<dyn Observer>>) {$/;"	f
 rng	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/lib.rs	/^    pub fn rng(seed: u64) -> impl RngCore {$/;"	f
 roll	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/random_table.rs	/^    pub fn roll(&self, rng : &mut RandomNumberGenerator) -> String {$/;"	f
@@ -3278,11 +3292,11 @@ self_to_qself	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/ser
 self_ty	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/receiver.rs	/^    fn self_ty(&self, span: Span) -> TypePath {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/command/mod.rs	/^    fn send(&self, command: Command); \/\/store cmd in CommandQueue$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/command/mod.rs	/^    fn send(&self, cmd: Arc<dyn Command<T>>);$/;"	f
+send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn send(&self, cmd: Command) {$/;"	f
+send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn send(&self, cmd: Command) {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn send(&self, cmd: Command) {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn send(&self, cmd: Box<dyn Command<ScrollBar<T>>>) {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn send(&self, cmd: Box<dyn Command<SubWindow>>) {$/;"	f
-send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn send(&self, cmd: Command) {$/;"	f
-send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn send(&self, cmd: Command) {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn send(&self, cmd: Command) {$/;"	f
 send	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn send(&self, command: Command) {$/;"	f
 seq_impl	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/impls.rs	/^macro_rules! seq_impl {$/;"	d
@@ -3671,19 +3685,16 @@ set_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_
 set_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    fn set_failed(&mut self, failed: &mut bool) {$/;"	f
 set_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    fn set_failed(&mut self, failed: &mut bool);$/;"	f
 set_focus	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    pub fn set_focus(&self, observer_id: usize) {$/;"	f
+set_focus_selection	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    pub fn set_focus_selection(&self, new_selection: Option<u8>) {$/;"	f
 set_glyph	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    pub fn set_glyph(&self, new_glyph: FontCharType) {$/;"	f
 set_if_none	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    fn set_if_none(&mut self, value: T) {$/;"	f
 set_opt	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    fn set_opt<A: ToTokens>(&mut self, obj: A, value: Option<T>) {$/;"	f
 set_true	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    fn set_true<A: ToTokens>(&mut self, obj: A) {$/;"	f
 setup	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/data.rs	/^    fn setup(res: &mut World) {$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn setup_cursor(&self) {$/;"	f
+setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn setup_cursor(&self) {} \/\/this needs to leave this trait$/;"	f
+setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn setup_cursor(&self) {} \/\/this needs to leave this trait$/;"	f
 setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn setup_cursor(&self) {$/;"	f
 setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn setup_cursor(&self) {$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn setup_cursor(&self) {} \/\/this needs to leave this trait$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn setup_cursor(&self) {} \/\/this needs to leave this trait$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn setup_cursor(&self); \/\/<------------this needs to be moved elsewhere$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn setup_cursor(&self) {}$/;"	f
-setup_cursor	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn setup_cursor(&self) {}$/;"	f
 should_early_return_if_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    const should_early_return_if_failed: bool = false;$/;"	c
 should_early_return_if_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    const should_early_return_if_failed: bool = true;$/;"	c
 should_early_return_if_failed	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/read.rs	/^    const should_early_return_if_failed: bool;$/;"	c
@@ -3737,6 +3748,7 @@ starts_with_digit	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823
 stirling	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/binomial.rs	/^                fn stirling(a: f64) -> f64 {$/;"	f
 storage_entry	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/tests.rs	/^    fn storage_entry() {$/;"	f
 storage_mask	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/tests.rs	/^    fn storage_mask() {$/;"	f
+store_widget_data	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/mod.rs	/^pub fn store_widget_data<T: ToString>(key: T, val: Vec<WidgetElement>) {$/;"	f
 string	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/private/mod.rs	/^mod string {$/;"	m
 struct_from_ast	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/ast.rs	/^fn struct_from_ast<'a>($/;"	f
 struct_variant	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.136/src/de/mod.rs	/^    fn struct_variant<V>($/;"	f
@@ -3934,7 +3946,7 @@ to_writer_pretty	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/
 to_yaml	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/ser.rs	/^fn to_yaml<T>(elem: T) -> Result<Yaml>$/;"	f
 torch	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/spawner.rs	/^fn torch(ecs: &mut World, x: i32, y: i32) {$/;"	f
 trace	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/lib.rs	/^macro_rules! trace { ($($x:tt)*) => ($/;"	d
-transcribe_input	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    fn transcribe_input(&self, ctx: &BTerm) -> bool { \/\/use returned bool to control observer notification$/;"	f
+transcribe_input	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    fn transcribe_input(&self, ctx: &BTerm) -> bool { \/\/use bool to control observer notification$/;"	f
 transcribe_input	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/user_input/mod.rs	/^    pub fn transcribe_input(&self, ctx: &BTerm) -> bool { \/\/use returned bool to control observer notification$/;"	f
 transparent	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/internals/attr.rs	/^    pub fn transparent(&self) -> bool {$/;"	f
 tri	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/lib.rs	/^macro_rules! tri {$/;"	d
@@ -4008,14 +4020,15 @@ unwrap_to_variant_closure	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299
 update	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/saveload/marker.rs	/^    fn update(&mut self, new_revision: Self) {$/;"	f
 update	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/lazy.rs	/^    fn update(self: Box<Self>, world: &mut World) {$/;"	f
 update	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/lazy.rs	/^    fn update(self: Box<Self>, world: &mut World);$/;"	f
+update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/game_over.rs	/^    fn update(&self) {$/;"	f
+update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/_old/main_menu.rs	/^    fn update(&self) {$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/cursor.rs	/^    fn update(&self) {$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/scrollbar.rs	/^    fn update(&self) {$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/drawable/subwindow.rs	/^    fn update(&self) {$/;"	f
-update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/game_over.rs	/^    fn update(&self) {$/;"	f
-update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/main_menu.rs	/^    fn update(&self) {$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/observer/mod.rs	/^    fn update(&self);$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    fn update(&self) {$/;"	f
 update	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/player.rs	/^    fn update(&self) {$/;"	f
+update_all	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_storage.rs	/^pub fn update_all() {$/;"	f
 update_generation_length	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/entity.rs	/^    fn update_generation_length(&mut self, i: usize) {$/;"	f
 update_weights	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.7.3/src/distributions/weighted/mod.rs	/^    pub fn update_weights(&mut self, new_weights: &[(usize, &X)]) -> Result<(), WeightedError>$/;"	f
 uses_setup	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/storage/data.rs	/^    fn uses_setup() {$/;"	f
@@ -4283,17 +4296,18 @@ with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1
 with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn with<C: Component + Send + Sync>(self, c: C) -> Self;$/;"	f
 with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn with<C: Component>(self, c: C) -> Self;$/;"	f
 with	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/specs-0.16.1/src/world/mod.rs	/^    fn with<T: Component>(self, c: T) -> Self {$/;"	f
-with	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with<T: ToString>(mut self, text: T) -> Self { \/\/defaults color to WHITE$/;"	f
-with	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with<T: ToString>(mut self, text: T, color: RGB) -> Self { \/\/no default color, it must be specified$/;"	f
+with	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with<T: ToString>(&mut self, text: T) { \/\/defaults color to WHITE$/;"	f
 with	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/map_builders/mod.rs	/^    pub fn with(&mut self, metabuilder: Box<dyn MetaMapBuilder>) {$/;"	f
-with_border	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with_border(mut self, box_type: BoxType) -> Self {$/;"	f
+with_border	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with_border(&mut self, box_type: BoxType) {$/;"	f
 with_bound	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_bound($/;"	f
 with_capacity	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/map.rs	/^    pub fn with_capacity(capacity: usize) -> Self {$/;"	f
 with_capacity	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/mapping.rs	/^    pub fn with_capacity(capacity: usize) -> Self {$/;"	f
+with_color	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with_color<T: ToString>(&mut self, text: T, color: RGB) { \/\/no default color, it must be specified$/;"	f
 with_formatter	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    pub fn with_formatter(writer: W, formatter: F) -> Self {$/;"	f
 with_indent	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.53/src/ser.rs	/^    pub fn with_indent(indent: &'a [u8]) -> Self {$/;"	f
 with_lifetime_bound	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_lifetime_bound(generics: &syn::Generics, lifetime: &str) -> syn::Generics {$/;"	f
 with_self_bound	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_self_bound($/;"	f
+with_these	/home/wrmphlgm/1Projects/wizard_of_the_old_tongue/src/gui/widget/widget_builder.rs	/^    pub fn with_these(&mut self, these: &mut Vec<WidgetElement>) {$/;"	f
 with_where_predicates	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_where_predicates($/;"	f
 with_where_predicates_from_fields	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_where_predicates_from_fields($/;"	f
 with_where_predicates_from_variants	/home/wrmphlgm/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.136/src/bound.rs	/^pub fn with_where_predicates_from_variants($/;"	f
