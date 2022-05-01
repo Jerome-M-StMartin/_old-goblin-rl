@@ -7,58 +7,59 @@ use std::sync::Arc;
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
-use bracket_lib::prelude::{GameState, Point, BTerm, BError, BTermBuilder,
-                           RandomNumberGenerator, WHITE, KHAKI, MAGENTA,
-                           embedded_resource, link_resource, EMBED};
+use bracket_lib::prelude::{
+    embedded_resource, link_resource, BError, BTerm, BTermBuilder, GameState, Point,
+    RandomNumberGenerator, EMBED, KHAKI, WHITE,
+};
 
 use command::Commandable;
 
+mod bleed_system;
+mod c_menu_system;
 mod components;
-mod map;
-mod player;
-mod rect;
-mod visibility_system;
+mod damage_system;
+mod equip_system;
+mod gui;
+mod healing_system;
 mod hostile_ai_system;
+mod hunger_system;
+mod inventory_system;
+mod light_system;
+mod map;
 mod map_indexing_system;
 mod melee_combat_system;
-mod damage_system;
-mod gui;
+mod player;
+mod rect;
 mod spawner;
-mod inventory_system;
-mod equip_system;
-mod c_menu_system;
-mod healing_system;
-mod bleed_system;
-mod hunger_system;
 mod throw_system;
-mod light_system;
 mod trigger_system;
+mod visibility_system;
 
+pub mod camera;
 pub mod command;
-pub mod user_input;
+pub mod map_builders;
 pub mod particle_system;
 pub mod random_table;
 pub mod saveload_system;
-pub mod map_builders;
-pub mod camera;
+pub mod user_input;
 
 //use player::*;
-use visibility_system::VisibilitySystem;
+use bleed_system::BleedSystem;
+use c_menu_system::ContextMenuSystem;
+use damage_system::DamageSystem;
+use equip_system::EquipSystem;
+use healing_system::HealingSystem;
 use hostile_ai_system::HostileAI;
+use hunger_system::HungerSystem;
+use inventory_system::ItemCollectionSystem;
+use inventory_system::ItemDropSystem;
+use inventory_system::ItemUseSystem;
+use light_system::LightSystem;
 use map_indexing_system::MapIndexingSystem;
 use melee_combat_system::MeleeCombatSystem;
-use damage_system::DamageSystem;
-use inventory_system::ItemCollectionSystem;
-use inventory_system::ItemUseSystem;
-use inventory_system::ItemDropSystem;
-use equip_system::EquipSystem;
-use c_menu_system::ContextMenuSystem;
-use healing_system::HealingSystem;
-use bleed_system::BleedSystem;
-use hunger_system::HungerSystem;
 use throw_system::ThrowSystem;
-use light_system::LightSystem;
 use trigger_system::TriggerSystem;
+use visibility_system::VisibilitySystem;
 //use gui::drawable::Drawable;
 
 pub use components::*;
@@ -68,7 +69,7 @@ pub use rect::Rect;
 const SHOW_MAPGEN_VISUALIZER: bool = false;
 
 #[derive(PartialEq, Clone, Copy)]
-pub enum RunState { 
+pub enum RunState {
     AwaitingInput,
     GameOver,
     GameworldTurn,
@@ -106,45 +107,45 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
-        let mut context_menu = ContextMenuSystem{};
+        let mut context_menu = ContextMenuSystem {};
         context_menu.run_now(&self.ecs);
-        let mut mob = HostileAI{};
+        let mut mob = HostileAI {};
         mob.run_now(&self.ecs);
-        let mut triggers = TriggerSystem{};
+        let mut triggers = TriggerSystem {};
         triggers.run_now(&self.ecs);
-        let mut items = ItemUseSystem{};
+        let mut items = ItemUseSystem {};
         items.run_now(&self.ecs);
-        let mut drop = ItemDropSystem{};
+        let mut drop = ItemDropSystem {};
         drop.run_now(&self.ecs);
-        let mut melee = MeleeCombatSystem{};
+        let mut melee = MeleeCombatSystem {};
         melee.run_now(&self.ecs);
-        let mut light = LightSystem{};
+        let mut light = LightSystem {};
         light.run_now(&self.ecs);
-        let mut vis = VisibilitySystem{};
+        let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
-        let mut mapindex = MapIndexingSystem{};
+        let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
-        let mut healing = HealingSystem{};
+        let mut healing = HealingSystem {};
         healing.run_now(&self.ecs);
-        let mut bleed = BleedSystem{};
+        let mut bleed = BleedSystem {};
         bleed.run_now(&self.ecs);
-        let mut hunger = HungerSystem{};
+        let mut hunger = HungerSystem {};
         hunger.run_now(&self.ecs);
-        let mut throw = ThrowSystem{};
+        let mut throw = ThrowSystem {};
         throw.run_now(&self.ecs);
-        let mut damage = DamageSystem{};
+        let mut damage = DamageSystem {};
         damage.run_now(&self.ecs);
-        let mut pick_up = ItemCollectionSystem{};
+        let mut pick_up = ItemCollectionSystem {};
         pick_up.run_now(&self.ecs);
-        let mut equips = EquipSystem{};
+        let mut equips = EquipSystem {};
         equips.run_now(&self.ecs);
-        let mut particles = particle_system::ParticleSpawnSystem{};
+        let mut particles = particle_system::ParticleSpawnSystem {};
         particles.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
 
-    fn generate_world_map(&mut self, new_depth : i32) {
+    fn generate_world_map(&mut self, new_depth: i32) {
         self.mapgen_index = 0;
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
@@ -157,7 +158,12 @@ impl State {
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
             *worldmap_resource = builder.build_data.map.clone();
-            player_start = builder.build_data.starting_position.as_mut().unwrap().clone();
+            player_start = builder
+                .build_data
+                .starting_position
+                .as_mut()
+                .unwrap()
+                .clone();
         }
 
         // Spawn bad guys
@@ -180,7 +186,7 @@ impl State {
         let vs = viewshed_components.get_mut(*player_entity);
         if let Some(vs) = vs {
             vs.dirty = true;
-        } 
+        }
     }
 
     fn entities_to_remove_on_level_change(&mut self) -> Vec<Entity> {
@@ -201,14 +207,16 @@ impl State {
         // Delete entities that aren't the player or his/her equipment
         let to_delete = self.entities_to_remove_on_level_change();
         for target in to_delete {
-            self.ecs.delete_entity(target).expect("Unable to delete entity");
+            self.ecs
+                .delete_entity(target)
+                .expect("Unable to delete entity");
         }
 
         // Build a new map and place the player
         let curr_depth;
         {
-           let worldmap_resource = self.ecs.fetch::<Map>();
-           curr_depth = worldmap_resource.depth;
+            let worldmap_resource = self.ecs.fetch::<Map>();
+            curr_depth = worldmap_resource.depth;
         }
         self.generate_world_map(curr_depth + 1);
 
@@ -246,28 +254,28 @@ impl State {
 }
 
 impl GameState for State {
-    fn tick(&mut self, ctx: &mut BTerm) { 
+    fn tick(&mut self, ctx: &mut BTerm) {
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
             newrunstate = *runstate;
-            
+
             match *runstate {
                 RunState::AwaitingInput => {}
-                RunState::ShowTargeting {range: _, item: _} => {}
-                _ => {//reset cursor to inactive state
-                    let mut cursor = self.ecs.fetch_mut::<Cursor>();
-                    cursor.active = false;
+                RunState::ShowTargeting { range: _, item: _ } => {}
+                _ => {
+                    //reset cursor to inactive state
+                    /*let mut cursor = self.ecs.fetch_mut::<Cursor>();
+                    cursor.active = false;*/
                 }
             }
         }
-        
+
         //Clear both main-map and log consoles.
         //ctx.set_active_console(1);
         //ctx.cls();
         ctx.set_active_console(0);
         ctx.cls();
-
 
         particle_system::cull_dead_particles(&mut self.ecs, ctx);
         self.gui.tick(ctx);
@@ -279,7 +287,6 @@ impl GameState for State {
             RunState::GameOver => {}
             //RunState::MapGeneration => {}
             _ => {
-                
                 //draw_map(&self.ecs.fetch::<Map>(), ctx); //Was already commented out, don't remember why. (05/2021)
                 /*match ctx.key {
                     None => {}
@@ -298,7 +305,7 @@ impl GameState for State {
                 let widget_elements = player_stats.unwrap().as_widget_elements();
                 store_widget_data("PlayerStats", widget_elements);
                 //-------------------------------------------------------------------------
-                
+
                 camera::render_camera(&self.ecs, ctx);
                 ctx.set_active_font(0, true);
             }
@@ -334,7 +341,7 @@ impl GameState for State {
             }
             RunState::AwaitingInput => {
                 //newrunstate = player_input(&mut self.ecs, ctx); //OLD
-                
+
                 //TODO
                 /* PlayerController::process() currently loops through its entire
                  * CommandQueue, executing them all sequentially PER CALL,
@@ -345,14 +352,18 @@ impl GameState for State {
                  * results in gameplay but which is undoable and not committed until they choose
                  * to submit their final turn, which consists of the Commands in the CommandQueue,
                  * in the order they were added to the CommandQueue.*/
-                newrunstate = self.player_controller.ecs_process(&mut self.ecs, RunState::AwaitingInput);
+                newrunstate = self
+                    .player_controller
+                    .ecs_process(&mut self.ecs, RunState::AwaitingInput);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
                 self.ecs.maintain();
                 match *self.ecs.fetch::<RunState>() {
-                    RunState::MagicMapReveal{..} => newrunstate = RunState::MagicMapReveal { row: 0 },
-                    _ => newrunstate = RunState::GameworldTurn
+                    RunState::MagicMapReveal { .. } => {
+                        newrunstate = RunState::MagicMapReveal { row: 0 }
+                    }
+                    _ => newrunstate = RunState::GameworldTurn,
                 }
             }
             RunState::GameworldTurn => {
@@ -530,7 +541,6 @@ impl GameState for State {
                     }
                 }
             }*/
-
             RunState::MagicMapReveal { row } => {
                 let mut map = self.ecs.fetch_mut::<Map>();
                 for x in 0..map.width {
@@ -540,7 +550,7 @@ impl GameState for State {
                 if row == map.height - 1 {
                     newrunstate = RunState::GameworldTurn;
                 } else {
-                    newrunstate = RunState::MagicMapReveal{ row: row + 1 };
+                    newrunstate = RunState::MagicMapReveal { row: row + 1 };
                 }
             }
 
@@ -550,46 +560,51 @@ impl GameState for State {
             }
 
             /*RunState::SaveGame => {
-                saveload_system::save_game(&mut self.ecs); 
+                saveload_system::save_game(&mut self.ecs);
                 newrunstate = RunState::MainMenu {menu_selection: gui::MainMenuSelection::LoadGame};
             }*/
-
             RunState::MainMenu => {
                 use gui::widget::{main_menu, widget_storage};
 
                 if widget_storage::contains("MainMenu") {
                     match self.user_input.get_focus_selection() {
-                        Some(0) => { //New Game
+                        Some(0) => {
+                            //New Game
                             newrunstate = RunState::PreRun;
-                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
+                            widget_storage::rm("MainMenu")
+                                .expect("widget_storage::rm(main_menu) failed.");
                         }
-                        Some(1) => { //Load Game
+                        Some(1) => {
+                            //Load Game
                             saveload_system::load_game(&mut self.ecs);
                             newrunstate = RunState::AwaitingInput;
                             saveload_system::delete_save(); //death is permanent
-                            widget_storage::rm("MainMenu").expect("widget_storage::rm(main_menu) failed.");
-                        },
+                            widget_storage::rm("MainMenu")
+                                .expect("widget_storage::rm(main_menu) failed.");
+                        }
                         Some(2) => ::std::process::exit(0), //Quit Game
-                        _ => {},
+                        _ => {}
                     }
                 } else {
                     let id: usize = main_menu::construct(ctx, &self.gui.user_input);
                     self.user_input.set_focus(id);
                 }
             }
-            
+
             RunState::GameOver => {
                 use gui::widget::{game_over, widget_storage};
 
                 if widget_storage::contains("GameOver") {
                     match self.user_input.get_focus_selection() {
-                        Some(0) => { //New Game
+                        Some(0) => {
+                            //New Game
                             self.game_over_cleanup();
                             newrunstate = RunState::PreRun;
-                            widget_storage::rm("GameOver").expect("widget_storage::rm('GameOver') failed.");
+                            widget_storage::rm("GameOver")
+                                .expect("widget_storage::rm('GameOver') failed.");
                         }
                         Some(1) => ::std::process::exit(0), //Quit Game
-                        _ => {},
+                        _ => {}
                     }
                 } else {
                     let id: usize = game_over::construct(ctx, &self.gui.user_input);
@@ -608,12 +623,12 @@ impl GameState for State {
     }
 }
 
-//Needs to be more obviously differentiated from GUI::Cursor. -------------------------- !!!
+/*Needs to be more obviously differentiated from GUI::Cursor. -------------------------- !!!
 struct Cursor {
-    pub x: i32, 
+    pub x: i32,
     pub y: i32,
-    pub active: bool
-}
+    pub active: bool,
+}*/
 
 struct Inventory {
     pub hands: (Option<Entity>, Option<Entity>),
@@ -622,16 +637,10 @@ struct Inventory {
     pub equipment: Vec<Option<Entity>>,
 }
 
-struct UIColors { //-----------------needs to be replaced by gui::look_n_feel::ColorOptions
-    pub main: (u8, u8, u8),
-    pub cursor: (u8, u8, u8),
-}
-
 //embedded_resource!(TILE_FONT, "../resources/unicode_16x16.png"); //bracket-lib should doc this
 embedded_resource!(TILE_FONT, "../resources/terminal8x8.jpg");
 
 fn main() -> BError {
-
     //link_resource!(TILE_FONT, "resources/unicode_16x16.png");
     link_resource!(TILE_FONT, "resources/terminal8x8.jpg");
 
@@ -663,10 +672,10 @@ fn main() -> BError {
         tooltips_on: false,
 
         //mapgen_next_state : Some(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame }), OLD
-        mapgen_next_state : Some(RunState::MainMenu),
-        mapgen_index : 0,
+        mapgen_next_state: Some(RunState::MainMenu),
+        mapgen_index: 0,
         mapgen_history: Vec::new(),
-        mapgen_timer: 0.0
+        mapgen_timer: 0.0,
     };
 
     gs.ecs.register::<Position>();
@@ -725,19 +734,22 @@ fn main() -> BError {
     gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0)); //<-what is this, Player Entity location? idk
     gs.ecs.insert(RandomNumberGenerator::new());
-    gs.ecs.insert(RunState::MapGeneration{});
+    gs.ecs.insert(RunState::MapGeneration {});
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
 
-    gs.ecs.insert(Cursor { x: 0, y: 0, active: false });
-    gs.ecs.insert(Inventory { 
+    /*gs.ecs.insert(Cursor {
+        x: 0,
+        y: 0,
+        active: false,
+    });*/
+    gs.ecs.insert(Inventory {
         hands: (None, None),
         quickbar: Vec::new(),
         backpack: Vec::new(),
         equipment: Vec::new(),
     });
-    gs.ecs.insert(UIColors { main: WHITE, cursor: MAGENTA });
 
     let mut logger = gui::gamelog::Logger::new();
     logger.append("A most stifling damp chokes the air, the");

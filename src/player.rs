@@ -1,15 +1,16 @@
 use std::cmp::{max, min};
 use std::sync::Arc;
 
-use specs::prelude::*;
 use bracket_lib::prelude::Point;
+use specs::prelude::*;
 
-use crate::gui::{look_n_feel::Dir, Observer, Observable};
-use super::{Position, Player, Viewshed, Map, RunState, Stats, MeleeIntent, Cursor,
-            Item, gui::gamelog, PickUpIntent, TileType, Hostile, Hunger, HungerState,
-            JustMoved,};
-use crate::user_input::{UserInput, InputEvent};
-use crate::command::*; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
+use super::{
+    gui::gamelog, Hostile, Hunger, HungerState, Item, JustMoved, Map, MeleeIntent, PickUpIntent,
+    Player, Position, RunState, Stats, TileType, Viewshed,
+};
+use crate::command::*;
+use crate::gui::{look_n_feel::Dir, Observable, Observer};
+use crate::user_input::{InputEvent, UserInput}; //NOT THE SAME AS THE DEFUNCT VERSION IN gui::
 
 pub struct PlayerController {
     name: String,
@@ -51,10 +52,10 @@ impl Observer for PlayerController {
         if let Ok(input_event_guard) = self.user_input.input.read() {
             if let Some(input_event) = *input_event_guard {
                 let cmd_option = match input_event {
-                    InputEvent::WASD(dir) => { Some(Command::Move { dir }) }//move
-                    InputEvent::ENTER => { Some(Command::Grab) }//context action
-                    InputEvent::SPACE => { Some(Command::Wait) }//wait
-                    _ => { None }
+                    InputEvent::WASD(dir) => Some(Command::Move { dir }), //move
+                    InputEvent::ENTER => Some(Command::Grab),             //context action
+                    InputEvent::SPACE => Some(Command::Wait),             //wait
+                    _ => None,
                 };
 
                 if let Some(cmd) = cmd_option {
@@ -63,8 +64,10 @@ impl Observer for PlayerController {
             }
         }
     }
-    fn name(&self) -> &str { &self.name }
-}//----------------------------------------------------------------
+    fn name(&self) -> &str {
+        &self.name
+    }
+} //----------------------------------------------------------------
 
 //-----------------------------------------------------------------
 //------------- Command Pattern for PlayerController --------------
@@ -82,19 +85,19 @@ impl Commandable for PlayerController {
             match cmd {
                 Command::Grab => {
                     get_item(ecs);
-                },
-                Command::Move{dir} => {
+                }
+                Command::Move { dir } => {
                     match dir {
-                        Dir::UP => { runstate = try_move_player(0, -1, ecs) },
-                        Dir::DOWN => { runstate = try_move_player(0, 1, ecs) },
-                        Dir::LEFT => { runstate = try_move_player(-1, 0, ecs) },
-                        Dir::RIGHT => { runstate = try_move_player(1, 0, ecs) },
+                        Dir::UP => runstate = try_move_player(0, -1, ecs),
+                        Dir::DOWN => runstate = try_move_player(0, 1, ecs),
+                        Dir::LEFT => runstate = try_move_player(-1, 0, ecs),
+                        Dir::RIGHT => runstate = try_move_player(1, 0, ecs),
                     };
-                },
+                }
                 Command::Wait => {
                     skip_turn(ecs);
-                },
-                _ => {},
+                }
+                _ => {}
             };
         }
 
@@ -107,16 +110,16 @@ impl Commandable for PlayerController {
 
         while next.is_some() {
             match next.unwrap() {
-                Command::Grab => {},
+                Command::Grab => {}
                 //Command::Move{dir} => {},
-                Command::Wait => {},
-                _ => {},
+                Command::Wait => {}
+                _ => {}
             }
 
             next = self.cmd_queue.pop();
         }
     }
-}//----------------------------------------------------------------
+} //----------------------------------------------------------------
 
 /*pub fn player_input(ecs: &mut World, ctx: &mut BTerm) -> RunState {
     let new_runstate : RunState;
@@ -126,7 +129,7 @@ impl Commandable for PlayerController {
     new_runstate = match ctx.key {
         None => return RunState::AwaitingInput,
         Some(key) => match key {
-          
+
             VirtualKeyCode::Return => return RunState::ShowContextMenu { selection: 0, focus: 0 },
 
             //skip turn; wait
@@ -162,7 +165,7 @@ impl Commandable for PlayerController {
             VirtualKeyCode::Down |
             //VirtualKeyCode::Numpad2 |
             VirtualKeyCode::S => try_move_player(0, 1, ecs),
-            
+
             //diagonals
             //VirtualKeyCode::Numpad9 |
             VirtualKeyCode::E => try_move_player(1, -1, ecs),
@@ -171,12 +174,12 @@ impl Commandable for PlayerController {
             //VirtualKeyCode::Numpad3 |
             VirtualKeyCode::C => try_move_player(1, 1, ecs),
             //VirtualKeyCode::Numpad1 |
-            VirtualKeyCode::Z => try_move_player(-1, 1, ecs),          
+            VirtualKeyCode::Z => try_move_player(-1, 1, ecs),
 
             _ => return RunState::AwaitingInput,
         },
     };
-    
+
     return new_runstate;
 }*/
 
@@ -192,20 +195,31 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut just_moved_storage = ecs.write_storage::<JustMoved>();
 
     for (entity, _, pos, viewshed) in
-        (&entities, &player_storage, &mut positions, &mut viewsheds).join() {
-        
-        if pos.x + delta_x < 1 || pos.x + delta_x > map.width-1 ||
-        pos.y + delta_y < 1 || pos.y + delta_y > map.height-1 { return RunState::AwaitingInput; }
+        (&entities, &player_storage, &mut positions, &mut viewsheds).join()
+    {
+        if pos.x + delta_x < 1
+            || pos.x + delta_x > map.width - 1
+            || pos.y + delta_y < 1
+            || pos.y + delta_y > map.height - 1
+        {
+            return RunState::AwaitingInput;
+        }
 
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
-        
+
         //bump attack check
         for potential_target in map.tile_content[destination_idx].iter() {
             let target = stats.get(*potential_target);
             if let Some(_target) = target {
-                melee_intent.insert(entity, MeleeIntent{target: *potential_target})
-                .expect("Add target failed for bump attack.");
-                
+                melee_intent
+                    .insert(
+                        entity,
+                        MeleeIntent {
+                            target: *potential_target,
+                        },
+                    )
+                    .expect("Add target failed for bump attack.");
+
                 return RunState::PlayerTurn; //cancel movement
             }
         }
@@ -218,20 +232,21 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
             let mut p_pos = ecs.write_resource::<Point>();
             p_pos.x = pos.x;
             p_pos.y = pos.y;
-            
-            just_moved_storage.insert(*player, JustMoved{})
+
+            just_moved_storage
+                .insert(*player, JustMoved {})
                 .expect("Unable to insert JustMoved component.");
 
-            //Move Cursor with player
+            /*Move Cursor with player
             let mut cursor = ecs.fetch_mut::<Cursor>();
             if cursor.x + delta_x < 1 || cursor.x + delta_x > map.width-1 ||
                cursor.y + delta_y < 1 || cursor.y + delta_y > map.height-1 {return RunState::PlayerTurn;}
             cursor.x += delta_x;
-            cursor.y += delta_y;
+            cursor.y += delta_y;*/
             return RunState::PlayerTurn;
         }
     }
-    
+
     return RunState::AwaitingInput;
 }
 
@@ -272,7 +287,14 @@ fn get_item(ecs: &mut World) -> RunState {
         }
         Some(item) => {
             let mut pickup = ecs.write_storage::<PickUpIntent>();
-            pickup.insert(*player_entity, PickUpIntent {item, desired_by: *player_entity})
+            pickup
+                .insert(
+                    *player_entity,
+                    PickUpIntent {
+                        item,
+                        desired_by: *player_entity,
+                    },
+                )
                 .expect("Unable to insert PickUpIntent.");
         }
     }
@@ -296,7 +318,9 @@ fn skip_turn(ecs: &mut World) -> RunState {
             let mob = hostiles.get(*entity_id);
             match mob {
                 None => {}
-                Some(_) => { can_heal = false; }
+                Some(_) => {
+                    can_heal = false;
+                }
             }
         }
     }
@@ -304,19 +328,22 @@ fn skip_turn(ecs: &mut World) -> RunState {
     if can_heal {
         let mut stats = ecs.write_storage::<Stats>();
         let p_stats = stats.get_mut(*player_entity).unwrap();
-        let new_hp = max(p_stats.hp, min(p_stats.hp + 1, f32::floor(p_stats.max_hp as f32 / 2.0) as i32));
-        
+        let new_hp = max(
+            p_stats.hp,
+            min(
+                p_stats.hp + 1,
+                f32::floor(p_stats.max_hp as f32 / 2.0) as i32,
+            ),
+        );
+
         if let Some(h) = hunger {
             match h.state {
                 HungerState::Famished => p_stats.hp = min(new_hp, max(3, new_hp)),
-                HungerState::Starving => {},
+                HungerState::Starving => {}
                 _ => p_stats.hp = new_hp,
             }
         }
-
     }
 
     RunState::PlayerTurn
 }
-
-

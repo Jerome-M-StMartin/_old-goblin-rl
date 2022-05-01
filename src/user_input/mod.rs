@@ -2,19 +2,21 @@
 //Node Menu Project
 //03/06/2021
 
-//This obj is the Observable of an Observer Pattern used to pass user input
-//around to the currently active interface/object, called the "focus".
+// This obj is the Observable of an Observer Pattern used to pass user input
+// around to the currently active interface/object.
 //
-//Each Observer has read-only access to the InputState.
-//The Observers should receieve a call to Observer::update() whenever the InputState mutates.
-//Each Observer can then translate any subset of the InputState into Commands (see Command Pattern)
-//which will then control/mutate the user interface of that Observer object. This way each Observer
-//holds its own internal set of Commands without telling any outside objects what they are. If
-//input is invalid for the "focus" Observer, the corresponding input in the InputState is simply
-//ignored by the focus Observer.
+// Active interface/obj is the "focus".
+//
+// Each Observer has read-only access to the InputState.
+// The Observers should receieve a call to Observer::update() whenever the InputState mutates.
+// Each Observer can then translate any subset of the InputState into Commands (see Command Pattern)
+// which will then control/mutate the user interface of that Observer object. This way each Observer
+// holds its own internal set of Commands without telling any outside objects what they are. If
+// input is invalid for the "focus" Observer, the corresponding input in the InputState is simply
+// ignored by the focus Observer.
 
 use std::any::Any;
-use std::sync::{Mutex, RwLock, Arc, Weak};
+use std::sync::{Arc, Mutex, RwLock, Weak};
 
 use bracket_lib::prelude::{BTerm, Point, VirtualKeyCode};
 
@@ -38,6 +40,7 @@ pub enum InputEvent {
     CURSOR(Point),
     WASD(Dir),
     HJKL(Dir),
+    GRAB,
     SPACE,
     TOOLTIPS,
     ESC,
@@ -61,12 +64,15 @@ impl UserInput {
         }
     }
 
-    fn transcribe_input(&self, ctx: &BTerm) -> bool { //use bool to control observer notification
-        
+    fn transcribe_input(&self, ctx: &BTerm) -> bool {
+        //use bool to control observer notification
+
         //Clear past selection, if any.
         if let Ok(mut selection) = self.selection.write() {
             *selection = None;
-        } else { panic!("RwLock poisoned! (user_input::transcribe_input"); }
+        } else {
+            panic!("RwLock poisoned! (user_input::transcribe_input");
+        }
 
         //Read user input
         let mut new_input: Option<InputEvent> = None;
@@ -82,7 +88,8 @@ impl UserInput {
                 VirtualKeyCode::H => new_input = Some(InputEvent::HJKL(Dir::LEFT)),
                 VirtualKeyCode::L => new_input = Some(InputEvent::HJKL(Dir::RIGHT)),
 
-                VirtualKeyCode::Tab => { //Change Focus
+                VirtualKeyCode::Tab => {
+                    //Change Focus
                     let next_id = self.next_observer_id();
                     if let Ok(mut guard) = self.focus_id.lock() {
                         *guard = Some(next_id);
@@ -102,7 +109,7 @@ impl UserInput {
                 return true;
             }
         }
-        
+
         false
     }
 
@@ -118,7 +125,6 @@ impl UserInput {
             //grab next Weak<Observer> from the observer-vec & upgrade to Arc<>
             if let Some(next_focus_weak) = observers.pop() {
                 if let Some(next_focus) = next_focus_weak.upgrade() {
-
                     //set & lite-initialize new focus id, insert at head of observer-vec
                     focus_id = next_focus.id();
                     if let Ok(mut guard) = self.focus_id.lock() {
@@ -126,7 +132,7 @@ impl UserInput {
                     }
                     next_focus.become_focus();
                     observers.insert(0, Arc::downgrade(&next_focus));
-                    dbg!("Next focus: {}", next_focus.name());//----------------------------------------Debugging
+                    dbg!("Next focus: {}", next_focus.name()); //----------------------------------------Debugging
                 }
             }
         }
@@ -143,17 +149,18 @@ impl UserInput {
             //iterate over each observer
             for observer_weak in observers.iter() {
                 if let Some(observer) = observer_weak.upgrade() {
-
                     //check if it's the target
                     if observer.id() == observer_id {
                         let new_focus = observers.swap_remove(idx); //O(1) but not in-place
-                        //let new_focus = observers.remove(idx);
+                                                                    //let new_focus = observers.remove(idx);
                         observers.insert(0, new_focus);
-                        
+
                         //obtain a Mutex lock & set new focus
                         if let Ok(mut focus) = self.focus_id.lock() {
                             *focus = Some(observer_id);
-                        } else { panic!("Mutex poisoned! (UserInput::set_focus())"); }
+                        } else {
+                            panic!("Mutex poisoned! (UserInput::set_focus())");
+                        }
 
                         observer.become_focus();
                         break;
@@ -161,20 +168,22 @@ impl UserInput {
                     idx += 1;
                 }
             }
-        } else { panic!("Mutex poisioned! (UserInput::set_focus())"); }
+        } else {
+            panic!("Mutex poisioned! (UserInput::set_focus())");
+        }
     }
 
     pub fn set_focus_selection(&self, new_selection: Option<u8>) {
         if let Ok(mut selection) = self.selection.write() {
             *selection = new_selection;
-            return
+            return;
         }
         panic!("Mutex poisoned! (user_input.set_selection())");
     }
 
     pub fn get_focus_selection(&self) -> Option<u8> {
         if let Ok(selection) = self.selection.read() {
-            return *selection
+            return *selection;
         }
         panic!("Mutex poisoned! (user_input.get_focus_selection())");
     }
@@ -207,12 +216,12 @@ impl Observable for UserInput {
             if !to_remove.is_empty() {
                 for idx in to_remove.into_iter() {
                     observers.swap_remove(idx); //swap_remove() does not preserve order but is O(1).
-                    //observers.remove(idx);
+                                                //observers.remove(idx);
                 }
             }
-   
-        } else { panic!("Mutex was poisoned in user_input::mod.rs::notify_observers()"); }
-
+        } else {
+            panic!("Mutex was poisoned in user_input::mod.rs::notify_observers()");
+        }
     }
 
     fn notify_focus(&self) {
@@ -222,15 +231,17 @@ impl Observable for UserInput {
 
             if let Some(focus) = weak_focus.upgrade() {
                 focus.update();
-               
-            } else if !observers.is_empty() { //upgrade failed, so rm this observer and re-call this fn
+            } else if !observers.is_empty() {
+                //upgrade failed, so rm this observer and re-call this fn
                 //lazily delete the dropped observer pointer
                 observers.remove(0);
                 try_again = true;
             }
-        } else { panic!("Mutex poisoned! (UserInput::notify_focus())"); }
+        } else {
+            panic!("Mutex poisoned! (UserInput::notify_focus())");
+        }
 
-        if try_again { 
+        if try_again {
             //re-set focus to self.focus_id, if it's Some
             if let Ok(focus_id) = self.focus_id.lock() {
                 if let Some(id) = *focus_id {
@@ -245,10 +256,11 @@ impl Observable for UserInput {
 
     //Called by Observer trait objects who want to be notified by this Observable.
     fn add_observer<T>(&self, to_add: &Arc<T>)
-        where T: 'static + Observer {
-        
+    where
+        T: 'static + Observer,
+    {
         let as_observer: Weak<T> = Arc::downgrade(to_add);
-        
+
         if let Ok(mut guard) = self.observers.lock() {
             guard.push(as_observer);
         }
@@ -374,5 +386,3 @@ impl UserInput {
     }
 }
 */
-
-
