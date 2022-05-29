@@ -1,3 +1,11 @@
+
+!!!
+DEPRECATED as of May, 2022
+See my other repo, goblin-rl.
+!!!
+
+
+
 PROSPECTIVE EMPLOYERS:
 This part is just for you. I'm just about to link this repo to a recruiter and
 wanted to clarify which parts of this source code are worth your time. If
